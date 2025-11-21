@@ -23,20 +23,17 @@
   font-style: italic;
 }
 
-/* --- SFONDO FISSO E CENTRATO --- */
+/* --- SFONDO CENTRATO --- */
 body {
     min-height: 100vh;
     margin: 0;
     padding: 0;
 
-    /* Sfondo centrato e fisso */
-    background: 
-        radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%),
-        url("../img/logoLSD.png");
-    background-size: cover;        /* riempie la finestra */
+    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%), url("../img/logoLSD.png");
+    background-size: cover;      
     background-position: center center;
     background-repeat: no-repeat;
-    background-attachment: fixed;   /* effetto parallax: fisso */
+    background-attachment: fixed;
 }
 
 /* --- HEADER --- */
@@ -46,8 +43,6 @@ header {
     border-radius: 10px;
     background-color: rgba(0, 0, 0, 0.533);
     border: 1px solid white;
-    z-index: 10;
-    position: relative;
 }
 
 /* --- NAVBAR --- */
@@ -57,7 +52,6 @@ header {
     justify-content: space-between;
     padding: 10px 20px;
     position: relative;
-    z-index: 10;
 }
 
 #logo img {
@@ -114,8 +108,7 @@ h1 {
     width: 90%;
     margin: 20px auto;
     padding: 20px;
-    position: relative;  /* per sovrapposizione sullo sfondo */
-    z-index: 5;
+    position: relative;
 }
 
 fieldset {
@@ -144,18 +137,16 @@ footer {
     padding: 10px;
     font-size: 0.85em;
     position: relative;
-    z-index: 5;
 }
 
 /* --- HAMBURGER ICON --- */
 #hamburger {
     width: 30px;
     height: 22px;
-    display: none;
+    display: none; 
     flex-direction: column;
     justify-content: space-between;
     cursor: pointer;
-    z-index: 15;
 }
 
 #hamburger span {
@@ -182,7 +173,7 @@ footer {
         position: absolute;
         top: 100%;
         left: 0;
-        width: 100%;
+        width: 100%; 
         background: #111;
         flex-direction: column;
         padding: 15px 0;
@@ -212,11 +203,6 @@ footer {
         height: 90px;
     }
 
-    /* Su mobile, limita zoom e mantiene logo visibile */
-    body {
-        background-size: contain;
-        background-position: center top;
-    }
 }
 
 /* --- ANIMAZIONE HAMBURGER APERTO --- */

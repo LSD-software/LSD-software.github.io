@@ -1,12 +1,38 @@
 /* --- GENERALE --- */
+.courier-prime-regular {
+  font-family: "Courier Prime", monospace;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.courier-prime-bold {
+  font-family: "Courier Prime", monospace;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.courier-prime-regular-italic {
+  font-family: "Courier Prime", monospace;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.courier-prime-bold-italic {
+  font-family: "Courier Prime", monospace;
+  font-weight: 700;
+  font-style: italic;
+}
+
 body {
     min-height: 100vh;
-    font-family: "Poppins", sans-serif;
-    background-color: #f4f4f8;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
+
+    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190, 26, 26, 0.2) 100%), url("../img/logoLSD.png");
+    background-size: cover;      /* riempie tutta la finestra */
+    background-repeat: no-repeat;
+    background-position: center center; /* il centro rimane centrato */
+    background-attachment: fixed; /* opzionale: effetto parallax */
 }
 
 /* --- HEADER --- */
@@ -14,8 +40,7 @@ header {
     width: 90%;
     margin: 20px auto;
     border-radius: 10px;
-    overflow: hidden;
-    background-color: black;
+    background-color: rgba(0, 0, 0, 0.533);
     border: 1px solid white;
 }
 
@@ -30,14 +55,16 @@ header {
 
 #logo img {
     height: 100px;
-    padding: 10px;
+    padding: 5px;
 }
 
 /* --- TITOLO --- */
 h1 {
+    text-align: center;
     color: gold;
     text-align: center;
     flex: 1;
+    padding: 5px;
 }
 
 /* --- MENU DESKTOP --- */
@@ -64,17 +91,53 @@ h1 {
     bottom: -3px;
     width: 0%;
     height: 2px;
-    background: red;
+    background: #800000;
     transition: width 0.3s ease;
 }
 
 #menu a:hover {
-    color: red;
+    color: #800000;
 }
 
 #menu a:hover::after {
     width: 100%;
 }
+
+
+/* Contenuto del Body */
+#container{
+    width: 90%;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+fieldset{
+    background: rgba(0, 0, 0, 0.512);
+    border: 1px solid gold;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 20px auto;
+}
+
+legend{
+    padding: 5px;
+    font-size: 28px;
+    color: #800000;
+}
+
+#container h2{
+    color: white;
+}
+
+/* --- FOOTER --- */
+footer {
+    background: #2b2b2b;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 0.85em;
+}
+
 
 /* --- HAMBURGER ICON --- */
 #hamburger {
@@ -101,6 +164,7 @@ h1 {
     /* Mostra hamburger */
     #hamburger {
         display: flex;
+        padding: 2px;
     }
 
     /* BOX MENU MOBILE */
@@ -136,7 +200,7 @@ h1 {
 
     /* Riduci logo */
     #logo img {
-        height: 50px;
+        height: 90px;
     }
 }
 

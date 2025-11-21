@@ -1,4 +1,4 @@
-/* --- GENERALE --- */
+/* --- FONT --- */
 .courier-prime-regular {
   font-family: "Courier Prime", monospace;
   font-weight: 400;
@@ -23,16 +23,21 @@
   font-style: italic;
 }
 
+/* --- SFONDO CENTRATO E RESPONSIVE --- */
 body {
     min-height: 100vh;
     margin: 0;
     padding: 0;
+    font-family: "Poppins", sans-serif;
 
-    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190, 26, 26, 0.2) 100%), url("../img/logoLSD.png");
-    background-size: cover;      /* riempie tutta la finestra */
+    /* Sfondo + overlay circolare leggero */
+    background: 
+        radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%),
+        url("../img/logoLSD.png");
+    background-size: cover;      
     background-repeat: no-repeat;
-    background-position: center center; /* il centro rimane centrato */
-    background-attachment: fixed; /* opzionale: effetto parallax */
+    background-position: center;
+    background-attachment: fixed; 
 }
 
 /* --- HEADER --- */
@@ -62,7 +67,6 @@ header {
 h1 {
     text-align: center;
     color: gold;
-    text-align: center;
     flex: 1;
     padding: 5px;
 }
@@ -103,15 +107,14 @@ h1 {
     width: 100%;
 }
 
-
-/* Contenuto del Body */
-#container{
+/* --- CONTENUTO DEL BODY --- */
+#container {
     width: 90%;
     margin: 20px auto;
     padding: 20px;
 }
 
-fieldset{
+fieldset {
     background: rgba(0, 0, 0, 0.512);
     border: 1px solid gold;
     border-radius: 8px;
@@ -119,13 +122,13 @@ fieldset{
     margin: 20px auto;
 }
 
-legend{
+legend {
     padding: 5px;
     font-size: 28px;
     color: #800000;
 }
 
-#container h2{
+#container h2 {
     color: white;
 }
 
@@ -138,12 +141,11 @@ footer {
     font-size: 0.85em;
 }
 
-
 /* --- HAMBURGER ICON --- */
 #hamburger {
     width: 30px;
     height: 22px;
-    display: none; /* nascosto su PC */
+    display: none; /* nascosto su desktop */
     flex-direction: column;
     justify-content: space-between;
     cursor: pointer;
@@ -171,9 +173,9 @@ footer {
     #menu {
         display: none;
         position: absolute;
-        top: 100%;  /* 👉 si apre sotto la navbar */
+        top: 100%;  
         left: 0;
-        width: 100%; /* 👉 largo quanto la navbar */
+        width: 100%; 
         background: #111;
         flex-direction: column;
         padding: 15px 0;
@@ -203,7 +205,6 @@ footer {
         height: 90px;
     }
 }
-
 
 /* --- ANIMAZIONE HAMBURGER APERTO --- */
 #hamburger.active span:nth-child(1) {

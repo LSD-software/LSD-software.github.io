@@ -23,21 +23,21 @@
   font-style: italic;
 }
 
-/* --- SFONDO CENTRATO E RESPONSIVE --- */
+/* --- SFONDO FISSO E CENTRATO --- */
 body {
     min-height: 100vh;
     margin: 0;
     padding: 0;
     font-family: "Poppins", sans-serif;
 
-    /* Sfondo + overlay circolare leggero */
+    /* Sfondo centrato e fisso */
     background: 
         radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%),
         url("../img/logoLSD.png");
-    background-size: cover;      
+    background-size: cover;        /* riempie la finestra */
+    background-position: center center;
     background-repeat: no-repeat;
-    background-position: center;
-    background-attachment: fixed; 
+    background-attachment: fixed;   /* effetto parallax: fisso */
 }
 
 /* --- HEADER --- */
@@ -47,6 +47,8 @@ header {
     border-radius: 10px;
     background-color: rgba(0, 0, 0, 0.533);
     border: 1px solid white;
+    z-index: 10;
+    position: relative;
 }
 
 /* --- NAVBAR --- */
@@ -56,6 +58,7 @@ header {
     justify-content: space-between;
     padding: 10px 20px;
     position: relative;
+    z-index: 10;
 }
 
 #logo img {
@@ -112,6 +115,8 @@ h1 {
     width: 90%;
     margin: 20px auto;
     padding: 20px;
+    position: relative;  /* per sovrapposizione sullo sfondo */
+    z-index: 5;
 }
 
 fieldset {
@@ -139,16 +144,19 @@ footer {
     text-align: center;
     padding: 10px;
     font-size: 0.85em;
+    position: relative;
+    z-index: 5;
 }
 
 /* --- HAMBURGER ICON --- */
 #hamburger {
     width: 30px;
     height: 22px;
-    display: none; /* nascosto su desktop */
+    display: none;
     flex-direction: column;
     justify-content: space-between;
     cursor: pointer;
+    z-index: 15;
 }
 
 #hamburger span {
@@ -173,9 +181,9 @@ footer {
     #menu {
         display: none;
         position: absolute;
-        top: 100%;  
+        top: 100%;
         left: 0;
-        width: 100%; 
+        width: 100%;
         background: #111;
         flex-direction: column;
         padding: 15px 0;
@@ -203,6 +211,12 @@ footer {
     /* Riduci logo */
     #logo img {
         height: 90px;
+    }
+
+    /* Su mobile, limita zoom e mantiene logo visibile */
+    body {
+        background-size: contain;
+        background-position: center top;
     }
 }
 

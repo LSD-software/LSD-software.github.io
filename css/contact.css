@@ -1,0 +1,83 @@
+h2 {
+    color: #03DAC6; /* Un ciano accattivante per i sottotitoli */
+    font-size: 2em;
+    margin-top: 60px;
+    margin-bottom: 20px;
+    text-shadow: 0 0 5px rgba(3, 218, 198, 0.5); /* Aggiunge un leggero bagliore */
+}
+
+/* Contenitore principale del modulo */
+#call-Module {
+    text-align: center;
+    padding: 10px 20px;
+    /* Centra e limita la larghezza per una migliore leggibilità su schermi grandi */
+    max-width: 900px; 
+    margin: 0 auto; 
+}
+
+/* Stile per tutti i bottoni di chiamata */
+.callB {
+    /* Layout */
+    display: inline-block; /* Assicura che i margini e le dimensioni funzionino bene */
+    margin: 20px 30px; /* Margini ridotti per un look più coeso */
+    width: 250px; /* Larghezza fissa per uniformità */
+    
+    /* Colore e Bordo */
+    background: gold; 
+    color: #121212; 
+    border: none;
+    border-radius: 10px; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Ombra per profondità */
+
+    /* Testo */
+    padding: 18px 25px; 
+    font-size: 1.1em; 
+    font-weight: 700;
+    text-transform: uppercase;
+
+    /* Animazione */
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+/* Effetto Hover potenziato per i bottoni di chiamata */
+.callB:hover {
+    background: #FFEC8B; 
+    transform: scale(1.1); /* Il bottone si ingrandisce leggermente */
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6); /* Ombra con bagliore verde */
+    color: #121212;
+}
+
+/* Stile per il bottone Discord (Diverso da Call) */
+.dsB {
+    /* Stile basato sul brand Discord (viola/blu) */
+    display: inline-block;
+    margin: 20px 30px;
+    width: 250px;
+    
+    background: #7289DA; /* Colore Discord */
+    color: white; 
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+    padding: 18px 25px;
+    font-size: 1.1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+/* Effetto Hover per Discord */
+.dsB:hover {
+    background: #99AAB5; /* Grigio/bianco Discord più chiaro */
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(114, 137, 218, 0.6); /* Bagliore viola */
+}
+
+/* Rimuove la sottolineatura dai link attorno ai bottoni */
+a {
+    text-decoration: none; 
+}

@@ -42,7 +42,7 @@ header {
     margin: 20px auto;
     border-radius: 10px;
     background-color: rgba(0, 0, 0, 0.533);
-    border: 1px solid white;
+    /* border: 1px solid white;*/
 }
 
 /* --- NAVBAR --- */
@@ -217,4 +217,5 @@ footer {
 #hamburger.active span:nth-child(3) {
     transform: rotate(-45deg) translateY(-9px);
 }
+
 

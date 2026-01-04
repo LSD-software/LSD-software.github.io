@@ -1,0 +1,85 @@
+/* SFONDO TIPO GIOCO: FISSO E COPERTO */
+body{
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #000; /* o un colore simile allo sfondo */
+
+    background-attachment: fixed;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* LAYER SCURO CENTRALE  */
+#container{
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* BOX DEI PULSANTI */
+#sezioneBT{
+    background: rgba(0, 0, 0, 0.55);
+    padding: 40px 80px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+/* LOGO */
+#sezioneBT img{
+    width: 350px;
+    margin-bottom: 20px;
+}
+
+/* PULSANTI */
+#sezioneBT button{
+    width: 260px;
+    padding: 18px 0;
+    background: blue;
+    color: white;
+    border: none;
+    font-size: 26px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+#sezioneBT button:hover{
+    background: rgb(1, 1, 133);
+}
+
+/* Overlay che appare SOLO in verticale */
+#rotate-device {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #fff;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.5rem;
+  z-index: 9999;
+}
+
+/* Nasconde il contenuto quando il telefono è in verticale */
+body.vertical #game-container,
+body.vertical main,
+body.vertical #shop-container {
+  display: none !important;
+}

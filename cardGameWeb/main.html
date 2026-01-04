@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="data_cg/logo.png">
+    <link rel="stylesheet" href="css_cg/style.css">
+    <link rel="stylesheet" href="css_cg/main.css">
+    <title>LSD Card Game</title>
+</head>
+
+<body id="gameBody">
+    <div id="container">
+        <div id="sezioneBT">
+            <img id="logo" src="data_cg/logo.png" alt="logo">
+            <a href="game.html">
+                <button>START</button>
+            </a>
+            
+            <a href="shop.html">
+                <button>SHOP</button>
+            </a>
+
+             <a href="settings.html">
+                <button>SETTINGS</button>
+            </a>
+
+            <a href="../project.html">
+                <button>QUIT</button>
+            </a>
+        </div>
+    </div>
+    <script src="js_cg/storage.js"></script>
+    <script src="js_cg/audio.js"></script>
+    <script src="js_cg/main.js"></script>
+</body>
+<script>
+function checkOrientation() {
+  const isVertical = window.innerHeight > window.innerWidth;
+
+  if (isVertical) {
+    document.body.classList.add("vertical");
+    document.getElementById("rotate-device").style.display = "flex";
+  } else {
+    document.body.classList.remove("vertical");
+    document.getElementById("rotate-device").style.display = "none";
+  }
+}
+
+window.addEventListener("resize", checkOrientation);
+window.addEventListener("orientationchange", checkOrientation);
+document.addEventListener("DOMContentLoaded", checkOrientation);
+</script>
+
+<div id="rotate-device">
+ Rotate your device horizontally to play.
+</div>
+
+</html>

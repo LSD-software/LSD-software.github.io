@@ -1,0 +1,162 @@
+/* --- FONT --- */
+.courier-prime-regular {
+  font-family: "Courier Prime", monospace;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.courier-prime-bold {
+  font-family: "Courier Prime", monospace;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.courier-prime-regular-italic {
+  font-family: "Courier Prime", monospace;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.courier-prime-bold-italic {
+  font-family: "Courier Prime", monospace;
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* --- SFONDO CENTRATO --- */
+body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+
+    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%), url("../img/bg.png");
+    background-size: cover;      
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+/* --- HEADER --- */
+header {
+    width: 90%;
+    margin: 20px auto;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.533);
+   /* border: 1px solid white;*/
+}
+
+/* --- NAVBAR --- */
+#navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    position: relative;
+}
+
+#logo img {
+    height: 100px;
+    padding: 5px;
+}
+
+/* --- TITOLO --- */
+h1 {
+    text-align: center;
+    color: gold;
+    flex: 1;
+    padding: 5px;
+}
+
+/* --- MENU DESKTOP --- */
+#menu {
+    display: flex;
+    gap: 20px;
+}
+
+#menu a {
+    font-size: 18px;
+    position: relative;
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    padding: 5px 0;
+    transition: color 0.3s ease;
+}
+
+/* Linea animata */
+#menu a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 0%;
+    height: 2px;
+    background: #800000;
+    transition: width 0.3s ease;
+}
+
+#menu a:hover {
+    color: #800000;
+}
+
+#menu a:hover::after {
+    width: 100%;
+}
+
+/* --- CONTENUTO DEL BODY --- */
+#container {
+    width: 90%;
+    margin: 20px auto;
+    padding: 20px;
+    position: relative;
+}
+
+fieldset {
+    background: rgba(0, 0, 0, 0.512);
+    border: 1px solid gold;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 20px auto;
+}
+
+legend {
+    padding: 5px;
+    font-size: 28px;
+    color: #800000;
+}
+
+#container h2 {
+    color: white;
+}
+
+/* --- FOOTER --- */
+footer {
+    background: #2b2b2b;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 0.85em;
+    position: relative;
+}
+
+/* Overlay che appare SOLO in verticale */
+#rotate-device {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #fff;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.5rem;
+  z-index: 9999;
+}
+
+/* Nasconde il contenuto quando il telefono è in verticale */
+body.vertical #game-container,
+body.vertical main,
+body.vertical #shop-container {
+  display: none !important;
+}

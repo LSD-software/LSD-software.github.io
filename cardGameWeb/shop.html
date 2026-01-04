@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop CardGame</title>
+  <link rel="icon" type="image/png" href="data_cg/logo.png">
+  <link rel="stylesheet" href="css_cg/shop.css" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- HEADER: logo + menu -->
+  <header id="header-shop">
+    <img src="data_cg/shopimg.png" alt="SHOP" id="logo-shop"/>
+    <a href="main.html" class="home-link" aria-label="Back To Home">
+      <button id="menu-btn">☰</button>
+    </a>
+  </header>
+
+  <main id="shop-container">
+
+    <!-- COLONNA SINISTRA: DECK + BACKDECK -->
+    <section class="colonna sinistra">
+
+      <!-- DEFAULT deck + back -->
+      <div class="riga-teche">
+        <div class="riga-sfondo">
+
+          <!-- DECK DEFAULT (id=1) -->
+          <div class="vetrina">
+            <div class="immagine-wrap">
+              <img src="data_cg/deck_base/1.png" alt="Teca DEFAULT">
+            </div>
+            <span class="etichetta">DEFAULT</span>
+            <div class="bottoni">
+              <button class="equip" data-type="deck" data-id="1">EQUIP</button>
+            </div>
+          </div>
+
+          <!-- BACK DEFAULT (id=1) -->
+          <div class="vetrina">
+            <div class="immagine-wrap">
+              <img src="data_cg/backDeck/back1.png" alt="Teca Back DEFAULT">
+            </div>
+            <span class="etichetta">BACK DEFAULT</span>
+            <div class="bottoni">
+              <button class="equip" data-type="back" data-id="1">EQUIP</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- GOLD deck + back -->
+      <div class="riga-teche">
+        <div class="riga-sfondo">
+
+          <!-- DECK GOLD (id=2) -->
+          <div class="vetrina">
+            <div class="immagine-wrap">
+              <img src="data_cg/TecaGold.png" alt="Teca GOLD">
+            </div>
+            <span class="etichetta">GOLD</span>
+            <div class="bottoni">
+              <button class="buy" data-type="deck" data-id="2" data-price="2000" data-prezzo="2000 Coins">BUY</button>
+              <button class="equip" data-type="deck" data-id="2">EQUIP</button>
+            </div>
+          </div>
+
+          <!-- BACK GOLD (id=2) -->
+          <div class="vetrina">
+            <div class="immagine-wrap">
+              <img src="data_cg/TecaBackGold.png" alt="Teca Back GOLD">
+            </div>
+            <span class="etichetta">BACK GOLD</span>
+            <div class="bottoni">
+              <button class="buy" data-type="back" data-id="2" data-price="1800" data-prezzo="1800 Coins">BUY</button>
+              <button class="equip" data-type="back" data-id="2">EQUIP</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- LSD deck + back -->
+      <div class="riga-teche">
+        <div class="riga-sfondo">
+
+          <!-- DECK LSD (id=3) -->
+          <div class="vetrina">
+            <div class="immagine-wrap">
+              <img src="data_cg/TecaLSD.png" alt="Teca LSD">
+            </div>
+            <span class="etichetta">LSD</span>
+            <div class="bottoni">
+              <button class="buy" data-type="deck" data-id="3" data-price="8000" data-prezzo="8000 Coins">BUY</button>
+              <button class="equip" data-type="deck" data-id="3">EQUIP</button>
+            </div>
+          </div>
+
+          <!-- BACK LSD (id=3) -->
+          <div class="vetrina">
+            <div class="immagine-wrap">
+              <img src="data_cg/TecaBackLSD.png" alt="Teca Back LSD">
+            </div>
+            <span class="etichetta">BACK LSD</span>
+            <div class="bottoni">
+              <button class="buy" data-type="back" data-id="3" data-price="9000" data-prezzo="9000 Coins">BUY</button>
+              <button class="equip" data-type="back" data-id="3">EQUIP</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- COLONNA CENTRALE: stats + convertitore -->
+    <section class="colonna centrale">
+      <div id="stats">
+        <span id="shopScore">Punteggio: 0</span>
+        <span id="shopCoins">Coins: 0</span>
+      </div>
+
+      <div id="convert-box">
+        <div class="convert-info">
+          <span class="convert-rate">50 Score = 1 Coin</span>
+          <small class="convert-tip">Convert points into coins to buy.</small>
+        </div>
+        <button id="converti">Convert</button>
+      </div>
+    </section>
+
+    <!-- COLONNA DESTRA: SFONDI -->
+    <section class="colonna destra">
+
+      <!-- SFONDO DEFAULT (id=1) -->
+      <div class="riga-tavolo riga-sfondo">
+        <div class="vetrina tavolo">
+          <div class="immagine-wrap tavolo-wrap">
+            <img src="data_cg/SfondoTavolata.png" alt="Sfondo Base">
+          </div>
+          <span class="etichetta">DEFAULT</span>
+          <div class="bottoni">
+            <button class="equip" data-type="background" data-id="1">EQUIP</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SFONDO GOLD (id=2) -->
+      <div class="riga-tavolo riga-sfondo">
+        <div class="vetrina tavolo">
+          <div class="immagine-wrap tavolo-wrap">
+            <img src="data_cg/SfondoTavolata1.png" alt="Sfondo Gold">
+          </div>
+          <span class="etichetta">GOLD Table</span>
+          <div class="bottoni">
+            <button class="buy" data-type="background" data-id="2" data-price="1500" data-prezzo="1500 Coins">BUY</button>
+            <button class="equip" data-type="background" data-id="2">EQUIP</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SFONDO LSD (id=3) -->
+      <div class="riga-tavolo riga-sfondo">
+        <div class="vetrina tavolo">
+          <div class="immagine-wrap tavolo-wrap">
+            <img src="data_cg/SfondoTavolata2.png" alt="Sfondo LSD">
+          </div>
+          <span class="etichetta">LSD Table</span>
+          <div class="bottoni">
+            <button class="buy" data-type="background" data-id="3" data-price="8000" data-prezzo="8000 Coins">BUY</button>
+            <button class="equip" data-type="background" data-id="3">EQUIP</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SFONDO GRADIENT (id=4) -->
+      <div class="riga-tavolo riga-sfondo">
+        <div class="vetrina tavolo">
+          <div class="immagine-wrap tavolo-wrap">
+            <img src="data_cg/SfondoTavolata3.png" alt="Sfondo Gradient">
+          </div>
+          <span class="etichetta">GRADIENT Table</span>
+          <div class="bottoni">
+            <button class="buy" data-type="background" data-id="4" data-price="10000" data-prezzo="10000 Coins">BUY</button>
+            <button class="equip" data-type="background" data-id="4">EQUIP</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    function checkOrientation() {
+      const isVertical = window.innerHeight > window.innerWidth;
+
+      if (isVertical) {
+        document.body.classList.add("vertical");
+        document.getElementById("rotate-device").style.display = "flex";
+      } else {
+        document.body.classList.remove("vertical");
+        document.getElementById("rotate-device").style.display = "none";
+      }
+    }
+
+    window.addEventListener("resize", checkOrientation);
+    window.addEventListener("orientationchange", checkOrientation);
+    document.addEventListener("DOMContentLoaded", checkOrientation);
+  </script>
+
+
+  <script src="js_cg/storage.js"></script>
+  <script src="js_cg/audio.js"></script>
+  <script src="js_cg/shop.js"></script>
+</body>
+<div id="rotate-device">
+  Rotate your device horizontally to play.
+</div>
+
+</html>

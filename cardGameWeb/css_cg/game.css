@@ -1,0 +1,213 @@
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #000;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  font-family: sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+/* Barra superiore */
+#topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 1vh 2vw;
+  background: rgba(0,0,0,0.35);
+}
+.stat {
+  font-size: 1.4vw;
+  font-weight: bold;
+}
+.stat.left { justify-self: start; }
+.stat.right { justify-self: end; }
+.home { justify-self: center; }
+
+#homeBtn {
+  background: none;
+  border: 2px solid white;
+  color: white;
+  font-size: 1.5vw;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Layout principale */
+#table {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  justify-items: center;
+  width: 75%;
+  height: 80%;
+  padding: 2vh 2vw;
+  margin: auto;
+}
+
+.card-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1vh;
+  margin: 100px;
+}
+.card-frame {
+  width: 14vw;
+  aspect-ratio: 7 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-frame img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+}
+.card-label {
+  font-size: 1.1vw;
+  font-weight: bold;
+}
+
+/* Box centrale */
+#centerBox {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto auto auto;
+  align-items: center;
+  justify-items: center;
+}
+
+#chipBox {
+  position: relative;
+  width: 70%;
+  height: 50%;
+}
+
+.chip {
+  position: absolute;
+  width: 3.2vw;
+  height: 3.2vw;
+  background-size: cover;
+  background-repeat: no-repeat;
+  animation: chipPop 0.35s ease;
+}
+@keyframes chipPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Bottoni principali */
+#controls {
+  display: flex;
+  justify-content: center;
+  gap: 2vw;
+  margin-top: 1vh;
+}
+.btn {
+  border: none;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn.round {
+  border-radius: 50%;
+  width: 6.5vw;
+  height: 6.5vw;
+  font-size: 1vw;
+}
+.btn.blue  { background: #1976d2; }
+.btn.green { background: #2e7d32; }
+.btn.red   { background: #d32f2f; }
+.btn.blue:hover, .btn.green:hover, .btn.red:hover {
+  transform: scale(1.08);
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.6);
+}
+
+.btn-allin {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 6.5vw;
+  height: 6.5vw;
+}
+.btn-allin img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Controlli puntata */
+#betControls {
+  display: flex;
+  align-items: center;
+  gap: 1.2vw;
+  margin-top: 1vh;
+}
+.btn.small {
+  width: 3.2vw;
+  height: 3.2vw;
+  font-size: 0.9vw;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+#betAmount {
+  font-size: 1.2vw;
+  font-weight: bold;
+  color: white;
+}
+
+/* Messaggi */
+#resultMessage {
+  position: absolute;
+  bottom: 2vh;
+  background: rgba(0,0,0,0.8);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 1.2vw;
+  font-weight: bold;
+}
+.hidden { display: none; }
+
+.animate {
+  animation: popCard 0.35s ease;
+}
+@keyframes popCard {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+/* Overlay che appare SOLO in verticale */
+#rotate-device {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #fff;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.5rem;
+  z-index: 9999;
+}
+
+/* Nasconde il contenuto quando il telefono è in verticale */
+body.vertical #game-container,
+body.vertical main,
+body.vertical #shop-container {
+  display: none !important;
+}

@@ -1,0 +1,309 @@
+/* Base */
+:root{
+  --bg1: #1e1e2f;
+  --bg2: #2c2c3f;
+  --panel: rgba(255,255,255,0.06);
+  --panel-strong: rgba(255,255,255,0.10);
+  --text: #ffffff;
+  --accent: #ffa726;
+  --accent2: #fb8c00;
+  --primary: #1e88e5;
+  --primary-dark: #1565c0;
+  --success1: #28a745;
+  --success2: #218838;
+  --gray1: #e0e0e0;
+  --gray2: #bdbdbd;
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+
+*{ box-sizing: border-box }
+html, body{ height: 100% }
+
+body{
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier Prime', monospace;
+  color: var(--text);
+  background: linear-gradient(135deg, var(--bg1), var(--bg2));
+}
+
+/* Header: logo + menu */
+#header-shop{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(30,30,47,0.85), rgba(44,44,63,0.85));
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+#logo-shop{
+  width: clamp(120px, 14vw, 180px);
+  height: auto;
+  display: block;
+}
+
+#menu-btn{
+  background: none;
+  border: 2px solid #fff;
+  font-size: clamp(20px, 2.2vw, 28px);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 6px 12px;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+#menu-btn:hover{
+  transform: scale(1.08);
+  background-color: rgba(255,255,255,0.15);
+  box-shadow: var(--shadow);
+}
+.home-link{ display: flex; }
+
+/* Layout principale */
+#shop-container{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 2.4vw, 24px);
+  padding: clamp(14px, 2.4vw, 24px);
+}
+
+/* Colonne */
+.colonna{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 2.2vw, 24px);
+}
+
+/* Riga teche con sfondo condiviso */
+.riga-teche{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.riga-sfondo{
+  width: min(560px, 92%);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(12px, 2vw, 20px);
+  padding: clamp(14px, 2.2vw, 20px);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Riga tavolo a tutta larghezza della colonna destra */
+.riga-tavolo{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Card vetrina */
+.vetrina{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+/* Wrapper immagine con proporzioni */
+.immagine-wrap{
+  width: min(160px, 36vw);
+  aspect-ratio: 4 / 5; /* mantiene proporzioni verticali coerenti */
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.08);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  display: grid;
+  place-items: center;
+}
+.immagine-wrap img{
+  width: 86%;
+  height: 86%;
+  object-fit: contain;
+}
+
+/* Tavoli leggermente più larghi e piatti */
+.tavolo .tavolo-wrap{
+  width: min(240px, 42vw);
+  aspect-ratio: 16 / 9;
+}
+
+/* Etichetta */
+.etichetta{
+  font-size: clamp(14px, 1.6vw, 16px);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+/* Bottoni container */
+.bottoni{
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Bottoni base */
+button{
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: clamp(13px, 1.6vw, 15px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+}
+
+/* Effetto hover generale */
+button:hover{
+  transform: scale(1.08);
+  box-shadow: var(--shadow);
+}
+
+/* BUY + tooltip prezzo */
+.buy{
+  background: linear-gradient(to bottom, var(--success1), var(--success2));
+  color: #fff;
+  position: relative;
+}
+.buy:hover{
+  background: linear-gradient(180deg, #ffb74d, #fb8c00);
+}
+.buy::after{
+  content: attr(data-prezzo);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  white-space: nowrap;
+}
+.buy:hover::after{
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* EQUIP */
+.equip{
+  background: linear-gradient(to bottom, var(--gray1), var(--gray2));
+  color: #111;
+}
+.equip:hover{
+  background: #03a9f4;
+  color: #fff;
+}
+
+/* Stats */
+#stats{
+  display: flex;
+  justify-content: center;
+  gap: clamp(14px, 2vw, 24px);
+  font-size: clamp(16px, 1.8vw, 20px);
+  margin-bottom: clamp(8px, 1.6vw, 12px);
+}
+
+/* Convertitore estetico */
+#convert-box{
+  width: min(480px, 92%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: clamp(14px, 2.4vw, 20px);
+  border-radius: 16px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  box-shadow: var(--shadow);
+}
+.convert-info{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.convert-rate{
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 700;
+}
+.convert-tip{
+  color: rgba(255,255,255,0.85);
+  font-size: clamp(12px, 1.5vw, 14px);
+}
+
+/* Pulsante Converti */
+#converti{
+  background: var(--primary);
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: clamp(14px, 1.8vw, 16px);
+}
+#converti:hover{
+  background: var(--primary-dark);
+}
+
+/* Responsive */
+@media (max-width: 1024px){
+  #shop-container{
+    grid-template-columns: 1fr 1fr; /* sinistra + destra; centrale scende */
+  }
+  .centrale{
+    grid-column: 1 / -1;
+    order: -1;
+  }
+}
+
+@media (max-width: 768px){
+  #shop-container{
+    grid-template-columns: 1fr;
+  }
+  #header-shop{
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+  .riga-sfondo{
+    width: 100%;
+  }
+  #stats{
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+
+/* Overlay che appare SOLO in verticale */
+#rotate-device {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #fff;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.5rem;
+  z-index: 9999;
+}
+
+/* Nasconde il contenuto quando il telefono è in verticale */
+body.vertical #game-container,
+body.vertical main,
+body.vertical #shop-container {
+  display: none !important;
+}

@@ -211,3 +211,95 @@ body.vertical main,
 body.vertical #shop-container {
   display: none !important;
 }
+
+
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  /* Tavolo da gioco */
+  #table {
+    width: 100%;
+    padding: 1vh 1vw;
+    grid-template-columns: 1fr 2fr 1fr;
+  }
+
+  /* Colonne laterali con carte */
+  .card-box {
+    margin: 20px;
+    gap: 0.5vh;
+  }
+
+  .card-frame {
+    width: 18vw; /* più stretto */
+  }
+
+  .card-frame img {
+    width: 80%;
+    height: auto;
+  }
+
+  .card-label {
+    font-size: 1.6vw;
+  }
+
+  /* Centro */
+  #centerBox {
+    grid-template-rows: 1fr auto auto auto;
+    gap: 1vh;
+  }
+
+  #chipBox {
+    width: 80%;
+    height: 40%;
+  }
+
+  .chip {
+    width: 5vw;
+    height: 5vw;
+  }
+
+  /* Bottoni principali */
+  #controls {
+    gap: 3vw;
+  }
+
+  .btn.round {
+    width: 10vw;
+    height: 10vw;
+    font-size: 1.6vw;
+  }
+
+  .btn-allin {
+    width: 10vw;
+    height: 10vw;
+  }
+
+  /* Controlli puntata */
+  #betControls {
+    gap: 1.5vw;
+  }
+
+  .btn.small {
+    width: 5vw;
+    height: 5vw;
+    font-size: 1.4vw;
+  }
+
+  #betAmount {
+    font-size: 1.8vw;
+  }
+
+  /* Barra superiore */
+  .stat {
+    font-size: 1.8vw;
+  }
+
+  #homeBtn {
+    font-size: 2vw;
+    padding: 6px 12px;
+  }
+
+  /* Messaggio risultato */
+  #resultMessage {
+    font-size: 1.8vw;
+    bottom: 2vh;
+  }
+}

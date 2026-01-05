@@ -1,3 +1,7 @@
+/* ============================
+   BASE DESKTOP
+   ============================ */
+
 body {
   margin: 0;
   padding: 0;
@@ -22,6 +26,7 @@ body {
   padding: 1vh 2vw;
   background: rgba(0,0,0,0.35);
 }
+
 .stat {
   font-size: 1.4vw;
   font-weight: bold;
@@ -59,6 +64,7 @@ body {
   gap: 1vh;
   margin: 100px;
 }
+
 .card-frame {
   width: 14vw;
   aspect-ratio: 7 / 10;
@@ -66,11 +72,13 @@ body {
   align-items: center;
   justify-content: center;
 }
+
 .card-frame img {
   width: 70%;
   height: 70%;
   object-fit: contain;
 }
+
 .card-label {
   font-size: 1.1vw;
   font-weight: bold;
@@ -101,6 +109,7 @@ body {
   background-repeat: no-repeat;
   animation: chipPop 0.35s ease;
 }
+
 @keyframes chipPop {
   0% { transform: scale(0.6); opacity: 0; }
   60% { transform: scale(1.15); opacity: 1; }
@@ -114,6 +123,7 @@ body {
   gap: 2vw;
   margin-top: 1vh;
 }
+
 .btn {
   border: none;
   font-weight: bold;
@@ -121,16 +131,21 @@ body {
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .btn.round {
   border-radius: 50%;
   width: 6.5vw;
   height: 6.5vw;
   font-size: 1vw;
 }
+
 .btn.blue  { background: #1976d2; }
 .btn.green { background: #2e7d32; }
 .btn.red   { background: #d32f2f; }
-.btn.blue:hover, .btn.green:hover, .btn.red:hover {
+
+.btn.blue:hover,
+.btn.green:hover,
+.btn.red:hover {
   transform: scale(1.08);
   box-shadow: 4px 4px 12px rgba(0,0,0,0.6);
 }
@@ -143,6 +158,7 @@ body {
   width: 6.5vw;
   height: 6.5vw;
 }
+
 .btn-allin img {
   width: 100%;
   height: 100%;
@@ -156,6 +172,7 @@ body {
   gap: 1.2vw;
   margin-top: 1vh;
 }
+
 .btn.small {
   width: 3.2vw;
   height: 3.2vw;
@@ -164,6 +181,7 @@ body {
   display: grid;
   place-items: center;
 }
+
 #betAmount {
   font-size: 1.2vw;
   font-weight: bold;
@@ -180,16 +198,19 @@ body {
   font-size: 1.2vw;
   font-weight: bold;
 }
+
 .hidden { display: none; }
 
 .animate {
   animation: popCard 0.35s ease;
 }
+
 @keyframes popCard {
   0% { transform: scale(1); }
   50% { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
+
 /* Overlay che appare SOLO in verticale */
 #rotate-device {
   position: fixed;
@@ -212,94 +233,293 @@ body.vertical #shop-container {
   display: none !important;
 }
 
+/* ============================================================
+   1) TABLET GRANDI / TELEFONI MOLTO LARGHI
+   max-width: 1400px
+   ============================================================ */
+@media screen and (max-width: 1400px) and (orientation: landscape) {
 
-@media screen and (max-width: 768px) and (orientation: landscape) {
-  /* Tavolo da gioco */
   #table {
-    width: 100%;
-    padding: 1vh 1vw;
-    grid-template-columns: 1fr 2fr 1fr;
+    width: 85%;
+    height: 90%;
+    padding: 0 2vw;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 2.2fr 1fr;
+    align-items: center;
+    justify-items: center;
   }
 
-  /* Colonne laterali con carte */
   .card-box {
-    margin: 20px;
-    gap: 0.5vh;
+    margin: 0;
+    padding: 1vh 0;
+    gap: 1vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
   .card-frame {
-    width: 18vw; /* più stretto */
+    width: 120px;
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .card-frame img {
-    width: 80%;
-    height: auto;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  #centerBox {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr auto auto auto;
+    place-items: center;
+    gap: 1vh;
+    padding: 1vh 0;
+  }
+
+  #controls,
+  #betControls {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2vw;
+    display: flex;
+  }
+}
+
+
+/* ============================================================
+   2) TELEFONI GRANDI (iPhone Pro Max, Samsung Ultra)
+   max-width: 1100px
+   ============================================================ */
+@media screen and (max-width: 1100px) and (orientation: landscape) {
+
+  #table {
+    width: 85%;
+    height: 85%;
+    padding: 0 2vw;
+    grid-template-columns: 0.9fr 2.2fr 0.9fr;
+  }
+
+  .card-frame {
+    width: 90px;
+    height: 150px;
+  }
+
+  #centerBox {
+    place-items: center;
+    gap: 1vh;
+    padding: 1vh 0;
+  }
+
+  #controls,
+  #betControls {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2vw;
+    display: flex;
+  }
+}
+
+/* ============================================================
+   3) TELEFONI MEDI (iPhone 12/13/14, Samsung S)
+   max-width: 900px
+   ============================================================ */
+@media screen and (max-width: 900px) and (orientation: landscape) {
+
+  #table {
+    width: 100%;
+    height: 90%;
+    padding: 0 1vw;
+    grid-template-columns: 0.9fr 2.2fr 0.9fr;
+  }
+
+  .card-frame {
+    width: 80px;
+    height: 130px;
+  }
+
+  #centerBox {
+    place-items: center;
+    gap: 0.8vh;
+    padding: 0.8vh 0;
+  }
+
+  #controls,
+  #betControls {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2vw;
+    display: flex;
+  }
+}
+
+
+/* ============================================================
+   4) TELEFONI PICCOLI (iPhone 8, XR, Android compatti)
+   max-width: 700px
+   ============================================================ */
+@media screen and (max-width: 700px) and (orientation: landscape) {
+
+  #table {
+    width: 100%;
+    height: 90%;
+    padding: 0 1vw;
+    grid-template-columns: 0.9fr 2.2fr 0.9fr;
+  }
+
+  .card-frame {
+    width: 72px;
+    height: 130px;
+  }
+
+  #centerBox {
+    place-items: center;
+    gap: 0.6vh;
+    padding: 0.6vh 0;
+  }
+
+  #controls,
+  #betControls {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2vw;
+    display: flex;
+  }
+}
+
+
+/* ============================================================
+   5) SCHERMI PICCOLISSIMI (iPhone SE, Android mini)
+   max-height: 420px
+   ============================================================ */
+@media screen and (max-height: 420px) and (orientation: landscape) {
+
+  #table {
+    width: 100%;
+    height: 90%;
+    padding: 0 1vw;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 0.9fr 2.2fr 0.9fr;
+    align-items: center;
+    justify-items: center;
+  }
+
+  .card-box {
+    margin: 0;
+    padding: 0.5vh 0;
+    gap: 0.8vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card-frame {
+    width: 70px;
+    height: 130px;
+    padding: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .card-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .card-label {
-    font-size: 1.6vw;
+    font-size: 3.5vw;
+    text-align: center;
   }
 
-  /* Centro */
   #centerBox {
+    width: 100%;
+    height: 100%;
+    display: grid;
     grid-template-rows: 1fr auto auto auto;
-    gap: 1vh;
+    place-items: center;
+    gap: 0.5vh;
+    padding: 0.5vh 0;
   }
 
-  #chipBox {
-    width: 80%;
-    height: 40%;
-  }
-
-  .chip {
-    width: 5vw;
-    height: 5vw;
-  }
-
-  /* Bottoni principali */
-  #controls {
-    gap: 3vw;
-  }
-
-  .btn.round {
-    width: 10vw;
-    height: 10vw;
-    font-size: 1.6vw;
-  }
-
-  .btn-allin {
-    width: 10vw;
-    height: 10vw;
-  }
-
-  /* Controlli puntata */
+  #controls,
   #betControls {
-    gap: 1.5vw;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2vw;
+    display: flex;
+  }
+
+  .btn.round,
+  .btn-allin {
+    width: 12vw;
+    height: 12vw;
+    font-size: 2.8vw;
   }
 
   .btn.small {
-    width: 5vw;
-    height: 5vw;
-    font-size: 1.4vw;
+    width: 6vw;
+    height: 6vw;
+    font-size: 2.5vw;
   }
 
   #betAmount {
-    font-size: 1.8vw;
+    font-size: 3vw;
   }
 
-  /* Barra superiore */
   .stat {
-    font-size: 1.8vw;
+    font-size: 3vw;
   }
 
   #homeBtn {
-    font-size: 2vw;
+    font-size: 3vw;
     padding: 6px 12px;
   }
 
-  /* Messaggio risultato */
   #resultMessage {
-    font-size: 1.8vw;
-    bottom: 2vh;
+    font-size: 3vw;
+  }
+}
+
+
+
+/* ============================
+   BLOCCO VERTICALE
+   ============================ */
+
+@media screen and (orientation: portrait) {
+  #topbar,
+  #table {
+    display: none !important;
+  }
+
+  #rotate-device {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    font-size: 1.5rem;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    z-index: 9999;
+    pointer-events: all;
   }
 }

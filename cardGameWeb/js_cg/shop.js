@@ -65,7 +65,7 @@ function setupEquipButtons() {
 
 // CONVERT
 function setupConvert() {
-  const btn = document.getElementById("convert");
+  const btn = document.getElementById("converti");
   if (!btn) return;
 
   btn.addEventListener("click", () => {
@@ -137,3 +137,4 @@ function updateEquipUI() {
     }
   });
 }
+

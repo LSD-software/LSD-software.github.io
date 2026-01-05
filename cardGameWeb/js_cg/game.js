@@ -95,19 +95,27 @@ function pickNextCard(current) {
 
     let weight = 1;
 
-    // Se la carta attuale è bassa → più probabilità di carte alte
-    if (current <= 4) {
-      weight += i * 0.4;
+    // Se la carta è ALTA → favorisci carte ancora più alte
+    if (current >= 7) {
+      if (i > current) {
+        weight += (i - current) * 1.2; // molto più probabile
+      } else {
+        weight += (current - i) * 0.2; // poco probabile
+      }
     }
 
-    // Se la carta attuale è alta → più probabilità di carte basse
-    else if (current >= 7) {
-      weight += (11 - i) * 0.4;
+    // Se la carta è BASSA → favorisci carte ancora più basse
+    else if (current <= 4) {
+      if (i < current) {
+        weight += (current - i) * 1.2; // molto più probabile
+      } else {
+        weight += (i - current) * 0.2; // poco probabile
+      }
     }
 
-    // Se la carta è centrale → distribuzione equilibrata
+    // Se la carta è MEDIA → distribuzione imprevedibile
     else {
-      weight += Math.abs(5.5 - i) * 0.2;
+      weight += Math.random() * 2; // aggiunge caos controllato
     }
 
     // Aggiunge la carta tante volte quanto il peso
@@ -118,6 +126,7 @@ function pickNextCard(current) {
 
   return values[Math.floor(Math.random() * values.length)];
 }
+
 
 // =========================
 // HUD + SALVATAGGIO
@@ -263,3 +272,4 @@ btnLower.addEventListener("click", () => generateNextCard(false));
 document.addEventListener("DOMContentLoaded", () => {
   init();
 });
+

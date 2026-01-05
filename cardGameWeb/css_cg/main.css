@@ -80,6 +80,114 @@ body{
 /* Nasconde il contenuto quando il telefono è in verticale */
 body.vertical #game-container,
 body.vertical main,
-body.vertical #shop-container {
+body.vertical #shop-container,
+body.vertical #container,
+body.vertical #sezioneBT {
   display: none !important;
+}
+
+/* ============================
+   MOBILE ORIZZONTALE RESPONSIVE
+   ============================ */
+
+@media screen and (max-width: 1024px) and (orientation: landscape) {
+
+  html, body { 
+    width: 100dvw; 
+    height: 100dvh; 
+    overflow-y: auto; /* scroll quando non ci sta tutto */
+    background-size: contain; 
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-attachment: fixed; 
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start; 
+  } 
+
+  #container { 
+    width: 100%; 
+    min-height: 100dvh; /* copre tutta l’altezza reale anche in scroll */ 
+    background: rgba(0, 0, 0, 0.0); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+  }
+
+  #sezioneBT {
+    width: min(90vw, 600px);
+    padding: clamp(20px, 5vw, 40px);
+    border-radius: 10px;
+    gap: clamp(15px, 4vw, 25px);
+  }
+
+  #sezioneBT img {
+    width: clamp(180px, 40vw, 300px);
+    margin-bottom: clamp(10px, 3vw, 20px);
+  }
+
+  #sezioneBT button {
+    width: clamp(180px, 60vw, 260px);
+    padding: clamp(12px, 4vw, 20px) 0;
+    font-size: clamp(18px, 6vw, 28px);
+  }
+}
+
+/* ============================
+   SCHERMI PICCOLISSIMI (iPhone SE, Android mini)
+   ============================ */
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+  
+  #container {
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.0);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #sezioneBT {
+    width: 90vw;
+    padding: 20px;
+    gap: 15px;
+  }
+
+  #sezioneBT img {
+    width: 220px;
+    margin-bottom: 10px;
+  }
+
+  #sezioneBT button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 5vw; /* bottoni più grandi su SE & co. */
+  }
+}
+
+/* ============================
+   BLOCCO VERTICALE
+   ============================ */
+
+@media screen and (orientation: portrait) {
+  #container, #sezioneBT {
+    display: none !important;
+  }
+
+  #rotate-device {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    font-size: 1.5rem;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    z-index: 9999;
+    pointer-events: all;
+  }
 }

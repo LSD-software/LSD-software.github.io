@@ -286,24 +286,27 @@ button:hover{
 }
 
 
-/* Overlay che appare SOLO in verticale */
-#rotate-device {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  color: #fff;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 20px;
-  font-size: 1.5rem;
-  z-index: 9999;
-}
+/* ============================
+   BLOCCO VERTICALE
+   ============================ */
 
-/* Nasconde il contenuto quando il telefono è in verticale */
-body.vertical #game-container,
-body.vertical main,
-body.vertical #shop-container {
-  display: none !important;
+@media screen and (orientation: portrait) {
+  #container, #sezioneBT {
+    display: none !important;
+  }
+
+  #rotate-device {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    font-size: 1.5rem;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    z-index: 9999;
+    pointer-events: all;
+  }
 }

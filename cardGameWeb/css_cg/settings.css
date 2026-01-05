@@ -42,10 +42,25 @@ body{
   margin: 15px auto;
   padding: 10px 20px;
   border: none;
-  background: #03a9f4;
+  background: #1a83b4;
   color: white;
   border-radius: 8px;
   cursor: pointer;
   text-decoration: none;
   width: 80%;
+}
+
+fieldset{
+  border-color: gold;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10px;;
+}
+
+h1{
+  color: #800000;
+}
+
+h2{
+  font-weight: 200;
 }

@@ -64,3 +64,25 @@ h1{
 h2{
   font-weight: 200;
 }
+
+/* Overlay che appare SOLO in verticale */
+#rotate-device {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #fff;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.5rem;
+  z-index: 9999;
+}
+
+/* Nasconde il contenuto quando il telefono è in verticale */
+body.vertical #game-container,
+body.vertical main,
+body.vertical #shop-container {
+  display: none !important;
+}

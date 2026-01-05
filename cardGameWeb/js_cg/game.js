@@ -91,34 +91,61 @@ function pickNextCard(current) {
   const values = [];
 
   for (let i = 1; i <= 10; i++) {
-    if (i === current) continue; // evita stessa carta
+    if (i === current) continue;
 
     let weight = 1;
 
-    // Se la carta è ALTA → favorisci carte ancora più alte
-    if (current >= 7) {
-      if (i > current) {
-        weight += (i - current) * 1.2; // molto più probabile
+    // ============================
+    // CASO SPECIALE: 1 e 10
+    // ============================
+    if (current === 1 || current === 10) {
+      // 50% di invertire completamente la logica
+      const invert = Math.random() < 0.5;
+
+      if (invert) {
+        // Favorisce carte vicine
+        weight += (10 - Math.abs(current - i)) * 0.6;
       } else {
-        weight += (current - i) * 0.2; // poco probabile
+        // Favorisce carte lontane
+        weight += Math.abs(current - i) * 0.6;
       }
+
+      // Disturbo casuale
+      weight += Math.random() * 3;
     }
 
-    // Se la carta è BASSA → favorisci carte ancora più basse
+    // ============================
+    // CARTA BASSA (2–4)
+    // ============================
     else if (current <= 4) {
       if (i < current) {
-        weight += (current - i) * 1.2; // molto più probabile
+        weight += (current - i) * 1.2; // improbabile → più probabile
       } else {
-        weight += (i - current) * 0.2; // poco probabile
+        weight += (i - current) * 0.3;
       }
+      weight += Math.random() * 1.5; // disturbo
     }
 
-    // Se la carta è MEDIA → distribuzione imprevedibile
+    // ============================
+    // CARTA ALTA (7–9)
+    // ============================
+    else if (current >= 7) {
+      if (i > current) {
+        weight += (i - current) * 1.2;
+      } else {
+        weight += (current - i) * 0.3;
+      }
+      weight += Math.random() * 1.5;
+    }
+
+    // ============================
+    // CARTA MEDIA (5–6)
+    // ============================
     else {
-      weight += Math.random() * 2; // aggiunge caos controllato
+      weight += Math.random() * 4; // caos totale
     }
 
-    // Aggiunge la carta tante volte quanto il peso
+    // Inserimento pesato
     for (let w = 0; w < Math.floor(weight); w++) {
       values.push(i);
     }
@@ -126,6 +153,7 @@ function pickNextCard(current) {
 
   return values[Math.floor(Math.random() * values.length)];
 }
+
 
 
 // =========================
@@ -272,4 +300,5 @@ btnLower.addEventListener("click", () => generateNextCard(false));
 document.addEventListener("DOMContentLoaded", () => {
   init();
 });
+
 

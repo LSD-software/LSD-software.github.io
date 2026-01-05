@@ -11,22 +11,25 @@
 <body id="settingsBody">
 
   <!-- Overlay scuro -->
-  <div id="overlay"></div>
-
-  <!-- Pannello impostazioni -->
-  <div id="settingsPanel">
-    <h1>Settings</h1>
-
-    <label>Music Volume</label>
-    <input type="range" id="volumeSlider" min="0" max="1" step="0.01">
-
-    <button id="muteBtn">Mute</button>
-
-    <a href="main.html" id="backBtn">Back To Menu</a>
+  <div id="overlay">
+    <!-- Pannello impostazioni -->
+    <div id="settingsPanel">
+      <h1>Settings</h1>
+  
+      <label>Music Volume</label>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.01">
+  
+      <button id="muteBtn">Mute</button>
+  
+      <a href="main.html" id="backBtn">Back To Menu</a>
+    </div>
   </div>
+
+  
 
   <script src="js_cg/storage.js"></script>
   <script src="js_cg/audio.js"></script>
   <script src="js_cg/settings.js"></script>
 </body>
 </html>
+

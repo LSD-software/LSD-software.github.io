@@ -1,35 +1,59 @@
-body{
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
+/* ============================
+   BASE DESKTOP 
+   ============================ */
 
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: #000; /* o un colore simile allo sfondo */
-
-    background-attachment: fixed;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #000;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* pannello centrale */
+/* ============================
+   PANNELLO CENTRALE
+   ============================ */
+
 #settingsPanel {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: rgba(255,255,255,0.1);
-  padding: 30px;
-  border-radius: 15px;
   backdrop-filter: blur(10px);
   color: white;
   text-align: center;
   z-index: 2;
   width: 300px;
+  padding: 30px;
+  border-radius: 15px;
+}
+
+fieldset {
+  border-color: gold;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10px;
+}
+
+h1 {
+  color: #800000;
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-weight: 200;
+  font-size: 1rem;
+  line-height: 1.4;
 }
 
 #settingsPanel input[type="range"] {
@@ -48,24 +72,13 @@ body{
   cursor: pointer;
   text-decoration: none;
   width: 80%;
+  font-size: 1rem;
 }
 
-fieldset{
-  border-color: gold;
-  padding: 10px;
-  margin: 10px;
-  border-radius: 10px;;
-}
+/* ============================
+   OVERLAY VERTICALE
+   ============================ */
 
-h1{
-  color: #800000;
-}
-
-h2{
-  font-weight: 200;
-}
-
-/* Overlay che appare SOLO in verticale */
 #rotate-device {
   position: fixed;
   inset: 0;
@@ -78,11 +91,162 @@ h2{
   padding: 20px;
   font-size: 1.5rem;
   z-index: 9999;
+  pointer-events: all;
 }
 
-/* Nasconde il contenuto quando il telefono è in verticale */
-body.vertical #game-container,
-body.vertical main,
-body.vertical #shop-container {
+body.vertical #overlay,
+body.vertical #settingsPanel {
   display: none !important;
+}
+
+body.vertical #rotate-device {
+  display: flex;
+}
+
+/* ============================
+   MOBILE ORIZZONTALE (TUTTI I TELEFONI)
+   ============================ */
+
+@media screen and (max-width: 1024px) and (orientation: landscape) {
+
+  html, body {
+    width: 100dvw;
+    height: 100dvh;
+    background-size: contain;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Pannello proporzionato */
+  #settingsPanel {
+    width: min(75vw, 600px);
+    padding: min(5vw, 25px);
+    border-radius: 12px;
+  }
+
+  h1 {
+    font-size: min(5vw, 28px);
+  }
+
+  h2 {
+    font-size: min(3vw, 18px);
+    line-height: 1.4;
+  }
+
+  #muteBtn, #backBtn {
+    width: 85%;
+    padding: min(3vw, 12px);
+    font-size: min(3vw, 18px);
+  }
+}
+
+/* ============================
+   SCHERMI PICCOLISSIMI (iPhone SE, Mini)
+   ============================ */
+
+@media screen and (max-width: 700px) and (orientation: landscape) {
+
+  #settingsPanel {
+    width: 85vw;
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 6vw;
+  }
+
+  h2 {
+    font-size: 3.8vw;
+  }
+
+  #muteBtn, #backBtn {
+    font-size: 4vw;
+    padding: 10px;
+    width: 90%;
+  }
+}
+
+/* ============================
+   SCHERMI PICCOLISSIMI (iPhone SE, Android mini)
+   ============================ */
+
+@media screen and (max-width: 600px) and (orientation: landscape) {
+
+  html, body {
+    width: 100dvw;
+    height: 100dvh;
+    overflow: hidden;
+    background-size: contain;
+    background-position: center;
+  }
+
+  #settingsPanel {
+    width: 88vw;                     /* più stretto */
+    max-width: 500px;
+    padding: clamp(8px, 3vw, 14px);  /* padding dinamico */
+    border-radius: 10px;
+  }
+
+  h1 {
+    font-size: clamp(14px, 5.5vw, 22px); /* scala perfetta */
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: clamp(10px, 3.8vw, 16px);
+    line-height: 1.3;
+  }
+
+  fieldset {
+    padding: clamp(6px, 2vw, 10px);
+    margin: clamp(6px, 2vw, 10px) 0;
+  }
+
+  #muteBtn, #backBtn {
+    width: 92%;
+    padding: clamp(6px, 2.5vw, 10px);
+    font-size: clamp(10px, 4vw, 16px);
+    border-radius: 6px;
+  }
+
+  #settingsPanel input[type="range"] {
+    width: 100%;
+  }
+}
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+
+  #settingsPanel {
+    width: 90vw;
+    padding: 10px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 10px;
+  }
+
+  h1 {
+    font-size: 6vw;
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 4vw;
+    line-height: 1.3;
+  }
+
+  fieldset {
+    padding: 6px;
+    margin: 6px 0;
+  }
+
+  #muteBtn, #backBtn {
+    font-size: 4.5vw;
+    padding: 8px;
+    width: 90%;
+  }
+
+  #settingsPanel input[type="range"] {
+    width: 100%;
+  }
 }

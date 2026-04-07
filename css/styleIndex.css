@@ -1,0 +1,155 @@
+/* --- PROJECT PAGE ENHANCEMENTS --- */
+
+.project-header {
+    text-align: center;
+    margin-bottom: 50px;
+    border-bottom: 1px solid #800000;
+    padding-bottom: 30px;
+}
+
+.intro-text {
+    color: white;
+    max-width: 700px;
+    margin: 20px auto;
+    font-size: 0.95em;
+    line-height: 1.8;
+}
+
+/* Griglia per i progetti */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+/* Card stile Retro */
+.retro-card {
+    background: rgba(0, 0, 0, 0.7) !important;
+    border: 2px solid gold !important;
+    padding: 20px !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.retro-card:hover {
+    transform: scale(1.02) rotate(1deg);
+    border-color: #800000 !important;
+    box-shadow: 0 0 20px rgba(128, 0, 0, 0.4);
+}
+
+.gold-text {
+    color: gold;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+/* Status Bar stile Terminale */
+.status-bar {
+    background: #1a1a1a;
+    padding: 5px 10px;
+    font-size: 0.75em;
+    color: #00ff00; /* Tipico del terminale, ma puoi farlo bianco */
+    margin: 15px 0;
+    border-left: 3px solid #800000;
+}
+
+.status-dot {
+    height: 8px;
+    width: 8px;
+    background-color: #00ff00;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+.status-dot.yellow { background-color: gold; }
+.status-dot.red { background-color: #800000; }
+
+/* Pulsante Retro */
+.retro-btn {
+    display: block;
+    text-align: center;
+    background: #800000;
+    color: white !important;
+    padding: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid gold;
+    transition: 0.3s;
+}
+
+.retro-btn:hover {
+    background: gold;
+    color: #800000 !important;
+}
+
+.retro-btn.locked {
+    background: #333;
+    border-color: #555;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* --- COLORAZIONE DESCRIZIONI --- */
+
+/* Rende bianco il testo della testata (intro-text) */
+.intro-text {
+    color: #ffffff ;
+    line-height: 1.6;
+}
+
+/* Rende bianchi tutti i paragrafi all'interno delle card dei progetti */
+.card-content p {
+    color: #ffffff ;
+    font-family: "Courier Prime", monospace;
+    opacity: 1; /* Assicura che non ci sia trasparenza che lo renda grigio */
+}
+
+/* Opzionale: rende bianca anche la tagline se risulta troppo scura */
+.tagline {
+    color: #ffffff;
+    font-style: italic;
+    margin-bottom: 20px;
+    display: block;
+}
+
+/* Stile per il pulsante finale (Vedi i Progetti) per coerenza */
+.project-grid button {
+    background-color: #800000;
+    color: white;
+    border: 1px solid gold;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-family: "Courier Prime", monospace;
+    font-weight: bold;
+    transition: 0.3s;
+    margin-top: 20px;
+}
+
+.project-grid button:hover {
+    background-color: gold;
+    color: #800000;
+}
+
+/* Stile per il pulsante DISCOVER_MORE */
+.project-grid .retro-btn {
+    background: #800000; /* Rosso Granata */
+    color: white !important;
+    text-decoration: none;
+    font-family: "Courier Prime", monospace;
+    font-weight: bold;
+    border: 1px solid gold;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.project-grid .retro-btn:hover {
+    background: gold;
+    color: #800000 !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+/* Rende bianco il testo P all'interno della griglia */
+.project-grid p {
+    color: white !important;
+}

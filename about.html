@@ -4,7 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="img/icon.png">
-    <title>LSD Software</title>
+    
+    <title>About LSD Software | Indie Game Dev Team in Milan, Italy</title>
+    <meta name="description" content="Discover LSD Software, a Milan-based indie game development collective. We create immersive, free-to-play retro games like The Machine and Arcana. Meet the team.">
+    <meta name="keywords" content="LSD Software team, indie game developers Milan, computer science students games, free indie games Italy, retro gaming studio, low-poly game dev">
+    <meta name="author" content="LSD Software">
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "LSD Software",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Milan",
+        "addressCountry": "Italy"
+      },
+      "url": "https://LSD-software.github.io",
+      "description": "A collective of developers creating free indie video games with a focus on narrative and retro aesthetics."
+    }
+    </script>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/about.css">
@@ -14,19 +33,9 @@
 <body>
     <header>
         <div id="navbar">
-            <!-- LOGO -->
-            <div id="logo">
-                <img src="img/icon.png" alt="Logo LSD Software">
-            </div>
-            <!-- TITOLO -->
-            <h1>About</h1>
-            <!-- HAMBURGER MOBILE -->
-            <div id="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <!-- MENU -->
+            <div id="logo"><img src="img/icon.png" alt="LSD Software Official Logo"></div>
+            <h1>LSD MANIFESTO</h1>
+            <div id="hamburger"><span></span><span></span><span></span></div>
             <nav id="menu">
                 <a href="index.html">HOME</a>
                 <a href="about.html">ABOUT</a>
@@ -36,27 +45,52 @@
         </div>
     </header>
 
-    <main>
-        <div id="container">
-            <fieldset id="about-lsd">
-                <legend>
-                    Who Are LSD?
-                </legend>
-                <h2>Let's talk about LSD</h2>
-                <p>LSD Team is a company made up of three young people studying computer science and looking to develop their skills. They do what they love: develop video games.
-They've created trilogies such as Arcana, The Machine, and In the Name of God. All stories, with dialogue, designed and created to immerse the player in this art form.
-We hope you enjoy playing our games, and it's all free!
-Just for you who appreciate our art...
-Thank you and have fun!
-(If you like, we accept small donations for the purchase of cigarettes, for stress relief.)
-                </p>
+    <main id="container">
+        <article>
+            <fieldset id="about-lsd" class="retro-card">
+                <legend>WHO ARE LSD?</legend>
+                
+                <h2 class="gold-text courier-prime-bold">INDEPENDENT GAME DEVELOPMENT MILAN</h2>
+                
+                <div class="about-content">
+                    <section>
+                        <h3 class="white-title">The Team & The Mission</h3>
+                        <p>
+                            <strong>LSD Software</strong> is an emerging indie game development collective founded by three dedicated <strong>computer science students in Milan</strong>. Our mission is to bridge the gap between technical expertise and artistic storytelling, creating 100% free digital experiences for gamers worldwide.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h3 class="white-title">Creative Trilogies & Lore</h3>
+                        <p>
+                            We specialize in crafting deep, narrative-driven experiences. Our portfolio includes acclaimed indie titles and trilogies such as <strong>Arcana</strong>, <strong>The Machine</strong>, and <strong>In the Name of God</strong>. Every project we release features original dialogues, atmospheric low-poly graphics, and immersive soundtracks designed to push the boundaries of the indie genre.
+                        </p>
+                    </section>
+
+                    <div class="status-bar">
+                        <span class="status-dot"></span> CURRENT STATUS: DEVELOPING_NEW_REALITIES
+                    </div>
+
+                    <section class="philosophy">
+                        <h3 class="white-title">Our Philosophy: Art for Art's Sake</h3>
+                        <p>
+                            In an industry often driven by profit, LSD Software stands for <strong>free access to art</strong>. We believe that games should be an accessible medium for everyone. That's why all our software, assets, and stories are available at no cost to our community.
+                        </p>
+                    </section>
+                    
+                    <div class="donation-box">
+                        <p class="gold-text">SUPPORT OUR VISION</p>
+                        <p>Our work is fueled by passion (and quite a bit of stress). While our games are free, we accept small donations to help us keep the servers running and the coffee flowing.</p>
+                        <a href="contact.html" class="retro-btn">DONATE CIGARETTES & COFFEE</a>
+                    </div>
+                </div>
             </fieldset>
-        </div>
+        </article>
     </main>
 
     <script src="js/script.js"></script>
 </body>
 <footer>
-    © 2023 <strong>LSD Software</strong> - Milan , Italy
+    © 2023 <strong>LSD Software</strong> - Milan, Italy | <span class="gold-text">Indie Game Dev Collective</span>
 </footer>
 </html>

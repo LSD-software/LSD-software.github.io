@@ -1,0 +1,128 @@
+/* --- PESCA CUSTOM STYLE --- */
+
+#pesca-page {
+    max-width: 850px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+/* Card principale: Bordi Oro e Sfondo Nero */
+#pesca-page .retro-card {
+    background: #050505; /* Nero quasi assoluto delle immagini */
+    border: 2px solid gold;
+    padding: 50px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+#pesca-page legend {
+    padding: 0 15px;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* Tipografia */
+#pesca-page .gold-text {
+    color: gold;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+#pesca-page .granata-text {
+    color: #800000;
+}
+
+#pesca-page .white-title {
+    color: #ffffff;
+    border-bottom: 2px solid #800000;
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: 25px;
+    font-family: "Courier Prime", monospace;
+}
+
+#pesca-page .tagline {
+    font-style: italic;
+    color: #ffffff;
+    opacity: 0.7;
+    margin: 20px 0;
+    font-size: 0.9em;
+}
+
+#pesca-page .description {
+    color: #ffffff;
+    line-height: 1.8;
+    text-align: justify;
+    margin-bottom: 30px;
+}
+
+/* Box Features: Richiamo al Rosso Granata delle immagini */
+#pesca-page .features-box {
+    text-align: left;
+    background: rgba(128, 0, 0, 0.05);
+    border-left: 5px solid #800000;
+    padding: 25px;
+    margin: 40px 0;
+}
+
+#pesca-page .features-box ul {
+    list-style: none;
+    padding: 0;
+}
+
+#pesca-page .features-box li {
+    color: #ffffff;
+    margin-bottom: 12px;
+    font-family: "Courier Prime", monospace;
+}
+
+/* Status Bar in stile Terminale */
+#pesca-page .status-bar {
+    background: #111111;
+    color: #00ff00; /* Verde Neon per i dati tecnici */
+    padding: 12px;
+    font-size: 0.85em;
+    margin-bottom: 50px;
+    border: 1px solid #222;
+    font-family: "Courier Prime", monospace;
+}
+
+#pesca-page .status-dot {
+    height: 10px;
+    width: 10px;
+    background-color: #00ff00;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 12px;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+/* Bottone di Download: Puro Granata con Hover Oro */
+#pesca-page .download-btn {
+    background-color: #800000;
+    color: #ffffff;
+    border: 1px solid gold;
+    padding: 18px 60px;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    font-weight: bold;
+    display: inline-block;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    text-decoration: none;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+
+#pesca-page .download-btn:hover {
+    background-color: gold;
+    color: #800000;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    transform: scale(1.05);
+}
+
+#pesca-page .protocol-text {
+    color: #800000;
+    font-weight: bold;
+    font-size: 0.8em;
+    margin-bottom: 10px;
+}

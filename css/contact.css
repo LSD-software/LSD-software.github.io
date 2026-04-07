@@ -5,79 +5,91 @@ h2 {
     margin-bottom: 20px;
     text-shadow: 0 0 5px rgba(3, 218, 198, 0.5); /* Aggiunge un leggero bagliore */
 }
+/* --- CONTACT PAGE STYLING --- */
 
-/* Contenitore principale del modulo */
 #call-Module {
     text-align: center;
-    padding: 10px 20px;
-    /* Centra e limita la larghezza per una migliore leggibilità su schermi grandi */
-    max-width: 900px; 
-    margin: 0 auto; 
-}
-
-/* Stile per tutti i bottoni di chiamata */
-.callB {
-    /* Layout */
-    display: inline-block; /* Assicura che i margini e le dimensioni funzionino bene */
-    margin: 20px 30px; /* Margini ridotti per un look più coeso */
-    width: 250px; /* Larghezza fissa per uniformità */
-    
-    /* Colore e Bordo */
-    background: gold; 
-    color: #121212; 
-    border: none;
-    border-radius: 10px; 
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Ombra per profondità */
-
-    /* Testo */
-    padding: 18px 25px; 
-    font-size: 1.1em; 
-    font-weight: 700;
-    text-transform: uppercase;
-
-    /* Animazione */
-    transition: all 0.3s ease-in-out;
-    cursor: pointer;
-}
-
-/* Effetto Hover potenziato per i bottoni di chiamata */
-.callB:hover {
-    background: #FFEC8B; 
-    transform: scale(1.1); /* Il bottone si ingrandisce leggermente */
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6); /* Ombra con bagliore verde */
-    color: #121212;
-}
-
-/* Stile per il bottone Discord (Diverso da Call) */
-.dsB {
-    /* Stile basato sul brand Discord (viola/blu) */
-    display: inline-block;
-    margin: 20px 30px;
-    width: 250px;
-    
-    background: #7289DA; /* Colore Discord */
-    color: white; 
-    border: none;
+    padding: 20px;
+    max-width: 900px;
+    margin: 40px auto;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 215, 0, 0.2);
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
 
-    padding: 18px 25px;
-    font-size: 1.1em;
+/* Testo */
+.white-text {
+    color: white;
+    margin-bottom: 20px;
+    font-family: "Courier Prime", monospace;
+}
+
+.gold-text {
+    color: gold;
+    font-size: 2em;
+    margin-top: 40px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Layout dei bottoni */
+.button-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+/* Stile Bottoni Chiamata (Tema Granata/Oro) */
+.callB {
+    width: 250px;
+    background: #800000; /* Rosso Granata */
+    color: white;
+    border: 2px solid gold;
+    border-radius: 5px;
+    padding: 18px;
+    font-family: "Courier Prime", monospace;
     font-weight: 700;
     text-transform: uppercase;
-    
-    transition: all 0.3s ease-in-out;
     cursor: pointer;
+    transition: all 0.3s ease-in-out;
 }
 
-/* Effetto Hover per Discord */
+.callB:hover {
+    background: gold;
+    color: #800000;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+/* Stile Bottone Discord */
+.dsB {
+    width: 300px;
+    background: #5865F2; /* Colore Blurple ufficiale Discord */
+    color: white;
+    border: 2px solid white;
+    border-radius: 5px;
+    padding: 20px;
+    font-family: "Courier Prime", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    margin-top: 10px;
+}
+
 .dsB:hover {
-    background: #99AAB5; /* Grigio/bianco Discord più chiaro */
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(114, 137, 218, 0.6); /* Bagliore viola */
+    background: white;
+    color: #5865F2;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(88, 101, 242, 0.5);
 }
 
-/* Rimuove la sottolineatura dai link attorno ai bottoni */
-a {
-    text-decoration: none; 
+/* Mobile Fix */
+@media (max-width: 600px) {
+    .callB, .dsB {
+        width: 90%;
+    }
 }

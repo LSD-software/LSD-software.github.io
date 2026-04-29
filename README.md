@@ -1,5 +1,3 @@
-Ecco un README.md professionale, cattivo e stilisticamente coerente con l'estetica "fever dream" a 32-bit di LSD Software. È ottimizzato per GitHub/GitLab, con sezioni chiare per la SEO tecnica e la narrazione del brand.
-
 💾 LSD_SOFTWARE // DIGITAL_ARTIFACTS
 "Beyond Digital Boundaries. Low Poly aesthetics. Retro fueled logic. Pure Indie soul."
 

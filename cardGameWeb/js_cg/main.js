@@ -1,29 +1,19 @@
-// js/main.js
+// js_cg/main.js — menu principale
 
-// Carica i dati salvati
-const data = loadData();
-
-// Ottieni lo sfondo equipaggiato
-const currentBackground = data.background; // 1–4
-
-function aggiornaSfondo() {
-  const body = document.getElementById("gameBody");
-
+document.addEventListener("DOMContentLoaded", function () {
+  const data = loadData();
   const bgFiles = [
-    "SfondoTavolata.png",   // 1
-    "SfondoTavolata1.png",  // 2
-    "SfondoTavolata2.png",  // 3
-    "SfondoTavolata3.png"   // 4
+    "SfondoTavolata.png",
+    "SfondoTavolata1.png",
+    "SfondoTavolata2.png",
+    "SfondoTavolata3.png"
   ];
-
-  // Sicurezza: evita errori se il valore è fuori range
-  const index = Math.max(1, Math.min(currentBackground, bgFiles.length)) - 1;
-
-  body.style.backgroundImage = `url("data_cg/${bgFiles[index]}")`;
-  body.style.backgroundSize = "contain";
-  body.style.backgroundPosition = "center";
-  body.style.backgroundRepeat = "no-repeat";
-  body.style.backgroundColor = "#000";
-}
-
-document.addEventListener("DOMContentLoaded", aggiornaSfondo);
+  const idx = Math.max(1, Math.min(data.background, bgFiles.length)) - 1;
+  const body = document.getElementById("gameBody");
+  if (body) {
+    body.style.backgroundImage    = `url("data_cg/${bgFiles[idx]}")`;
+    body.style.backgroundSize     = "cover";
+    body.style.backgroundPosition = "center";
+    body.style.backgroundRepeat   = "no-repeat";
+  }
+});

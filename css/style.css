@@ -1,219 +1,299 @@
-/* --- FONT --- */
+/* --- FONT IMPORT --- */
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* --- FONT UTILITY CLASSES --- */
 .courier-prime-regular {
   font-family: "Courier Prime", monospace;
   font-weight: 400;
   font-style: normal;
 }
-
 .courier-prime-bold {
   font-family: "Courier Prime", monospace;
   font-weight: 700;
   font-style: normal;
 }
-
 .courier-prime-regular-italic {
   font-family: "Courier Prime", monospace;
   font-weight: 400;
   font-style: italic;
 }
-
 .courier-prime-bold-italic {
   font-family: "Courier Prime", monospace;
   font-weight: 700;
   font-style: italic;
 }
 
-/* --- SFONDO CENTRATO --- */
-body {
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
+/* --- UTILITY --- */
+.white-title {
+  color: #ffffff;
+}
+.gold-text {
+  color: gold;
+}
 
-    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%), url("../img/bg.png");
-    background-size: cover;      
+/* --- RESET & BASE --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Courier Prime", monospace;
+}
+
+/* --- BODY / BACKGROUND --- */
+body {
+  min-height: 100vh;
+  /* Fix per Safari iOS: background-attachment:fixed è broken su webkit mobile */
+  background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%),
+              url("../img/bg.png");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: scroll; /* scroll invece di fixed: funziona su tutti i browser mobile */
+}
+
+/* Pseudo-element trick per sfondo fisso su iOS */
+@supports (-webkit-touch-callout: none) {
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%),
+                url("../img/bg.png");
+    background-size: cover;
     background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    z-index: -1;
+  }
+  body {
+    background: none;
+  }
 }
 
 /* --- HEADER --- */
 header {
-    width: 90%;
-    margin: 20px auto;
-    border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.533);
-   /* border: 1px solid white;*/
+  width: 90%;
+  margin: 16px auto 0;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.55);
+  position: relative;
+  z-index: 100;
 }
 
 /* --- NAVBAR --- */
 #navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 20px;
-    position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  position: relative;
 }
 
 #logo img {
-    height: 100px;
-    padding: 5px;
+  height: 80px;
+  width: auto;
+  padding: 4px;
+  display: block;
+  object-fit: contain;
 }
 
-/* --- TITOLO --- */
+/* --- TITOLO H1 --- */
 h1 {
-    text-align: center;
-    color: gold;
-    flex: 1;
-    padding: 5px;
+  text-align: center;
+  color: gold;
+  flex: 1;
+  margin: 0;
+  padding: 5px 10px;
+  font-size: clamp(1.1rem, 3vw, 2rem);
+  line-height: 1.2;
+  font-family: "Courier Prime", monospace;
 }
 
 /* --- MENU DESKTOP --- */
 #menu {
-    display: flex;
-    gap: 20px;
+  display: flex;
+  gap: 20px;
 }
 
 #menu a {
-    font-size: 18px;
-    position: relative;
-    text-decoration: none;
-    color: white;
-    font-weight: 500;
-    padding: 5px 0;
-    transition: color 0.3s ease;
+  font-size: 16px;
+  position: relative;
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  padding: 5px 0;
+  transition: color 0.3s ease;
+  font-family: "Courier Prime", monospace;
 }
 
-/* Linea animata */
 #menu a::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -3px;
-    width: 0%;
-    height: 2px;
-    background: #800000;
-    transition: width 0.3s ease;
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 0%;
+  height: 2px;
+  background: #800000;
+  transition: width 0.3s ease;
 }
 
-#menu a:hover {
-    color: #800000;
-}
+#menu a:hover { color: #800000; }
+#menu a:hover::after { width: 100%; }
 
-#menu a:hover::after {
-    width: 100%;
-}
-
-/* --- CONTENUTO DEL BODY --- */
+/* --- MAIN CONTAINER --- */
 #container {
-    width: 90%;
-    margin: 20px auto;
-    padding: 20px;
-    position: relative;
-}
-
-fieldset {
-    background: rgba(0, 0, 0, 0.512);
-    border: 1px solid gold;
-    border-radius: 8px;
-    padding: 10px;
-    margin: 20px auto;
-}
-
-legend {
-    padding: 5px;
-    font-size: 28px;
-    color: #800000;
+  width: 90%;
+  margin: 20px auto;
+  padding: 20px;
+  position: relative;
 }
 
 #container h2 {
-    color: white;
+  color: white;
+}
+
+/* --- FIELDSET GLOBALE --- */
+fieldset {
+  background: rgba(0, 0, 0, 0.512);
+  border: 1px solid gold;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 20px auto;
+}
+
+legend {
+  padding: 5px 10px;
+  font-size: clamp(18px, 4vw, 28px);
+  color: #800000;
+  font-family: "Courier Prime", monospace;
+  font-weight: 700;
 }
 
 /* --- FOOTER --- */
 footer {
-    background: #2b2b2b;
-    color: white;
-    text-align: center;
-    padding: 10px;
-    font-size: 0.85em;
-    position: relative;
+  background: #2b2b2b;
+  color: white;
+  text-align: center;
+  padding: 12px 10px;
+  font-size: 0.85em;
+  font-family: "Courier Prime", monospace;
+  width: 100%;
 }
 
 /* --- HAMBURGER ICON --- */
 #hamburger {
-    width: 30px;
-    height: 22px;
-    display: none; 
-    flex-direction: column;
-    justify-content: space-between;
-    cursor: pointer;
+  width: 30px;
+  height: 22px;
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 2px;
+  z-index: 200;
 }
 
 #hamburger span {
-    display: block;
-    height: 4px;
-    width: 100%;
-    background: white;
-    border-radius: 5px;
-    transition: 0.3s;
+  display: block;
+  height: 4px;
+  width: 100%;
+  background: white;
+  border-radius: 5px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
-/* --- MOBILE --- */
+/* --- HAMBURGER ANIMAZIONE APERTO --- */
+#hamburger.active span:nth-child(1) { transform: rotate(45deg) translateY(9px); }
+#hamburger.active span:nth-child(2) { opacity: 0; }
+#hamburger.active span:nth-child(3) { transform: rotate(-45deg) translateY(-9px); }
+
+/* ============================================================
+   MOBILE — max-width: 700px
+   ============================================================ */
 @media (max-width: 700px) {
 
-    /* Mostra hamburger */
-    #hamburger {
-        display: flex;
-        padding: 2px;
-    }
+  header {
+    width: 95%;
+    margin: 10px auto 0;
+    /* Overflow visible per permettere al menu dropdown di espandersi */
+    overflow: visible;
+  }
 
-    /* BOX MENU MOBILE */
-    #menu {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%; 
-        background: #111;
-        flex-direction: column;
-        padding: 15px 0;
-        border-bottom-left-radius: 10px;
-        border-bottom-right-radius: 10px;
-        gap: 15px;
-        text-align: center;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        z-index: 999;
-    }
+  #navbar {
+    padding: 8px 14px;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
 
-    /* Mostra menu quando attivo */
-    #menu.active {
-        display: flex;
-    }
+  #logo img {
+    height: 56px;
+    width: auto;
+    object-fit: contain;
+  }
 
-    /* Stile link nel menu mobile */
-    #menu a {
-        font-size: 18px;
-        padding: 10px 0;
-        color: white;
-        width: 100%;
-    }
+  h1 {
+    font-size: clamp(0.95rem, 5vw, 1.3rem);
+    padding: 4px 6px;
+  }
 
-    /* Riduci logo */
-    #logo img {
-        height: 90px;
-    }
+  /* Mostra hamburger */
+  #hamburger {
+    display: flex;
+  }
 
+  /* Menu mobile dropdown */
+  #menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    width: 100%;
+    background: rgba(10, 10, 10, 0.97);
+    flex-direction: column;
+    padding: 10px 0;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    gap: 0;
+    text-align: center;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    z-index: 999;
+    border-top: 1px solid rgba(128,0,0,0.4);
+  }
+
+  #menu.active {
+    display: flex;
+  }
+
+  #menu a {
+    font-size: 16px;
+    padding: 13px 20px;
+    color: white;
+    width: 100%;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  #menu a:last-child {
+    border-bottom: none;
+  }
+
+  #container {
+    width: 95%;
+    padding: 14px;
+    margin: 12px auto;
+  }
+
+  fieldset {
+    padding: 10px 8px;
+  }
 }
 
-/* --- ANIMAZIONE HAMBURGER APERTO --- */
-#hamburger.active span:nth-child(1) {
-    transform: rotate(45deg) translateY(9px);
-}
-
-#hamburger.active span:nth-child(2) {
-    opacity: 0;
-}
-
-#hamburger.active span:nth-child(3) {
-    transform: rotate(-45deg) translateY(-9px);
+/* ============================================================
+   TABLET — 701px–1024px
+   ============================================================ */
+@media (min-width: 701px) and (max-width: 1024px) {
+  #logo img { height: 70px; width: auto; object-fit: contain; }
+  h1 { font-size: 1.5rem; }
+  #menu a { font-size: 15px; }
+  #menu { gap: 14px; }
 }

@@ -1,193 +1,138 @@
-/* SFONDO TIPO GIOCO: FISSO E COPERTO */
-body{
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
+/* ============================================================
+   LSD CARD GAME — main.css
+   Bottoni sempre in colonna verticale, logo non stretchato
+   ============================================================ */
 
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: #000; /* o un colore simile allo sfondo */
+*, *::before, *::after { box-sizing: border-box; }
 
-    background-attachment: fixed;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
-/* LAYER SCURO CENTRALE  */
-#container{
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.3);
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
+#container {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.32);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
 }
 
-/* BOX DEI PULSANTI */
-#sezioneBT{
-    background: rgba(0, 0, 0, 0.55);
-    padding: 40px 80px;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
+/* Box centrale — SEMPRE colonna verticale */
+#sezioneBT {
+  background: rgba(0, 0, 0, 0.65);
+  padding: clamp(16px, 4vh, 42px) clamp(24px, 7vw, 70px);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 180, 0.5);
+  display: flex;
+  flex-direction: column;   /* sempre verticale */
+  align-items: center;
+  gap: clamp(10px, 2.5vh, 22px);
+  max-width: 95vw;
 }
 
-/* LOGO */
-#sezioneBT img{
-    width: 350px;
-    margin-bottom: 20px;
+/* Logo — proporzioni protette, mai stretchato */
+#sezioneBT img {
+  width: clamp(120px, 28vw, 300px);
+  max-width: 80%;
+  height: auto;             /* FIX: height auto, non 30vh che può stretchare */
+  max-height: 25vh;
+  object-fit: contain;
+  object-position: center;
+  margin-bottom: clamp(4px, 1.5vh, 14px);
+  flex-shrink: 0;
 }
 
-/* PULSANTI */
-#sezioneBT button{
-    width: 260px;
-    padding: 18px 0;
-    background: blue;
-    color: white;
-    border: none;
-    font-size: 26px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
+/* Bottoni */
+#sezioneBT button {
+  width: clamp(160px, 55vw, 250px);
+  padding: clamp(10px, 2vh, 18px) 0;
+  background: blue;
+  color: white;
+  border: none;
+  font-size: clamp(15px, 3.5vw, 24px);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: sans-serif;
+  transition: background 0.2s ease, transform 0.15s ease;
 }
 
-#sezioneBT button:hover{
-    background: rgb(1, 1, 133);
+#sezioneBT button:hover {
+  background: rgb(0, 0, 160);
+  transform: scale(1.03);
 }
 
-/* Overlay che appare SOLO in verticale */
+#sezioneBT a {
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+/* Overlay verticale */
 #rotate-device {
   position: fixed;
   inset: 0;
   background: #000;
   color: #fff;
   display: none;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 20px;
-  font-size: 1.5rem;
+  padding: 24px;
+  font-size: clamp(1rem, 5vw, 1.5rem);
   z-index: 9999;
+  gap: 14px;
 }
 
-/* Nasconde il contenuto quando il telefono è in verticale */
-body.vertical #game-container,
-body.vertical main,
-body.vertical #shop-container,
-body.vertical #container,
-body.vertical #sezioneBT {
-  display: none !important;
+#rotate-device::before {
+  content: "↻";
+  font-size: 3rem;
+  animation: spin 2s linear infinite;
 }
 
-/* ============================
-   MOBILE ORIZZONTALE RESPONSIVE
-   ============================ */
-
-@media screen and (max-width: 1024px) and (orientation: landscape) {
-
-  html, body { 
-    width: 100dvw; 
-    height: 100dvh; 
-    overflow-y: auto; /* scroll quando non ci sta tutto */
-    background-size: contain; 
-    background-position: center; 
-    background-repeat: no-repeat; 
-    background-attachment: fixed; 
-    display: flex; 
-    justify-content: center; 
-    align-items: flex-start; 
-  } 
-
-  #container { 
-    width: 100%; 
-    min-height: 100dvh; /* copre tutta l’altezza reale anche in scroll */ 
-    background: rgba(0, 0, 0, 0.0); 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-  }
-
-  #sezioneBT {
-    width: min(90vw, 600px);
-    padding: clamp(20px, 5vw, 40px);
-    border-radius: 10px;
-    gap: clamp(15px, 4vw, 25px);
-  }
-
-  #sezioneBT img {
-    width: clamp(180px, 40vw, 300px);
-    margin-bottom: clamp(10px, 3vw, 20px);
-  }
-
-  #sezioneBT button {
-    width: clamp(180px, 60vw, 260px);
-    padding: clamp(12px, 4vw, 20px) 0;
-    font-size: clamp(18px, 6vw, 28px);
-  }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-/* ============================
-   SCHERMI PICCOLISSIMI (iPhone SE, Android mini)
-   ============================ */
-
-@media screen and (max-height: 400px) and (orientation: landscape) {
-  
-  #container {
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.0);
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  #sezioneBT {
-    width: 90vw;
-    padding: 20px;
-    gap: 15px;
-  }
-
-  #sezioneBT img {
-    width: 220px;
-    margin-bottom: 10px;
-  }
-
-  #sezioneBT button {
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 5vw; /* bottoni più grandi su SE & co. */
-  }
-}
-
-/* ============================
-   BLOCCO VERTICALE
-   ============================ */
-
+/* Portrait — mostra overlay */
 @media screen and (orientation: portrait) {
-  #container, #sezioneBT {
-    display: none !important;
+  #container, #sezioneBT { display: none !important; }
+  #rotate-device { display: flex; }
+}
+
+/* Landscape piccolo — rimane comunque colonna, solo più compatto */
+@media screen and (max-height: 420px) and (orientation: landscape) {
+  #sezioneBT {
+    gap: 8px;
+    padding: 10px 28px;
+    /* overflow scroll se lo schermo è davvero minuscolo */
+    max-height: 96vh;
+    overflow-y: auto;
   }
 
-  #rotate-device {
-    display: flex;
-    position: fixed;
-    inset: 0;
-    background: #000;
-    color: #fff;
-    font-size: 1.5rem;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 20px;
-    z-index: 9999;
-    pointer-events: all;
+  #sezioneBT img {
+    max-height: 14vh;
+    margin-bottom: 4px;
+  }
+
+  #sezioneBT button {
+    padding: 8px 0;
+    font-size: clamp(12px, 3vw, 17px);
   }
 }

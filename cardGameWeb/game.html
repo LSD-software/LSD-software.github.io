@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="data_cg/logo.png">
-  <title>LSD Card Game</title>
-  <link rel="stylesheet" href="css_cg/game.css" />
+  <title>LSD Card Game — Play</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="css_cg/game.css">
 </head>
 <body id="gameBody">
 
@@ -18,11 +19,12 @@
   </header>
 
   <main id="table">
+
     <div class="card-box left">
       <div class="card-frame">
-        <img id="currentCardImg" src="" alt="Carta attuale" />
+        <img id="currentCardImg" src="" alt="Carta attuale">
       </div>
-      <div class="card-label"></div>
+      <div class="card-label" id="currentCardLabel"></div>
     </div>
 
     <div id="centerBox">
@@ -31,14 +33,14 @@
       <div id="controls">
         <button class="btn round blue" id="btnLower">MINOR</button>
         <button class="btn-allin" id="btnAllIn">
-          <img src="data_cg/Tasto_All_In.png" alt="ALL IN" />
+          <img src="data_cg/Tasto_All_In.png" alt="ALL IN">
         </button>
         <button class="btn round green" id="btnHigher">MAJOR</button>
       </div>
 
       <div id="betControls">
-        <button class="btn small red" id="btnMinus">-1</button>
         <button class="btn small red" id="btnMinus10">-10</button>
+        <button class="btn small red" id="btnMinus">-1</button>
         <span id="betAmount">BET: <b>0</b></span>
         <button class="btn small blue" id="btnPlus">+1</button>
         <button class="btn small blue" id="btnPlus10">+10</button>
@@ -49,36 +51,20 @@
 
     <div class="card-box right">
       <div class="card-frame">
-        <img id="nextCardImg" src="" alt="Prossima carta" />
+        <img id="nextCardImg" src="" alt="Prossima carta">
       </div>
-      <div class="card-label"></div>
+      <div class="card-label" id="nextCardLabel"></div>
     </div>
+
   </main>
+
+  <!-- Overlay ruota dispositivo -->
+  <div id="rotate-device">
+    Rotate your device horizontally to play
+  </div>
 
   <script src="js_cg/storage.js"></script>
   <script src="js_cg/audio.js"></script>
   <script src="js_cg/game.js"></script>
 </body>
-<script>
-function checkOrientation() {
-  const isVertical = window.innerHeight > window.innerWidth;
-
-  if (isVertical) {
-    document.body.classList.add("vertical");
-    document.getElementById("rotate-device").style.display = "flex";
-  } else {
-    document.body.classList.remove("vertical");
-    document.getElementById("rotate-device").style.display = "none";
-  }
-}
-
-window.addEventListener("resize", checkOrientation);
-window.addEventListener("orientationchange", checkOrientation);
-document.addEventListener("DOMContentLoaded", checkOrientation);
-</script>
-
-<div id="rotate-device">
-  Rotate your device horizontally to play.
-</div>
-
 </html>

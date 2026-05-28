@@ -1,77 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
+  <meta charset="UTF-8">
+  <!-- Un solo viewport tag, corretto -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="data_cg/logo.png">
 
-    <title>LSD Card Game</title>
-    <meta name="description"
-        content="Immerse yourself in the game of chance, try to find the order of the cards, collect points, convert them, and customize your dealer.">
-    <meta name="keywords"
-        content="LSD Software, Indie Games, LSD Card Game, Game Development Milan, Retro Games, Card Game">
-    <meta name="author" content="LSD Software">
+  <title>LSD Card Game | Free Casino Card Game — LSD Software</title>
+  <meta name="description" content="Play LSD Card Game for free. A psychedelic casino-themed guessing game: predict if the next card is higher or lower, bet coins, and unlock new decks.">
+  <meta name="keywords" content="LSD Card Game, free card game browser, casino guessing game, indie card game, LSD Software">
+  <meta name="author" content="LSD Software">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://lsd-software.github.io/cardGameWeb/main.html">
 
-    <meta property="og:title" content="LSD Software Projects | Official Gallery">
-    <meta property="og:description" content="Check out our latest indie games and digital experiments.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
 
+  <meta property="og:title" content="LSD Card Game | Free Casino Card Game">
+  <meta property="og:description" content="Psychedelic casino card guessing game — free to play in browser.">
+  <meta property="og:image" content="https://lsd-software.github.io/cardGameWeb/data_cg/logo.png">
 
-    <link rel="icon" type="image/png" href="data_cg/logo.png">
-    <link rel="stylesheet" href="css_cg/style.css">
-    <link rel="stylesheet" href="css_cg/main.css">
-
+  <link rel="stylesheet" href="css_cg/style.css">
+  <link rel="stylesheet" href="css_cg/main.css">
 </head>
 
 <body id="gameBody">
-    <div id="container">
-        <div id="sezioneBT">
-            <img id="logo" src="data_cg/logo.png" alt="logo">
-            <a href="game.html">
-                <button>START</button>
-            </a>
+  <div id="container">
+    <div id="sezioneBT">
+      <img id="logo" src="data_cg/logo.png" alt="LSD Card Game logo">
 
-            <a href="shop.html">
-                <button>SHOP</button>
-            </a>
-
-            <a href="settings.html">
-                <button>SETTINGS</button>
-            </a>
-
-            <a href="../project.html">
-                <button>QUIT</button>
-            </a>
-        </div>
+      <a href="game.html">
+        <button>START</button>
+      </a>
+      <a href="shop.html">
+        <button>SHOP</button>
+      </a>
+      <a href="settings.html">
+        <button>SETTINGS</button>
+      </a>
+      <a href="../project.html">
+        <button>QUIT</button>
+      </a>
     </div>
-    <script src="js_cg/storage.js"></script>
-    <script src="js_cg/audio.js"></script>
-    <script src="js_cg/main.js"></script>
+  </div>
+
+  <!-- Overlay ruota dispositivo -->
+  <div id="rotate-device">
+    Rotate your device horizontally to play
+  </div>
+
+  <script src="js_cg/storage.js"></script>
+  <script src="js_cg/audio.js"></script>
+  <script src="js_cg/main.js"></script>
 </body>
-
-<script>
-    function checkOrientation() {
-        const isVertical = window.innerHeight > window.innerWidth;
-
-        if (isVertical) {
-            document.body.classList.add("vertical");
-            document.getElementById("rotate-device").style.display = "flex";
-        } else {
-            document.body.classList.remove("vertical");
-            document.getElementById("rotate-device").style.display = "none";
-        }
-    }
-
-    window.addEventListener("resize", checkOrientation);
-    window.addEventListener("orientationchange", checkOrientation);
-    document.addEventListener("DOMContentLoaded", checkOrientation);
-</script>
-
-<div id="rotate-device">
-    Rotate your device horizontally to play.
-</div>
-
 </html>

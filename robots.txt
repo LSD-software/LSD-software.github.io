@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /cardGameWeb/game.html
+Disallow: /cardGameWeb/shop.html
+Disallow: /cardGameWeb/settings.html
+
+Sitemap: https://lsd-software.github.io/sitemap.xml

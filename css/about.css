@@ -1,38 +1,104 @@
-#about-lsd h2{
-    text-align: center;
-    color: goldenrod;
-}
-p{
-    color:white;
-    text-align: center;
+#about-lsd h2 {
+  text-align: center;
+  color: goldenrod;
+  font-size: clamp(1rem, 3vw, 1.4rem);
+  margin-bottom: 20px;
 }
 
-/* Effetto Glow per i titoli H3 */
+.about-content p {
+  color: white;
+  text-align: left;
+  font-family: "Courier Prime", monospace;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
+  line-height: 1.8;
+}
+
 #about-lsd h3 {
-    color: #800000; /* Il tuo rosso granata */
-    text-shadow: 1px 1px 0px rgba(255, 215, 0, 0.2);
-    text-transform: uppercase;
-    font-size: 1.2em;
-    margin-top: 35px;
-    margin-bottom: 15px;
-    border-left: 3px solid gold;
-    padding-left: 10px;
+  color: #800000;
+  text-shadow: 1px 1px 0px rgba(255, 215, 0, 0.2);
+  text-transform: uppercase;
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+  margin-top: 30px;
+  margin-bottom: 12px;
+  border-left: 3px solid gold;
+  padding-left: 10px;
+  font-family: "Courier Prime", monospace;
 }
 
-/* Miglioramento della Donation Box */
 .donation-box {
-    border: 2px dashed #800000;
-    background: rgba(0, 0, 0, 0.5);
-    transition: 0.3s;
+  border: 2px dashed #800000;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  border-radius: 6px;
+  margin-top: 28px;
+  transition: border-color 0.3s, background 0.3s;
+  text-align: center;
 }
 
 .donation-box:hover {
-    border-color: gold;
-    background: rgba(128, 0, 0, 0.1);
+  border-color: gold;
+  background: rgba(128, 0, 0, 0.12);
 }
 
-/* Stile per i link forti (SEO) */
+.donation-box .gold-text {
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.donation-box p {
+  text-align: center !important;
+}
+
+.donation-box .retro-btn {
+  margin-top: 16px;
+  display: inline-block;
+  padding: 10px 24px;
+}
+
 strong {
-    color: gold;
-    font-weight: 700;
+  color: gold;
+  font-weight: 700;
+}
+
+.status-bar {
+  background: #1a1a1a;
+  padding: 6px 12px;
+  font-size: 0.78em;
+  color: #00ff00;
+  margin: 20px 0;
+  border-left: 3px solid #800000;
+  font-family: "Courier Prime", monospace;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.retro-btn {
+  display: inline-block;
+  text-align: center;
+  background: #800000;
+  color: white !important;
+  padding: 10px 20px;
+  text-decoration: none;
+  font-weight: bold;
+  font-family: "Courier Prime", monospace;
+  border: 1px solid gold;
+  transition: background 0.3s ease, color 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.retro-btn:hover {
+  background: gold;
+  color: #800000 !important;
+}
+
+@media (max-width: 700px) {
+  .donation-box {
+    padding: 16px 12px;
+  }
+  .about-content p {
+    text-align: left;
+  }
 }

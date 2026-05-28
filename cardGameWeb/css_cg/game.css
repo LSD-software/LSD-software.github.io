@@ -1,14 +1,19 @@
-/* ============================
-   BASE DESKTOP
-   ============================ */
+/* ============================================================
+   LSD CARD GAME — game.css
+   Fix: carte centrate, layout mobile landscape, sfondi, bottoni
+   ============================================================ */
+
+/* --- RESET BASE --- */
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
   margin: 0;
   padding: 0;
   width: 100vw;
   height: 100vh;
-  background-size: contain;
-  background-position: center;
+  /* background-size cover invece di contain: niente bande nere laterali */
+  background-size: cover;
+  background-position: center center;
   background-repeat: no-repeat;
   background-color: #000;
   display: grid;
@@ -18,73 +23,107 @@ body {
   overflow: hidden;
 }
 
-/* Barra superiore */
+/* ============================================================
+   TOPBAR
+   ============================================================ */
 #topbar {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 1vh 2vw;
-  background: rgba(0,0,0,0.35);
+  padding: clamp(4px, 1.5vh, 12px) clamp(8px, 2vw, 24px);
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 10;
 }
 
 .stat {
-  font-size: 1.4vw;
+  font-size: clamp(13px, 1.6vw, 22px);
   font-weight: bold;
 }
-.stat.left { justify-self: start; }
+.stat.left  { justify-self: start; }
 .stat.right { justify-self: end; }
-.home { justify-self: center; }
+.home       { justify-self: center; }
 
 #homeBtn {
   background: none;
   border: 2px solid white;
   color: white;
-  font-size: 1.5vw;
-  padding: 6px 12px;
+  font-size: clamp(14px, 1.8vw, 22px);
+  padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#homeBtn:hover {
+  background: rgba(255,255,255,0.15);
 }
 
-/* Layout principale */
+/* ============================================================
+   MAIN TABLE
+   ============================================================ */
 #table {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
   align-items: center;
   justify-items: center;
-  width: 75%;
-  height: 80%;
-  padding: 2vh 2vw;
-  margin: auto;
+  width: 100%;
+  height: 100%;
+  padding: clamp(6px, 1.5vh, 20px) clamp(8px, 2vw, 30px);
+  overflow: hidden;
 }
 
+/* ============================================================
+   CARD BOXES — FIX: rimosso margin:100px, ora centrate
+   ============================================================ */
 .card-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1vh;
-  margin: 100px;
+  justify-content: center;
+  gap: clamp(4px, 1vh, 12px);
+  /* FIX: il margin:100px originale spingeva le carte fuori schermo */
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .card-frame {
-  width: 14vw;
+  width: clamp(70px, 12vw, 160px);
   aspect-ratio: 7 / 10;
   display: flex;
   align-items: center;
   justify-content: center;
+  /* FIX: rimosso padding:60px che nascondeva l'immagine */
+  padding: 0;
+  position: relative;
 }
 
 .card-frame img {
-  width: 70%;
-  height: 70%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  display: block;
+  /* Prevent broken-image icon when src is empty at init */
+  min-width: 10px;
+  min-height: 10px;
+}
+
+/* Nasconde icona broken-image su img vuoto */
+.card-frame img:not([src]),
+.card-frame img[src=""] {
+  visibility: hidden;
 }
 
 .card-label {
-  font-size: 1.1vw;
+  font-size: clamp(10px, 1.2vw, 16px);
   font-weight: bold;
+  text-align: center;
+  min-height: 1em;
 }
 
-/* Box centrale */
+/* ============================================================
+   CENTER BOX
+   ============================================================ */
 #centerBox {
   position: relative;
   width: 100%;
@@ -93,35 +132,41 @@ body {
   grid-template-rows: 1fr auto auto auto;
   align-items: center;
   justify-items: center;
+  padding: clamp(4px, 1vh, 12px) 0;
+  gap: clamp(4px, 0.8vh, 10px);
 }
 
+/* Chip area */
 #chipBox {
   position: relative;
-  width: 70%;
-  height: 50%;
+  width: 80%;
+  height: 100%;
+  min-height: 40px;
 }
 
 .chip {
   position: absolute;
-  width: 3.2vw;
-  height: 3.2vw;
+  width: clamp(28px, 3.2vw, 52px);
+  height: clamp(28px, 3.2vw, 52px);
   background-size: cover;
   background-repeat: no-repeat;
   animation: chipPop 0.35s ease;
 }
 
 @keyframes chipPop {
-  0% { transform: scale(0.6); opacity: 0; }
-  60% { transform: scale(1.15); opacity: 1; }
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(1); }
 }
 
-/* Bottoni principali */
+/* ============================================================
+   CONTROLS
+   ============================================================ */
 #controls {
   display: flex;
   justify-content: center;
-  gap: 2vw;
-  margin-top: 1vh;
+  align-items: center;
+  gap: clamp(8px, 2vw, 28px);
 }
 
 .btn {
@@ -130,13 +175,14 @@ body {
   color: white;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: sans-serif;
 }
 
 .btn.round {
   border-radius: 50%;
-  width: 6.5vw;
-  height: 6.5vw;
-  font-size: 1vw;
+  width:  clamp(44px, 6.5vw, 90px);
+  height: clamp(44px, 6.5vw, 90px);
+  font-size: clamp(9px, 1vw, 15px);
 }
 
 .btn.blue  { background: #1976d2; }
@@ -146,8 +192,8 @@ body {
 .btn.blue:hover,
 .btn.green:hover,
 .btn.red:hover {
-  transform: scale(1.08);
-  box-shadow: 4px 4px 12px rgba(0,0,0,0.6);
+  transform: scale(1.09);
+  box-shadow: 4px 4px 14px rgba(0,0,0,0.6);
 }
 
 .btn-allin {
@@ -155,9 +201,12 @@ body {
   border: none;
   padding: 0;
   cursor: pointer;
-  width: 6.5vw;
-  height: 6.5vw;
+  width:  clamp(44px, 6.5vw, 90px);
+  height: clamp(44px, 6.5vw, 90px);
+  transition: transform 0.2s ease;
 }
+
+.btn-allin:hover { transform: scale(1.09); }
 
 .btn-allin img {
   width: 100%;
@@ -165,361 +214,149 @@ body {
   object-fit: contain;
 }
 
-/* Controlli puntata */
+/* Bet controls */
 #betControls {
   display: flex;
   align-items: center;
-  gap: 1.2vw;
-  margin-top: 1vh;
+  gap: clamp(4px, 1.2vw, 16px);
 }
 
 .btn.small {
-  width: 3.2vw;
-  height: 3.2vw;
-  font-size: 0.9vw;
+  width:  clamp(28px, 3.2vw, 46px);
+  height: clamp(28px, 3.2vw, 46px);
+  font-size: clamp(9px, 0.9vw, 14px);
   border-radius: 50%;
   display: grid;
   place-items: center;
 }
 
 #betAmount {
-  font-size: 1.2vw;
+  font-size: clamp(12px, 1.2vw, 18px);
   font-weight: bold;
   color: white;
+  white-space: nowrap;
 }
 
-/* Messaggi */
+/* Risultato */
 #resultMessage {
   position: absolute;
   bottom: 2vh;
-  background: rgba(0,0,0,0.8);
-  padding: 10px 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  padding: 8px 20px;
   border-radius: 10px;
-  font-size: 1.2vw;
+  font-size: clamp(12px, 1.3vw, 18px);
   font-weight: bold;
+  white-space: nowrap;
+  z-index: 20;
 }
 
-.hidden { display: none; }
+.hidden { display: none !important; }
 
-.animate {
-  animation: popCard 0.35s ease;
-}
+/* Card pop animation */
+.animate { animation: popCard 0.35s ease; }
 
 @keyframes popCard {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.12); }
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
 
-/* Overlay che appare SOLO in verticale */
+/* ============================================================
+   OVERLAY VERTICALE
+   ============================================================ */
 #rotate-device {
   position: fixed;
   inset: 0;
   background: #000;
   color: #fff;
   display: none;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 20px;
-  font-size: 1.5rem;
+  padding: 24px;
+  font-size: clamp(1rem, 5vw, 1.5rem);
   z-index: 9999;
+  gap: 16px;
 }
 
-/* Nasconde il contenuto quando il telefono è in verticale */
-body.vertical #game-container,
-body.vertical main,
-body.vertical #shop-container {
-  display: none !important;
+#rotate-device::before {
+  content: "↻";
+  font-size: 3rem;
+  display: block;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 /* ============================================================
-   1) TABLET GRANDI / TELEFONI MOLTO LARGHI
-   max-width: 1400px
+   PORTRAIT MODE — mostra overlay, nascondi gioco
    ============================================================ */
-@media screen and (max-width: 1400px) and (orientation: landscape) {
-
-  #table {
-    width: 85%;
-    height: 90%;
-    padding: 0 2vw;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 2.2fr 1fr;
-    align-items: center;
-    justify-items: center;
+@media screen and (orientation: portrait) {
+  #topbar, #table {
+    display: none !important;
   }
-
-  .card-box {
-    margin: 0;
-    padding: 1vh 0;
-    gap: 1vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .card-frame {
-    width: 120px;
-    height: 160px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .card-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  #centerBox {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    grid-template-rows: 1fr auto auto auto;
-    place-items: center;
-    gap: 1vh;
-    padding: 1vh 0;
-  }
-
-  #controls,
-  #betControls {
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 2vw;
-    display: flex;
-  }
-}
-
-
-/* ============================================================
-   2) TELEFONI GRANDI (iPhone Pro Max, Samsung Ultra)
-   max-width: 1100px
-   ============================================================ */
-@media screen and (max-width: 1100px) and (orientation: landscape) {
-
-  #table {
-    width: 85%;
-    height: 85%;
-    padding: 0 2vw;
-    grid-template-columns: 0.9fr 2.2fr 0.9fr;
-  }
-
-  .card-frame {
-    width: 90px;
-    height: 150px;
-  }
-
-  #centerBox {
-    place-items: center;
-    gap: 1vh;
-    padding: 1vh 0;
-  }
-
-  #controls,
-  #betControls {
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 2vw;
+  #rotate-device {
     display: flex;
   }
 }
 
 /* ============================================================
-   3) TELEFONI MEDI (iPhone 12/13/14, Samsung S)
-   max-width: 900px
-   ============================================================ */
-@media screen and (max-width: 900px) and (orientation: landscape) {
-
-  #table {
-    width: 100%;
-    height: 90%;
-    padding: 0 1vw;
-    grid-template-columns: 0.9fr 2.2fr 0.9fr;
-  }
-
-  .card-frame {
-    width: 80px;
-    height: 130px;
-  }
-
-  #centerBox {
-    place-items: center;
-    gap: 0.8vh;
-    padding: 0.8vh 0;
-  }
-
-  #controls,
-  #betControls {
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 2vw;
-    display: flex;
-  }
-}
-
-
-/* ============================================================
-   4) TELEFONI PICCOLI (iPhone 8, XR, Android compatti)
-   max-width: 700px
-   ============================================================ */
-@media screen and (max-width: 700px) and (orientation: landscape) {
-
-  #table {
-    width: 100%;
-    height: 90%;
-    padding: 0 1vw;
-    grid-template-columns: 0.9fr 2.2fr 0.9fr;
-  }
-
-  .card-frame {
-    width: 72px;
-    height: 130px;
-  }
-
-  #centerBox {
-    place-items: center;
-    gap: 0.6vh;
-    padding: 0.6vh 0;
-  }
-
-  #controls,
-  #betControls {
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 2vw;
-    display: flex;
-  }
-}
-
-
-/* ============================================================
-   5) SCHERMI PICCOLISSIMI (iPhone SE, Android mini)
-   max-height: 420px
+   LANDSCAPE PICCOLO (max-height 420px — iPhone SE, Android mini)
    ============================================================ */
 @media screen and (max-height: 420px) and (orientation: landscape) {
 
   #table {
-    width: 100%;
-    height: 90%;
-    padding: 0 1vw;
-    margin: 0;
-    display: grid;
-    grid-template-columns: 0.9fr 2.2fr 0.9fr;
-    align-items: center;
-    justify-items: center;
-  }
-
-  .card-box {
-    margin: 0;
-    padding: 0.5vh 0;
-    gap: 0.8vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    grid-template-columns: 0.85fr 2fr 0.85fr;
+    padding: 2px 4px;
   }
 
   .card-frame {
-    width: 70px;
-    height: 130px;
-    padding: 60px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .card-frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  .card-label {
-    font-size: 3.5vw;
-    text-align: center;
+    width: clamp(52px, 10vw, 90px);
   }
 
   #centerBox {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    grid-template-rows: 1fr auto auto auto;
-    place-items: center;
-    gap: 0.5vh;
-    padding: 0.5vh 0;
+    gap: 2px;
+    padding: 2px 0;
   }
 
-  #controls,
-  #betControls {
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 2vw;
-    display: flex;
-  }
-
-  .btn.round,
-  .btn-allin {
-    width: 12vw;
-    height: 12vw;
-    font-size: 2.8vw;
+  .btn.round, .btn-allin {
+    width:  clamp(36px, 8vw, 58px);
+    height: clamp(36px, 8vw, 58px);
+    font-size: clamp(8px, 2vw, 12px);
   }
 
   .btn.small {
-    width: 6vw;
-    height: 6vw;
-    font-size: 2.5vw;
+    width:  clamp(24px, 5.5vw, 38px);
+    height: clamp(24px, 5.5vw, 38px);
+    font-size: clamp(8px, 2vw, 11px);
   }
 
-  #betAmount {
-    font-size: 3vw;
+  #betControls {
+    gap: clamp(3px, 1vw, 8px);
   }
 
   .stat {
-    font-size: 3vw;
-  }
-
-  #homeBtn {
-    font-size: 3vw;
-    padding: 6px 12px;
-  }
-
-  #resultMessage {
-    font-size: 3vw;
+    font-size: clamp(11px, 3vw, 16px);
   }
 }
 
+/* ============================================================
+   LANDSCAPE MEDIO (max-width 900px)
+   ============================================================ */
+@media screen and (max-width: 900px) and (orientation: landscape) {
 
-
-/* ============================
-   BLOCCO VERTICALE
-   ============================ */
-
-@media screen and (orientation: portrait) {
-  #topbar,
   #table {
-    display: none !important;
+    grid-template-columns: 0.9fr 2fr 0.9fr;
+    padding: 4px 8px;
   }
 
-  #rotate-device {
-    display: flex;
-    position: fixed;
-    inset: 0;
-    background: #000;
-    color: #fff;
-    font-size: 1.5rem;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 20px;
-    z-index: 9999;
-    pointer-events: all;
+  .card-frame {
+    width: clamp(60px, 11vw, 110px);
   }
 }

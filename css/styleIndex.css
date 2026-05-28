@@ -1,155 +1,178 @@
-/* --- PROJECT PAGE ENHANCEMENTS --- */
+/* ============================================================
+   INDEX PAGE — Project cards & hero section
+   ============================================================ */
 
 .project-header {
-    text-align: center;
-    margin-bottom: 50px;
-    border-bottom: 1px solid #800000;
-    padding-bottom: 30px;
+  text-align: center;
+  margin-bottom: 40px;
+  border-bottom: 1px solid #800000;
+  padding-bottom: 28px;
+}
+
+.tagline {
+  color: #ffffff;
+  font-style: italic;
+  margin: 0 0 16px;
+  display: block;
+  font-size: clamp(0.9rem, 2.5vw, 1.05rem);
 }
 
 .intro-text {
-    color: white;
-    max-width: 700px;
-    margin: 20px auto;
-    font-size: 0.95em;
-    line-height: 1.8;
+  color: #ffffff;
+  max-width: 700px;
+  margin: 16px auto 0;
+  font-size: clamp(0.88rem, 2vw, 0.95rem);
+  line-height: 1.8;
+  font-family: "Courier Prime", monospace;
 }
 
-/* Griglia per i progetti */
+/* --- PROJECT GRID --- */
 .project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 26px;
 }
 
-/* Card stile Retro */
+/* --- RETRO CARD --- */
 .retro-card {
-    background: rgba(0, 0, 0, 0.7) !important;
-    border: 2px solid gold !important;
-    padding: 20px !important;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: rgba(0, 0, 0, 0.72) !important;
+  border: 2px solid gold !important;
+  border-radius: 8px;
+  padding: 20px !important;
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              box-shadow 0.35s ease,
+              border-color 0.35s ease;
 }
 
 .retro-card:hover {
-    transform: scale(1.02) rotate(1deg);
-    border-color: #800000 !important;
-    box-shadow: 0 0 20px rgba(128, 0, 0, 0.4);
+  transform: scale(1.025) rotate(0.6deg);
+  border-color: #800000 !important;
+  box-shadow: 0 0 22px rgba(128, 0, 0, 0.45);
 }
 
-.gold-text {
-    color: gold;
-    font-size: 1.1em;
-    margin-bottom: 10px;
-    text-transform: uppercase;
+.card-content h3.gold-text {
+  color: gold;
+  font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-family: "Courier Prime", monospace;
 }
 
-/* Status Bar stile Terminale */
+.card-content p {
+  color: #ffffff !important;
+  font-family: "Courier Prime", monospace;
+  font-size: clamp(0.82rem, 1.8vw, 0.92rem);
+  line-height: 1.7;
+  margin: 0 0 4px;
+}
+
+/* --- STATUS BAR --- */
 .status-bar {
-    background: #1a1a1a;
-    padding: 5px 10px;
-    font-size: 0.75em;
-    color: #00ff00; /* Tipico del terminale, ma puoi farlo bianco */
-    margin: 15px 0;
-    border-left: 3px solid #800000;
+  background: #1a1a1a;
+  padding: 5px 10px;
+  font-size: 0.75em;
+  color: #00ff00;
+  margin: 14px 0;
+  border-left: 3px solid #800000;
+  font-family: "Courier Prime", monospace;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .status-dot {
-    height: 8px;
-    width: 8px;
-    background-color: #00ff00;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 5px;
+  height: 8px;
+  width: 8px;
+  min-width: 8px;
+  background-color: #00ff00;
+  border-radius: 50%;
+  display: inline-block;
 }
 .status-dot.yellow { background-color: gold; }
-.status-dot.red { background-color: #800000; }
+.status-dot.red    { background-color: #800000; }
 
-/* Pulsante Retro */
+/* --- RETRO BUTTON --- */
 .retro-btn {
-    display: block;
-    text-align: center;
-    background: #800000;
-    color: white !important;
-    padding: 10px;
-    text-decoration: none;
-    font-weight: bold;
-    border: 1px solid gold;
-    transition: 0.3s;
+  display: block;
+  text-align: center;
+  background: #800000;
+  color: white !important;
+  padding: 10px 16px;
+  text-decoration: none;
+  font-weight: bold;
+  font-family: "Courier Prime", monospace;
+  border: 1px solid gold;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
 }
 
 .retro-btn:hover {
-    background: gold;
-    color: #800000 !important;
+  background: gold;
+  color: #800000 !important;
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.4);
 }
 
 .retro-btn.locked {
-    background: #333;
-    border-color: #555;
-    cursor: not-allowed;
-    opacity: 0.6;
+  background: #333;
+  border-color: #555;
+  cursor: not-allowed;
+  opacity: 0.55;
+  pointer-events: none;
 }
 
-/* --- COLORAZIONE DESCRIZIONI --- */
-
-/* Rende bianco il testo della testata (intro-text) */
-.intro-text {
-    color: #ffffff ;
-    line-height: 1.6;
+/* --- DISCOVER MORE BUTTON WRAPPER --- */
+.discover-more-wrap {
+  text-align: center;
+  margin-top: 36px;
 }
 
-/* Rende bianchi tutti i paragrafi all'interno delle card dei progetti */
-.card-content p {
-    color: #ffffff ;
-    font-family: "Courier Prime", monospace;
-    opacity: 1; /* Assicura che non ci sia trasparenza che lo renda grigio */
+.discover-more-wrap .retro-btn {
+  display: inline-block;
+  padding: 14px 40px;
 }
 
-/* Opzionale: rende bianca anche la tagline se risulta troppo scura */
-.tagline {
-    color: #ffffff;
-    font-style: italic;
-    margin-bottom: 20px;
-    display: block;
+/* ============================================================
+   MOBILE
+   ============================================================ */
+@media (max-width: 700px) {
+
+  .project-header {
+    margin-bottom: 26px;
+    padding-bottom: 20px;
+  }
+
+  .project-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .retro-card {
+    padding: 16px !important;
+  }
+
+  /* Disabilita la rotazione hover su touch device */
+  .retro-card:hover {
+    transform: scale(1.01);
+  }
+
+  .intro-text {
+    font-size: 0.88rem;
+  }
+
+  .discover-more-wrap .retro-btn {
+    padding: 13px 28px;
+    font-size: 0.9rem;
+  }
 }
 
-/* Stile per il pulsante finale (Vedi i Progetti) per coerenza */
-.project-grid button {
-    background-color: #800000;
-    color: white;
-    border: 1px solid gold;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-family: "Courier Prime", monospace;
-    font-weight: bold;
-    transition: 0.3s;
-    margin-top: 20px;
-}
-
-.project-grid button:hover {
-    background-color: gold;
-    color: #800000;
-}
-
-/* Stile per il pulsante DISCOVER_MORE */
-.project-grid .retro-btn {
-    background: #800000; /* Rosso Granata */
-    color: white !important;
-    text-decoration: none;
-    font-family: "Courier Prime", monospace;
-    font-weight: bold;
-    border: 1px solid gold;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.project-grid .retro-btn:hover {
-    background: gold;
-    color: #800000 !important;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-}
-
-/* Rende bianco il testo P all'interno della griglia */
-.project-grid p {
-    color: white !important;
+/* ============================================================
+   TABLET
+   ============================================================ */
+@media (min-width: 701px) and (max-width: 1024px) {
+  .project-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
 }

@@ -1,46 +1,52 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- zoom-out: minimum-scale=0.4 permette al browser di dezoomare fino al 40% -->
+  <meta name="viewport" content="width=device-width, initial-scale=0.8, minimum-scale=0.4, maximum-scale=3.0">
   <link rel="icon" type="image/png" href="data_cg/logo.png">
   <title>LSD Card Game — Play</title>
   <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css_cg/game.css">
 </head>
 <body id="gameBody">
 
   <header id="topbar">
-    <div class="stat left">Coins: <b id="coins">0</b></div>
+    <div class="stat left">💰 <b id="coins">0</b></div>
     <div class="home">
-      <a href="main.html"><button id="homeBtn">☰</button></a>
+      <a href="main.html"><button id="homeBtn">☰ MENU</button></a>
     </div>
-    <div class="stat right">Score: <b id="score">0</b></div>
+    <div class="stat right">⭐ <b id="score">0</b></div>
   </header>
 
   <main id="table">
 
+    <!-- CARTA CORRENTE (sinistra) -->
     <div class="card-box left">
       <div class="card-frame">
-        <img id="currentCardImg" src="" alt="Carta attuale">
+        <img id="currentCardImg" src="" alt="Current card">
       </div>
       <div class="card-label" id="currentCardLabel"></div>
     </div>
 
+    <!-- CENTRO: chip + bottoni -->
     <div id="centerBox">
       <div id="chipBox"></div>
 
       <div id="controls">
-        <button class="btn round blue" id="btnLower">MINOR</button>
+        <button class="btn round blue" id="btnLower">▼<br>LOWER</button>
         <button class="btn-allin" id="btnAllIn">
           <img src="data_cg/Tasto_All_In.png" alt="ALL IN">
         </button>
-        <button class="btn round green" id="btnHigher">MAJOR</button>
+        <button class="btn round green" id="btnHigher">▲<br>HIGHER</button>
       </div>
 
       <div id="betControls">
-        <button class="btn small red" id="btnMinus10">-10</button>
-        <button class="btn small red" id="btnMinus">-1</button>
+        <button class="btn small red" id="btnMinus10">−10</button>
+        <button class="btn small red" id="btnMinus">−1</button>
         <span id="betAmount">BET: <b>0</b></span>
         <button class="btn small blue" id="btnPlus">+1</button>
         <button class="btn small blue" id="btnPlus10">+10</button>
@@ -49,9 +55,11 @@
       <div id="resultMessage" class="hidden"></div>
     </div>
 
+    <!-- CARTA SUCCESSIVA (destra) con badge evento sopra -->
     <div class="card-box right">
+      <div id="eventBadge" class="event-badge hidden"></div>
       <div class="card-frame">
-        <img id="nextCardImg" src="" alt="Prossima carta">
+        <img id="nextCardImg" src="" alt="Next card">
       </div>
       <div class="card-label" id="nextCardLabel"></div>
     </div>
@@ -60,7 +68,8 @@
 
   <!-- Overlay ruota dispositivo -->
   <div id="rotate-device">
-    Rotate your device horizontally to play
+    <span>↻</span>
+    Rotate your device to landscape to play
   </div>
 
   <script src="js_cg/storage.js"></script>

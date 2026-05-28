@@ -1,32 +1,33 @@
 // ============================================================
-// LSD CARD GAME — game.js
-// Difficoltà aumentata + meccaniche LSD a sorpresa
+// LSD CARD GAME — game.js  v3.0
+// Full English, LSD visual effects, event badge, hard difficulty
 // ============================================================
 
-// --- STATO ---
+// --- STATE ---
 let data = loadData();
 let coins      = data.coins;
 let score      = data.score;
 let bet        = data.bet;
-
 let currentDeck       = data.deck;
 let currentBack       = data.backDeck;
 let currentBackground = data.background;
 
-// --- PERCORSI IMMAGINI ---
-function cardImgPath(value) {
-  const offset = (currentDeck - 1) * 10;
-  return `data_cg/deck_base/${offset + value}.png`;
+// --- CARD NAMES (English) ---
+const CARD_NAMES = ["","Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"];
+
+// --- PATHS ---
+function cardImgPath(v) {
+  return `data_cg/deck_base/${(currentDeck - 1) * 10 + v}.png`;
 }
 function backImgPath() {
   return `data_cg/backDeck/back${currentBack}.png`;
 }
 
-// --- SFONDO ---
-function aggiornaSfondo() {
-  const bgFiles = ["SfondoTavolata.png","SfondoTavolata1.png","SfondoTavolata2.png","SfondoTavolata3.png"];
-  const idx = Math.max(1, Math.min(currentBackground, bgFiles.length)) - 1;
-  document.getElementById("gameBody").style.backgroundImage = `url("data_cg/${bgFiles[idx]}")`;
+// --- BACKGROUND ---
+function applyBackground() {
+  const bgs = ["SfondoTavolata.png","SfondoTavolata1.png","SfondoTavolata2.png","SfondoTavolata3.png"];
+  const idx = Math.max(1, Math.min(currentBackground, bgs.length)) - 1;
+  document.getElementById("gameBody").style.backgroundImage = `url("data_cg/${bgs[idx]}")`;
 }
 
 // --- UI ELEMENTS ---
@@ -39,40 +40,50 @@ const elCurrentLabel = document.getElementById("currentCardLabel");
 const elNextLabel    = document.getElementById("nextCardLabel");
 const elResult       = document.getElementById("resultMessage");
 const chipBox        = document.getElementById("chipBox");
+const eventBadge     = document.getElementById("eventBadge");
 
-const CARD_NAMES = ["","Asso","Due","Tre","Quattro","Cinque","Sei","Sette","Otto","Nove","Dieci"];
-
-// ============================================================
-// STATO GIOCO
-// ============================================================
+// --- GAME STATE ---
 let currentValue = null;
 let nextValue    = null;
 let isAnimating  = false;
+let winStreak    = 0;
+let loseStreak   = 0;
+let totalRounds  = 0;
 
-// Streak tracker per difficoltà adattiva
-let winStreak  = 0;
-let loseStreak = 0;
-let totalRounds = 0;
+let roundState = {
+  mirrorRound:     false,
+  doubleOrNothing: false,
+  blindRounds:     0,
+  betMultiplier:   2,
+  ghostCard:       false,
+  freezeBet:       false,
+  forcedBet:       false,   // scommessa obbligatoria minima
+  swapButtons:     false,   // HIGHER e LOWER sono scambiati
+};
 
 // ============================================================
-// MECCANICHE LSD — pool di eventi a sorpresa
+// LSD EVENTS POOL — tutti in inglese
 // ============================================================
 const LSD_EVENTS = [
 
   {
     id: "mirror",
-    label: "🪞 MIRROR WORLD",
-    desc: "I risultati sono invertiti per questo round!",
+    icon: "🪞",
+    label: "MIRROR WORLD",
+    desc: "Results are INVERTED this round. Higher means lower, lower means higher!",
+    color: "#8800ff",
     prob: 0.08,
-    apply: (state) => { state.mirrorRound = true; }
+    apply: (s) => { s.mirrorRound = true; }
   },
 
   {
-    id: "tax",
-    label: "💸 ACID TAX",
-    desc: "Il banco preleva il 30% delle tue coins!",
+    id: "acid_tax",
+    icon: "💸",
+    label: "ACID TAX",
+    desc: "The Dealer takes 30% of your coins. Right now.",
+    color: "#cc0000",
     prob: 0.07,
-    apply: (state) => {
+    apply: () => {
       const tax = Math.floor(coins * 0.30);
       coins = Math.max(0, coins - tax);
       updateHUD();
@@ -81,48 +92,57 @@ const LSD_EVENTS = [
 
   {
     id: "double_or_nothing",
-    label: "⚡ DOUBLE OR NOTHING",
-    desc: "Vinci → coins ×3. Perdi → perdi TUTTO!",
-    prob: 0.07,
-    apply: (state) => { state.doubleOrNothing = true; }
+    icon: "⚡",
+    label: "DOUBLE OR NOTHING",
+    desc: "WIN → coins ×3. LOSE → you lose EVERYTHING. No escape.",
+    color: "#ff6600",
+    prob: 0.06,
+    apply: (s) => { s.doubleOrNothing = true; }
   },
 
   {
-    id: "blind",
-    label: "🕶️ TRIP BLIND",
-    desc: "La carta corrente è nascosta per 3 round!",
+    id: "trip_blind",
+    icon: "🕶️",
+    label: "TRIP BLIND",
+    desc: "Your current card is hidden for the next 3 rounds. Good luck.",
+    color: "#004488",
     prob: 0.09,
-    apply: (state) => { state.blindRounds = 3; }
+    apply: (s) => { s.blindRounds = 3; }
   },
 
   {
-    id: "shuffle",
-    label: "🌀 DECK SHUFFLE",
-    desc: "Il mazzo viene rimescolato... valore cambia!",
+    id: "deck_shuffle",
+    icon: "🌀",
+    label: "DECK SHUFFLE",
+    desc: "The deck reshuffles. Your current card just changed.",
+    color: "#006644",
     prob: 0.10,
-    apply: (state) => {
-      const old = currentValue;
+    apply: (s) => {
       currentValue = pickRandom();
-      nextValue    = pickNextCardHard(currentValue);
-      elCurrentImg.src = cardImgPath(currentValue);
-      elCurrentLabel.textContent = state.blindRounds > 0 ? "???" : (CARD_NAMES[currentValue] || "");
+      nextValue = pickNextCardHard(currentValue);
+      elCurrentImg.src = s.blindRounds > 0 ? backImgPath() : cardImgPath(currentValue);
+      elCurrentLabel.textContent = s.blindRounds > 0 ? "???" : (CARD_NAMES[currentValue] || "");
     }
   },
 
   {
-    id: "bet_multiplier",
-    label: "🎰 JACKPOT CHANCE",
-    desc: "La prossima puntata vale ×4 in caso di vittoria!",
+    id: "jackpot",
+    icon: "🎰",
+    label: "JACKPOT CHANCE",
+    desc: "Win this round and your bet pays ×4. But the odds are against you.",
+    color: "#886600",
     prob: 0.07,
-    apply: (state) => { state.betMultiplier = 4; }
+    apply: (s) => { s.betMultiplier = 4; }
   },
 
   {
     id: "coin_bomb",
-    label: "💣 COIN BOMB",
-    desc: "Perdi metà delle coins immediatamente!",
+    icon: "💣",
+    label: "COIN BOMB",
+    desc: "BOOM. Half your coins vanish. Instantly.",
+    color: "#880000",
     prob: 0.06,
-    apply: (state) => {
+    apply: () => {
       coins = Math.max(0, Math.floor(coins / 2));
       updateHUD();
     }
@@ -130,18 +150,22 @@ const LSD_EVENTS = [
 
   {
     id: "ghost_card",
-    label: "👻 GHOST CARD",
-    desc: "La carta successiva è sempre uguale all'attuale!",
+    icon: "👻",
+    label: "GHOST CARD",
+    desc: "The next card mirrors the current one. You cannot win this round.",
+    color: "#334455",
     prob: 0.07,
-    apply: (state) => { state.ghostCard = true; }
+    apply: (s) => { s.ghostCard = true; }
   },
 
   {
-    id: "score_drain",
-    label: "🧠 MIND MELT",
-    desc: "Perdi 3 punti score istantaneamente!",
+    id: "mind_melt",
+    icon: "🧠",
+    label: "MIND MELT",
+    desc: "3 score points dissolve from your brain. Just like that.",
+    color: "#550055",
     prob: 0.06,
-    apply: (state) => {
+    apply: () => {
       score = Math.max(0, score - 3);
       updateHUD();
     }
@@ -149,69 +173,206 @@ const LSD_EVENTS = [
 
   {
     id: "freeze",
-    label: "🧊 FREEZE",
-    desc: "I controlli bet sono bloccati per questo round!",
+    icon: "🧊",
+    label: "BET FREEZE",
+    desc: "Bet controls are locked this round. Your current bet stands.",
+    color: "#003366",
     prob: 0.07,
-    apply: (state) => { state.freezeBet = true; setBetControlsEnabled(false); }
+    apply: (s) => { s.freezeBet = true; setBetControlsEnabled(false); }
+  },
+
+  // --- NUOVE MECCANICHE INFAMI ---
+
+  {
+    id: "swap_buttons",
+    icon: "🔀",
+    label: "CONTROLS SWAPPED",
+    desc: "HIGHER and LOWER are swapped for this round. Think carefully.",
+    color: "#993300",
+    prob: 0.08,
+    apply: (s) => {
+      s.swapButtons = true;
+      // swap visivamente le label dei bottoni
+      document.getElementById("btnHigher").innerHTML = "▼<br>LOWER";
+      document.getElementById("btnLower").innerHTML  = "▲<br>HIGHER";
+    }
+  },
+
+  {
+    id: "forced_allin",
+    icon: "🎭",
+    label: "ALL IN FORCED",
+    desc: "You have no choice. Your entire wallet is the bet this round.",
+    color: "#660000",
+    prob: 0.05,
+    apply: (s) => {
+      bet = coins;
+      s.forcedBet = true;
+      s.freezeBet = true;
+      setBetControlsEnabled(false);
+      updateHUD();
+    }
+  },
+
+  {
+    id: "score_steal",
+    icon: "🦹",
+    label: "SCORE BANDIT",
+    desc: "The Dealer steals HALF your score. Rounded down, naturally.",
+    color: "#440066",
+    prob: 0.05,
+    apply: () => {
+      score = Math.max(0, Math.floor(score / 2));
+      updateHUD();
+    }
+  },
+
+  {
+    id: "reverse_payout",
+    icon: "🔄",
+    label: "REVERSE PAYOUT",
+    desc: "If you WIN this round, you still lose your bet. Psychedelic economics.",
+    color: "#004400",
+    prob: 0.05,
+    apply: (s) => { s.reversePayout = true; }
+  },
+
+  {
+    id: "bleed",
+    icon: "🩸",
+    label: "COIN BLEED",
+    desc: "You lose 5 coins every second until this round ends. Hurry up.",
+    color: "#550000",
+    prob: 0.05,
+    apply: (s) => {
+      s.bleedInterval = setInterval(() => {
+        coins = Math.max(0, coins - 5);
+        updateHUD();
+      }, 1000);
+    }
+  },
+
+  // --- EFFETTI VISIVI LSD ---
+
+  {
+    id: "redvision",
+    icon: "🔴",
+    label: "RED EYES",
+    desc: "Your eyes are burning. Everything looks... wrong.",
+    color: "#660000",
+    prob: 0.09,
+    apply: () => applyVisualEffect("fx-redvision", 4000)
+  },
+
+  {
+    id: "blur_vision",
+    icon: "😵",
+    label: "BLURRED VISION",
+    desc: "The acid kicks in. You can barely see the cards.",
+    color: "#220044",
+    prob: 0.09,
+    apply: () => applyVisualEffect("fx-blur", 4000)
+  },
+
+  {
+    id: "dizzy",
+    icon: "💫",
+    label: "DIZZY SPELL",
+    desc: "The room is spinning. Hold on.",
+    color: "#004466",
+    prob: 0.08,
+    apply: () => applyVisualEffect("fx-dizzy", 1400)
+  },
+
+  {
+    id: "shake",
+    icon: "💥",
+    label: "TABLE QUAKE",
+    desc: "The table shakes violently.",
+    color: "#663300",
+    prob: 0.08,
+    apply: () => applyVisualEffect("fx-shake", 500)
+  },
+
+  {
+    id: "tunnel",
+    icon: "🌀",
+    label: "TUNNEL VISION",
+    desc: "Your vision narrows into a dark tunnel.",
+    color: "#001133",
+    prob: 0.07,
+    apply: () => applyVisualEffect("fx-tunnel", 1800)
+  },
+
+  {
+    id: "negative",
+    icon: "☯️",
+    label: "NEGATIVE REALITY",
+    desc: "Everything inverts. Colors, logic, life.",
+    color: "#111111",
+    prob: 0.06,
+    apply: () => applyVisualEffect("fx-negative", 3000)
+  },
+
+  {
+    id: "glitch",
+    icon: "👾",
+    label: "MATRIX GLITCH",
+    desc: "Reality is glitching. This shouldn't be happening.",
+    color: "#003300",
+    prob: 0.07,
+    apply: () => applyVisualEffect("fx-glitch", 1200)
   },
 ];
 
-// Stato persistente del round corrente
-let roundState = {
-  mirrorRound:    false,
-  doubleOrNothing: false,
-  blindRounds:    0,
-  betMultiplier:  2,      // moltiplicatore base vittoria
-  ghostCard:      false,
-  freezeBet:      false,
-};
+// ============================================================
+// VISUAL FX HELPER
+// ============================================================
+function applyVisualEffect(cls, duration) {
+  const body = document.getElementById("gameBody");
+  body.classList.add(cls);
+  setTimeout(() => body.classList.remove(cls), duration);
+}
 
 // ============================================================
-// GENERATORE DIFFICOLTÀ AUMENTATA (bias contro il giocatore)
+// DIFFICOLTÀ AUMENTATA
 // ============================================================
 function pickRandom() {
   return Math.floor(Math.random() * 10) + 1;
 }
 
 function pickNextCardHard(current) {
-  // Difficoltà base aumentata rispetto alla versione originale:
-  // la distribuzione è spostata a sfavore del giocatore
-
   const pool = [];
+  const difficulty = 1 + Math.min(winStreak * 0.35, 3.0);
 
   for (let i = 1; i <= 10; i++) {
     if (i === current) continue;
-
     let w = 1;
 
-    // Bias adattivo: più hai vinto di fila, più il gioco ti ostacola
-    const difficulty = 1 + Math.min(winStreak * 0.3, 2.5);
-
     if (current <= 3) {
-      // Carta bassa: il giocatore scommette spesso HIGHER
-      // → il gioco genera più carte basse (controtendenza)
-      w += i < current ? (current - i) * 1.8 * difficulty : (i - current) * 0.2;
-      w += Math.random() * 1.2;
+      w += i < current ? (current - i) * 2.0 * difficulty : (i - current) * 0.15;
+      w += Math.random() * 1.0;
     } else if (current >= 8) {
-      // Carta alta: il giocatore scommette spesso LOWER
-      // → il gioco genera più carte alte
-      w += i > current ? (i - current) * 1.8 * difficulty : (current - i) * 0.2;
-      w += Math.random() * 1.2;
+      w += i > current ? (i - current) * 2.0 * difficulty : (current - i) * 0.15;
+      w += Math.random() * 1.0;
     } else if (current === 5 || current === 6) {
-      // Centro: pure chaos, impossibile da prevedere
-      w += Math.random() * 6;
+      // dead center: pure chaos
+      w += Math.random() * 7;
     } else {
-      // 4 o 7: bias moderato
       const dist = Math.abs(current - i);
-      w += dist < 2 ? 2.5 * difficulty : 0.8;
-      w += Math.random() * 2;
+      w += dist < 2 ? 2.8 * difficulty : 0.6;
+      w += Math.random() * 1.5;
     }
 
-    // Caso speciale: dopo streak di vittorie, aumenta la probabilità
-    // di carte "pareggio emotivo" (vicine al valore attuale)
     if (winStreak >= 3) {
       const dist = Math.abs(current - i);
-      if (dist === 1) w += 3; // carta adiacente = quasi uguale = difficile indovinare
+      if (dist === 1) w += 4;
+    }
+
+    // dopo una lunga streak di perdite, il gioco dà qualche respiro (UX fairness)
+    if (loseStreak >= 4) {
+      const wantedDir = current <= 5 ? (i > current) : (i < current);
+      if (wantedDir) w += 1.5;
     }
 
     const count = Math.max(1, Math.floor(w));
@@ -222,72 +383,76 @@ function pickNextCardHard(current) {
 }
 
 // ============================================================
-// EVENTO LSD — seleziona e applica un evento casuale
+// LSD EVENT SYSTEM
 // ============================================================
 function tryLSDEvent() {
-  // Aumenta la probabilità base dopo ogni round (più giochi, più caos)
-  const baseMod = Math.min(totalRounds * 0.005, 0.15);
+  const baseMod = Math.min(totalRounds * 0.006, 0.18);
+  // shuffle array per evitare bias posizionale
+  const shuffled = [...LSD_EVENTS].sort(() => Math.random() - 0.5);
 
-  for (const ev of LSD_EVENTS) {
+  for (const ev of shuffled) {
     if (Math.random() < ev.prob + baseMod) {
-      showLSDEvent(ev);
-      ev.apply(roundState);
+      showLSDModal(ev, () => {
+        ev.apply(roundState);
+        showEventBadge(ev);
+      });
       return;
     }
   }
 }
 
-let lsdOverlay = null;
-function showLSDEvent(ev) {
-  // Crea o riusa overlay LSD
-  if (!lsdOverlay) {
-    lsdOverlay = document.createElement("div");
-    lsdOverlay.id = "lsdOverlay";
-    lsdOverlay.style.cssText = `
-      position:fixed; inset:0; z-index:5000;
-      background:rgba(80,0,80,0.82);
-      display:flex; flex-direction:column;
-      justify-content:center; align-items:center;
-      text-align:center; padding:20px;
-      animation: lsdFlash 0.3s ease;
-      pointer-events:none;
-    `;
-    document.body.appendChild(lsdOverlay);
-
-    const style = document.createElement("style");
-    style.textContent = `
-      @keyframes lsdFlash {
-        0%   { opacity:0; transform:scale(0.9); }
-        50%  { opacity:1; transform:scale(1.04); }
-        100% { opacity:1; transform:scale(1); }
-      }
-      @keyframes lsdPulse {
-        0%,100% { text-shadow: 0 0 8px #ff00ff, 0 0 20px #00ffff; }
-        50%      { text-shadow: 0 0 24px #ffff00, 0 0 40px #ff00ff; }
-      }
-      #lsdOverlay .ev-title {
-        font-size: clamp(1.6rem,6vw,3rem);
-        color: #ffff00;
-        font-weight: 900;
-        animation: lsdPulse 0.8s infinite;
-        margin-bottom:12px;
-      }
-      #lsdOverlay .ev-desc {
-        font-size: clamp(0.9rem,3vw,1.3rem);
-        color: #fff;
-        max-width: 400px;
-      }
-    `;
-    document.head.appendChild(style);
+// --- MODALE EVENTO (centro schermo, con countdown) ---
+function showLSDModal(ev, onClose) {
+  // Crea modale se non esiste
+  let modal = document.getElementById("lsdModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "lsdModal";
+    modal.innerHTML = `
+      <div id="lsdModalBox">
+        <span id="lsdModalIcon"></span>
+        <div id="lsdModalTitle"></div>
+        <div id="lsdModalDesc"></div>
+        <div id="lsdModalTimer"></div>
+      </div>`;
+    document.body.appendChild(modal);
   }
 
-  lsdOverlay.innerHTML = `
-    <div class="ev-title">${ev.label}</div>
-    <div class="ev-desc">${ev.desc}</div>
-  `;
-  lsdOverlay.style.display = "flex";
+  document.getElementById("lsdModalIcon").textContent  = ev.icon;
+  document.getElementById("lsdModalTitle").textContent = ev.label;
+  document.getElementById("lsdModalDesc").textContent  = ev.desc;
+  modal.querySelector("#lsdModalBox").style.borderColor = ev.color || "gold";
 
-  setTimeout(() => { lsdOverlay.style.display = "none"; }, 2000);
+  modal.classList.add("active");
+
+  // Shake immediato per impatto
+  applyVisualEffect("fx-shake", 400);
+
+  // Countdown 3 secondi
+  const timerEl = document.getElementById("lsdModalTimer");
+  let countdown = 3;
+  timerEl.textContent = `Closing in ${countdown}...`;
+  const tick = setInterval(() => {
+    countdown--;
+    if (countdown <= 0) {
+      clearInterval(tick);
+      modal.classList.remove("active");
+      if (onClose) onClose();
+    } else {
+      timerEl.textContent = `Closing in ${countdown}...`;
+    }
+  }, 1000);
+}
+
+// --- BADGE sopra carta coperta (destra) ---
+function showEventBadge(ev) {
+  if (!eventBadge) return;
+  eventBadge.textContent = `${ev.icon} ${ev.label}`;
+  eventBadge.classList.remove("hidden");
+}
+
+function hideEventBadge() {
+  if (eventBadge) eventBadge.classList.add("hidden");
 }
 
 // ============================================================
@@ -295,17 +460,18 @@ function showLSDEvent(ev) {
 // ============================================================
 function setBetControlsEnabled(enabled) {
   ["btnMinus","btnPlus","btnMinus10","btnPlus10","btnAllIn"].forEach(id => {
-    document.getElementById(id).disabled = !enabled;
+    const el = document.getElementById(id);
+    if (el) { el.disabled = !enabled; el.style.opacity = enabled ? "1" : "0.4"; }
   });
 }
 
 document.getElementById("btnMinus").addEventListener("click", () => {
   if (roundState.freezeBet) return;
-  if (bet > 0) { bet = Math.max(0, bet - 1); updateHUD(); }
+  bet = Math.max(0, bet - 1); updateHUD();
 });
 document.getElementById("btnPlus").addEventListener("click", () => {
   if (roundState.freezeBet) return;
-  if (coins > bet) { bet = Math.min(coins, bet + 1); updateHUD(); }
+  bet = Math.min(coins, bet + 1); updateHUD();
 });
 document.getElementById("btnMinus10").addEventListener("click", () => {
   if (roundState.freezeBet) return;
@@ -321,65 +487,65 @@ document.getElementById("btnAllIn").addEventListener("click", () => {
 });
 
 // ============================================================
-// HUD + SALVATAGGIO
+// HUD
 // ============================================================
 function updateHUD() {
   elCoins.textContent = coins;
   elScore.textContent = score;
   elBet.textContent   = bet;
-
   const d = loadData();
   d.coins = coins; d.score = score; d.bet = bet;
   d.deck = currentDeck; d.backDeck = currentBack; d.background = currentBackground;
   saveData(d);
-
   generateChips(bet);
 }
 
 // ============================================================
-// LOGICA ROUND
+// ROUND LOGIC
 // ============================================================
 function resolveRound(wantHigher) {
   if (isAnimating) return;
   isAnimating = true;
 
-  // Ghost card: next uguale a current
+  // stop bleed se attivo
+  if (roundState.bleedInterval) { clearInterval(roundState.bleedInterval); }
+
+  // swap buttons: inverti l'intenzione
+  const effectiveHigher = roundState.swapButtons ? !wantHigher : wantHigher;
+
   const revealed = roundState.ghostCard ? currentValue : nextValue;
 
-  // Mostra carta rivelata a destra
+  // Mostra carta
   elNextImg.src = cardImgPath(revealed);
   elNextLabel.textContent = CARD_NAMES[revealed] || "";
   animateEl(elNextImg);
+  hideEventBadge();
 
-  // Calcola esito (MIRROR inverte la logica)
-  let isWin = wantHigher ? (revealed > currentValue) : (revealed < currentValue);
+  // Esito
+  let isWin = effectiveHigher ? (revealed > currentValue) : (revealed < currentValue);
   if (roundState.mirrorRound) isWin = !isWin;
-
-  // Ghost card → sempre parità → sempre perdi
   if (roundState.ghostCard && revealed === currentValue) isWin = false;
+  if (roundState.reversePayout) isWin = !isWin;
 
-  // Applica esito
   if (isWin) {
     score += 1;
-    winStreak++;
-    loseStreak = 0;
+    winStreak++; loseStreak = 0;
     const mult = roundState.betMultiplier || 2;
     if (bet > 0) coins += bet * mult;
     const gain = bet > 0 ? bet * mult : 0;
-    showMessage(`✓ Hai indovinato! +${gain}${roundState.doubleOrNothing ? " (×3!)" : mult > 2 ? ` (×${mult})` : ""}`);
+    showMessage(`✓ Correct! +${gain}${mult > 2 ? ` (×${mult})` : ""}`, "#00ff88");
   } else {
     score = Math.max(0, score - 1);
-    loseStreak++;
-    winStreak = 0;
+    loseStreak++; winStreak = 0;
     if (roundState.doubleOrNothing) {
       const lost = coins;
       coins = 0;
-      showMessage(`✗ DOUBLE OR NOTHING — Hai perso tutto! -${lost}`);
+      showMessage(`✗ DOUBLE OR NOTHING — Lost everything! −${lost}`, "#ff2222");
     } else if (bet > 0) {
       coins = Math.max(0, coins - bet);
-      showMessage(`✗ Sbagliato! -${bet}`);
+      showMessage(`✗ Wrong! −${bet}`, "#ff4444");
     } else {
-      showMessage("✗ Sbagliato!");
+      showMessage("✗ Wrong!", "#ff4444");
     }
   }
 
@@ -387,11 +553,13 @@ function resolveRound(wantHigher) {
   bet = 0;
   updateHUD();
 
-  // Dopo animazione: slide carta, reset stato round, nuovo evento LSD
   setTimeout(() => {
     currentValue = revealed;
 
-    // Aggiorna label carta corrente (rispetta blind)
+    // Reset swap buttons label
+    document.getElementById("btnHigher").innerHTML = "▲<br>HIGHER";
+    document.getElementById("btnLower").innerHTML  = "▼<br>LOWER";
+
     if (roundState.blindRounds > 0) {
       roundState.blindRounds--;
       elCurrentImg.src = backImgPath();
@@ -402,32 +570,27 @@ function resolveRound(wantHigher) {
     }
     animateEl(elCurrentImg);
 
-    // Reset stato round
     const prevBlind = roundState.blindRounds;
     roundState = {
-      mirrorRound:    false,
-      doubleOrNothing: false,
-      blindRounds:    prevBlind, // blind persiste tra round
-      betMultiplier:  2,
-      ghostCard:      false,
-      freezeBet:      false,
+      mirrorRound: false, doubleOrNothing: false,
+      blindRounds: prevBlind, betMultiplier: 2,
+      ghostCard: false, freezeBet: false,
+      forcedBet: false, swapButtons: false,
+      reversePayout: false, bleedInterval: null,
     };
     setBetControlsEnabled(true);
 
-    // Nuova carta nascosta
     nextValue = pickNextCardHard(currentValue);
     elNextImg.src = backImgPath();
     elNextLabel.textContent = "?";
 
-    // Prova evento LSD
     tryLSDEvent();
-
     isAnimating = false;
   }, 900);
 }
 
 // ============================================================
-// ANIMAZIONE CARTA
+// ANIMATIONS & MESSAGES
 // ============================================================
 function animateEl(el) {
   el.classList.remove("animate");
@@ -435,12 +598,10 @@ function animateEl(el) {
   el.classList.add("animate");
 }
 
-// ============================================================
-// MESSAGGIO RISULTATO
-// ============================================================
 let msgTimer = null;
-function showMessage(text) {
+function showMessage(text, color = "white") {
   elResult.textContent = text;
+  elResult.style.color = color;
   elResult.classList.remove("hidden");
   if (msgTimer) clearTimeout(msgTimer);
   msgTimer = setTimeout(() => elResult.classList.add("hidden"), 2800);
@@ -464,17 +625,15 @@ function generateChips(count) {
     chip.style.backgroundImage = `url("data_cg/fish/CasinoChip${t}.png")`;
     chip.style.width  = cs + "px";
     chip.style.height = cs + "px";
-    const x = Math.random() * Math.max(0, bw - cs - 4);
-    const y = Math.random() * Math.max(0, bh - cs - 4);
-    chip.style.left      = x + "px";
-    chip.style.top       = y + "px";
-    chip.style.transform = `rotate(${Math.floor(Math.random()*360)}deg)`;
+    chip.style.left   = Math.random() * Math.max(0, bw - cs - 4) + "px";
+    chip.style.top    = Math.random() * Math.max(0, bh - cs - 4) + "px";
+    chip.style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`;
     chipBox.appendChild(chip);
   }
 
   if (count > maxChips) {
     const lbl = document.createElement("div");
-    lbl.style.cssText = "position:absolute;bottom:2px;right:4px;color:gold;font-size:11px;font-weight:bold;";
+    lbl.style.cssText = "position:absolute;bottom:2px;right:4px;color:gold;font-size:11px;font-weight:bold;font-family:'Cinzel',serif;";
     lbl.textContent = "×" + count;
     chipBox.appendChild(lbl);
   }
@@ -483,7 +642,7 @@ function generateChips(count) {
 window.addEventListener("resize", () => generateChips(bet));
 
 // ============================================================
-// EVENTI PULSANTI GIOCO
+// BUTTON EVENTS
 // ============================================================
 document.getElementById("btnHigher").addEventListener("click", () => resolveRound(true));
 document.getElementById("btnLower").addEventListener("click",  () => resolveRound(false));
@@ -492,7 +651,7 @@ document.getElementById("btnLower").addEventListener("click",  () => resolveRoun
 // INIT
 // ============================================================
 function init() {
-  aggiornaSfondo();
+  applyBackground();
   currentValue = pickRandom();
   nextValue    = pickNextCardHard(currentValue);
 
@@ -503,8 +662,8 @@ function init() {
 
   updateHUD();
 
-  // Primo evento LSD dopo 3 secondi (warm-up)
-  setTimeout(tryLSDEvent, 3000);
+  // Primo evento LSD con warm-up di 4 secondi
+  setTimeout(tryLSDEvent, 4000);
 }
 
 document.addEventListener("DOMContentLoaded", init);

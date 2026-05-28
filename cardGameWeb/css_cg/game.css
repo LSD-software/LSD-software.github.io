@@ -1,26 +1,61 @@
-/* ============================================================
-   LSD CARD GAME — game.css
-   Fix: carte centrate, layout mobile landscape, sfondi, bottoni
-   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap');
 
-/* --- RESET BASE --- */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ============================================================
+   BODY
+   ============================================================ */
 body {
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  /* background-size cover invece di contain: niente bande nere laterali */
+  margin: 0; padding: 0;
+  width: 100vw; height: 100vh;
   background-size: cover;
-  background-position: center center;
+  background-position: center;
   background-repeat: no-repeat;
   background-color: #000;
   display: grid;
   grid-template-rows: auto 1fr;
-  font-family: sans-serif;
+  font-family: 'Cinzel', serif;
   color: white;
   overflow: hidden;
+  transition: filter 0.6s ease;
+}
+
+/* ============================================================
+   LSD VISUAL EFFECTS — classi aggiunte da JS
+   ============================================================ */
+body.fx-blur       { filter: blur(3px) brightness(0.85); }
+body.fx-redvision  { filter: saturate(4) hue-rotate(-30deg) brightness(0.75); }
+body.fx-dizzy      { animation: dizzyWorld 1.4s ease-in-out; }
+body.fx-shake      { animation: shakeWorld 0.5s ease; }
+body.fx-negative   { filter: invert(1) hue-rotate(180deg); }
+body.fx-tunnel     { animation: tunnelZoom 1.8s ease-in-out; }
+body.fx-glitch     { animation: glitchWorld 0.6s steps(2) infinite; }
+
+@keyframes dizzyWorld {
+  0%   { transform: rotate(0deg) scale(1); }
+  25%  { transform: rotate(3deg) scale(1.03); }
+  50%  { transform: rotate(-3deg) scale(0.97); }
+  75%  { transform: rotate(2deg) scale(1.02); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+@keyframes shakeWorld {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-10px); }
+  40%     { transform: translateX(10px); }
+  60%     { transform: translateX(-6px); }
+  80%     { transform: translateX(6px); }
+}
+@keyframes tunnelZoom {
+  0%   { transform: scale(1); filter: brightness(1); }
+  40%  { transform: scale(0.88); filter: brightness(0.5) blur(2px); }
+  70%  { transform: scale(1.06); filter: brightness(1.3); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+@keyframes glitchWorld {
+  0%  { transform: translate(0); }
+  33% { transform: translate(-4px, 2px) skewX(2deg); }
+  66% { transform: translate(4px, -2px) skewX(-2deg); }
+  100%{ transform: translate(0); }
 }
 
 /* ============================================================
@@ -30,35 +65,40 @@ body {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: clamp(4px, 1.5vh, 12px) clamp(8px, 2vw, 24px);
-  background: rgba(0, 0, 0, 0.45);
+  padding: clamp(4px, 1.2vh, 10px) clamp(8px, 2vw, 20px);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
   z-index: 10;
+  border-bottom: 1px solid rgba(255,215,0,0.2);
 }
 
 .stat {
-  font-size: clamp(13px, 1.6vw, 22px);
-  font-weight: bold;
+  font-size: clamp(13px, 2vw, 22px);
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+  color: gold;
 }
 .stat.left  { justify-self: start; }
 .stat.right { justify-self: end; }
 .home       { justify-self: center; }
 
 #homeBtn {
-  background: none;
-  border: 2px solid white;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.5);
   color: white;
-  font-size: clamp(14px, 1.8vw, 22px);
-  padding: 6px 14px;
-  border-radius: 8px;
+  font-size: clamp(11px, 1.5vw, 16px);
+  padding: 5px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  font-family: 'Cinzel', serif;
+  transition: background 0.2s;
+  letter-spacing: 1px;
 }
-#homeBtn:hover {
-  background: rgba(255,255,255,0.15);
-}
+#homeBtn:hover { background: rgba(255,255,255,0.2); }
 
 /* ============================================================
-   MAIN TABLE
+   TABLE
    ============================================================ */
 #table {
   display: grid;
@@ -67,35 +107,34 @@ body {
   justify-items: center;
   width: 100%;
   height: 100%;
-  padding: clamp(6px, 1.5vh, 20px) clamp(8px, 2vw, 30px);
+  padding: clamp(4px, 1vh, 16px) clamp(6px, 1.5vw, 24px);
   overflow: hidden;
 }
 
 /* ============================================================
-   CARD BOXES — FIX: rimosso margin:100px, ora centrate
+   CARD BOXES
    ============================================================ */
 .card-box {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(4px, 1vh, 12px);
-  /* FIX: il margin:100px originale spingeva le carte fuori schermo */
-  margin: 0;
-  padding: 0;
+  gap: clamp(4px, 1vh, 10px);
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 .card-frame {
-  width: clamp(70px, 12vw, 160px);
+  width: clamp(72px, 13vw, 170px);
   aspect-ratio: 7 / 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* FIX: rimosso padding:60px che nascondeva l'immagine */
   padding: 0;
   position: relative;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.7));
+  transition: filter 0.3s;
 }
 
 .card-frame img {
@@ -103,22 +142,50 @@ body {
   height: 100%;
   object-fit: contain;
   display: block;
-  /* Prevent broken-image icon when src is empty at init */
-  min-width: 10px;
-  min-height: 10px;
 }
-
-/* Nasconde icona broken-image su img vuoto */
 .card-frame img:not([src]),
-.card-frame img[src=""] {
-  visibility: hidden;
+.card-frame img[src=""] { visibility: hidden; }
+
+/* Label nome carta — font Cinzel */
+.card-label {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(11px, 1.4vw, 18px);
+  font-weight: 700;
+  text-align: center;
+  color: gold;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  min-height: 1.2em;
 }
 
-.card-label {
-  font-size: clamp(10px, 1.2vw, 16px);
-  font-weight: bold;
+/* ============================================================
+   EVENT BADGE — sopra la carta coperta (destra)
+   ============================================================ */
+.event-badge {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #4a0080, #800000);
+  border: 1.5px solid gold;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: clamp(9px, 1.1vw, 13px);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  color: #ffff00;
+  white-space: nowrap;
   text-align: center;
-  min-height: 1em;
+  z-index: 30;
+  box-shadow: 0 0 12px rgba(200,0,200,0.6);
+  animation: badgePulse 1.5s ease-in-out infinite;
+  letter-spacing: 0.5px;
+}
+
+@keyframes badgePulse {
+  0%,100% { box-shadow: 0 0 8px rgba(200,0,200,0.5); }
+  50%      { box-shadow: 0 0 20px rgba(255,200,0,0.8); }
 }
 
 /* ============================================================
@@ -132,31 +199,27 @@ body {
   grid-template-rows: 1fr auto auto auto;
   align-items: center;
   justify-items: center;
-  padding: clamp(4px, 1vh, 12px) 0;
+  padding: clamp(4px, 1vh, 10px) 0;
   gap: clamp(4px, 0.8vh, 10px);
 }
 
-/* Chip area */
 #chipBox {
   position: relative;
-  width: 80%;
+  width: 82%;
   height: 100%;
-  min-height: 40px;
+  min-height: 36px;
 }
 
 .chip {
   position: absolute;
-  width: clamp(28px, 3.2vw, 52px);
-  height: clamp(28px, 3.2vw, 52px);
   background-size: cover;
   background-repeat: no-repeat;
   animation: chipPop 0.35s ease;
 }
-
 @keyframes chipPop {
-  0%   { transform: scale(0.6); opacity: 0; }
-  60%  { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); }
+  0%  { transform: scale(0.5); opacity:0; }
+  60% { transform: scale(1.18); opacity:1; }
+  100%{ transform: scale(1); }
 }
 
 /* ============================================================
@@ -166,109 +229,179 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(8px, 2vw, 28px);
+  gap: clamp(8px, 2.5vw, 32px);
 }
 
 .btn {
   border: none;
-  font-weight: bold;
+  font-weight: 700;
   color: white;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  font-family: sans-serif;
+  font-family: 'Cinzel', serif;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s;
+  letter-spacing: 0.5px;
 }
 
 .btn.round {
   border-radius: 50%;
-  width:  clamp(44px, 6.5vw, 90px);
-  height: clamp(44px, 6.5vw, 90px);
-  font-size: clamp(9px, 1vw, 15px);
+  width:  clamp(48px, 7vw, 96px);
+  height: clamp(48px, 7vw, 96px);
+  font-size: clamp(9px, 1.1vw, 14px);
+  line-height: 1.3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255,255,255,0.25);
 }
 
-.btn.blue  { background: #1976d2; }
-.btn.green { background: #2e7d32; }
-.btn.red   { background: #d32f2f; }
+.btn.blue  { background: linear-gradient(145deg,#1976d2,#0d47a1); }
+.btn.green { background: linear-gradient(145deg,#2e7d32,#1b5e20); }
+.btn.red   { background: linear-gradient(145deg,#c62828,#b71c1c); }
 
 .btn.blue:hover,
 .btn.green:hover,
 .btn.red:hover {
-  transform: scale(1.09);
-  box-shadow: 4px 4px 14px rgba(0,0,0,0.6);
+  transform: scale(1.1);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.7);
+  filter: brightness(1.15);
 }
 
 .btn-allin {
-  background: none;
-  border: none;
-  padding: 0;
+  background: none; border: none; padding: 0;
   cursor: pointer;
-  width:  clamp(44px, 6.5vw, 90px);
-  height: clamp(44px, 6.5vw, 90px);
-  transition: transform 0.2s ease;
+  width:  clamp(48px, 7vw, 96px);
+  height: clamp(48px, 7vw, 96px);
+  transition: transform 0.18s;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.6));
 }
-
-.btn-allin:hover { transform: scale(1.09); }
-
-.btn-allin img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+.btn-allin:hover { transform: scale(1.12) rotate(3deg); }
+.btn-allin img   { width:100%; height:100%; object-fit:contain; }
 
 /* Bet controls */
 #betControls {
   display: flex;
   align-items: center;
-  gap: clamp(4px, 1.2vw, 16px);
+  gap: clamp(4px, 1vw, 14px);
 }
 
 .btn.small {
-  width:  clamp(28px, 3.2vw, 46px);
-  height: clamp(28px, 3.2vw, 46px);
-  font-size: clamp(9px, 0.9vw, 14px);
+  width:  clamp(30px, 3.5vw, 48px);
+  height: clamp(30px, 3.5vw, 48px);
+  font-size: clamp(9px, 1vw, 14px);
   border-radius: 50%;
   display: grid;
   place-items: center;
 }
 
 #betAmount {
-  font-size: clamp(12px, 1.2vw, 18px);
-  font-weight: bold;
+  font-size: clamp(12px, 1.3vw, 18px);
+  font-weight: 700;
   color: white;
   white-space: nowrap;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
 }
 
-/* Risultato */
+/* Messaggio risultato */
 #resultMessage {
   position: absolute;
   bottom: 2vh;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.85);
-  padding: 8px 20px;
+  background: rgba(0,0,0,0.9);
+  padding: 8px 22px;
   border-radius: 10px;
-  font-size: clamp(12px, 1.3vw, 18px);
-  font-weight: bold;
+  font-size: clamp(12px, 1.4vw, 18px);
+  font-weight: 700;
   white-space: nowrap;
   z-index: 20;
+  border: 1px solid rgba(255,215,0,0.3);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.5px;
 }
 
 .hidden { display: none !important; }
 
-/* Card pop animation */
 .animate { animation: popCard 0.35s ease; }
-
 @keyframes popCard {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.12); }
-  100% { transform: scale(1); }
+  0%  { transform: scale(1); }
+  50% { transform: scale(1.14) rotate(-1deg); }
+  100%{ transform: scale(1); }
 }
 
 /* ============================================================
-   OVERLAY VERTICALE
+   OVERLAY EVENTO LSD — modale centrale
    ============================================================ */
-#rotate-device {
+#lsdModal {
   position: fixed;
   inset: 0;
+  z-index: 8000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(40,0,60,0.78);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+#lsdModal.active { display: flex; }
+
+#lsdModalBox {
+  background: linear-gradient(160deg,#1a0030,#3a0000);
+  border: 2px solid gold;
+  border-radius: 14px;
+  padding: clamp(18px,4vh,36px) clamp(24px,6vw,60px);
+  text-align: center;
+  max-width: min(90vw, 480px);
+  animation: modalIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  box-shadow: 0 0 40px rgba(200,0,200,0.5), 0 0 80px rgba(0,0,0,0.8);
+}
+@keyframes modalIn {
+  0%  { transform: scale(0.7); opacity:0; }
+  100%{ transform: scale(1);   opacity:1; }
+}
+
+#lsdModalIcon {
+  font-size: clamp(2rem,8vw,4rem);
+  margin-bottom: 8px;
+  display: block;
+  animation: iconFloat 1s ease-in-out infinite alternate;
+}
+@keyframes iconFloat {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-6px); }
+}
+
+#lsdModalTitle {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.1rem,4vw,2rem);
+  font-weight: 900;
+  color: #ffff00;
+  margin-bottom: 10px;
+  text-shadow: 0 0 14px #ff00ff, 0 0 28px #ffff00;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+#lsdModalDesc {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.8rem,2.5vw,1.05rem);
+  color: #fff;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+#lsdModalTimer {
+  font-size: clamp(0.7rem,1.5vw,0.85rem);
+  color: rgba(255,255,255,0.45);
+  margin-top: 14px;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   OVERLAY RUOTA DISPOSITIVO
+   ============================================================ */
+#rotate-device {
+  position: fixed; inset: 0;
   background: #000;
   color: #fff;
   display: none;
@@ -277,86 +410,37 @@ body {
   align-items: center;
   text-align: center;
   padding: 24px;
-  font-size: clamp(1rem, 5vw, 1.5rem);
+  font-size: clamp(1rem,5vw,1.5rem);
   z-index: 9999;
   gap: 16px;
+  font-family: 'Cinzel', serif;
 }
-
-#rotate-device::before {
-  content: "↻";
-  font-size: 3rem;
-  display: block;
+#rotate-device span {
+  font-size: 3.5rem;
   animation: spin 2s linear infinite;
+  display: block;
 }
+@keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-/* ============================================================
-   PORTRAIT MODE — mostra overlay, nascondi gioco
-   ============================================================ */
 @media screen and (orientation: portrait) {
-  #topbar, #table {
-    display: none !important;
-  }
-  #rotate-device {
-    display: flex;
-  }
+  #topbar, #table { display: none !important; }
+  #rotate-device  { display: flex; }
 }
 
 /* ============================================================
-   LANDSCAPE PICCOLO (max-height 420px — iPhone SE, Android mini)
+   LANDSCAPE PICCOLO
    ============================================================ */
 @media screen and (max-height: 420px) and (orientation: landscape) {
-
-  #table {
-    grid-template-columns: 0.85fr 2fr 0.85fr;
-    padding: 2px 4px;
-  }
-
-  .card-frame {
-    width: clamp(52px, 10vw, 90px);
-  }
-
-  #centerBox {
-    gap: 2px;
-    padding: 2px 0;
-  }
-
-  .btn.round, .btn-allin {
-    width:  clamp(36px, 8vw, 58px);
-    height: clamp(36px, 8vw, 58px);
-    font-size: clamp(8px, 2vw, 12px);
-  }
-
-  .btn.small {
-    width:  clamp(24px, 5.5vw, 38px);
-    height: clamp(24px, 5.5vw, 38px);
-    font-size: clamp(8px, 2vw, 11px);
-  }
-
-  #betControls {
-    gap: clamp(3px, 1vw, 8px);
-  }
-
-  .stat {
-    font-size: clamp(11px, 3vw, 16px);
-  }
+  #table { grid-template-columns: 0.8fr 2fr 0.8fr; padding: 2px 4px; }
+  .card-frame { width: clamp(48px, 10vw, 88px); }
+  .btn.round, .btn-allin { width:clamp(36px,8vw,56px); height:clamp(36px,8vw,56px); font-size:clamp(7px,1.8vw,11px); }
+  .btn.small  { width:clamp(24px,5vw,36px); height:clamp(24px,5vw,36px); }
+  #betControls { gap:clamp(3px,0.8vw,7px); }
+  .stat { font-size:clamp(11px,2.8vw,15px); }
+  #centerBox { gap:2px; padding:2px 0; }
 }
 
-/* ============================================================
-   LANDSCAPE MEDIO (max-width 900px)
-   ============================================================ */
 @media screen and (max-width: 900px) and (orientation: landscape) {
-
-  #table {
-    grid-template-columns: 0.9fr 2fr 0.9fr;
-    padding: 4px 8px;
-  }
-
-  .card-frame {
-    width: clamp(60px, 11vw, 110px);
-  }
+  .card-frame { width: clamp(58px, 12vw, 115px); }
+  .btn.round, .btn-allin { width:clamp(44px,7.5vw,72px); height:clamp(44px,7.5vw,72px); }
 }

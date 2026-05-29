@@ -1,8 +1,7 @@
 // ============================================================
-// LSD CARD GAME — game.js  v4.0
+// LSD CARD GAME — game.js  v5.0
 // ============================================================
 
-// --- STATE ---
 let data = loadData();
 let coins      = data.coins;
 let score      = data.score;
@@ -19,12 +18,8 @@ function backImgPath()   { return `data_cg/backDeck/back${currentBack}.png`; }
 function applyBackground() {
   const bgs = ["SfondoTavolata.png","SfondoTavolata1.png","SfondoTavolata2.png","SfondoTavolata3.png"];
   const url = `url("data_cg/${bgs[Math.max(1,Math.min(currentBackground,bgs.length))-1]}")`;
-  // Background sul wrapper 16:9, non sul body
   const wrapper = document.getElementById("gameWrapper");
-  if (wrapper) {
-    wrapper.style.backgroundImage = url;
-    wrapper.style.backgroundSize = "100% 100%";
-  }
+  if (wrapper) { wrapper.style.backgroundImage = url; wrapper.style.backgroundSize = "100% 100%"; }
 }
 
 // --- UI ---
@@ -50,78 +45,115 @@ let roundState = {
   mirrorRound:false, doubleOrNothing:false, blindRounds:0,
   betMultiplier:2, ghostCard:false, freezeBet:false,
   forcedBet:false, swapButtons:false, reversePayout:false,
-  bleedInterval:null, activeVisualFx:null,
+  bleedInterval:null, activeVisualFx:null, activeVisualRounds:0,
+  blindBet:false, winTax:0,
 };
 
-// --- ACTIVE BUFFS (accumulabili, durano N round) ---
-let activeBuffs = [];  // [{id, icon, label, desc, roundsLeft, onRound, onWin}]
+// Effetti visivi multi-round
+let persistentFxRounds = 0;
+let persistentFxClass  = null;
 
 // ============================================================
-// BUFFS POOL — 4 tipi, rari (prob bassa), accumulabili
+// BUFFS — 7 tipi: 4 classici + 3 carte LSD personaggio
 // ============================================================
+let activeBuffs = [];
+
 const BUFF_DEFS = [
+
+  // --- CLASSICI ---
   {
-    id:"shield",
-    icon:"🛡️",
-    label:"COIN SHIELD",
-    desc:"Your coins are protected from the next 2 loss deductions.",
-    color:"#0044aa",
-    rounds:8,
-    prob:0.04,
+    id:"shield", icon:"🛡️", label:"COIN SHIELD",
+    desc:"Your coins are protected from the next 2 loss deductions. The shield breaks after 2 hits.",
+    color:"#0044cc", rounds:8, prob:0.038,
     state:{ shieldCharges:2 },
-    // usato in resolveRound: blocca deduzione coins
   },
   {
-    id:"oracle",
-    icon:"🔮",
-    label:"ORACLE SIGHT",
-    desc:"The hidden card glows faintly — you get a subtle hint about its direction.",
-    color:"#6600aa",
-    rounds:5,
-    prob:0.035,
-    // Mostra un indizio visivo sulla carta coperta ogni round
-    onRound: () => {
-      // freccia sottile sopra la carta coperta (hint)
-      showOracleHint();
-    }
+    id:"oracle", icon:"🔮", label:"ORACLE SIGHT",
+    desc:"A faint arrow appears above the hidden card each round, hinting the direction. Trust it... or not.",
+    color:"#6600bb", rounds:5, prob:0.032,
+    onRound: () => showOracleHint(),
   },
   {
-    id:"double_win",
-    icon:"✨",
-    label:"LUCKY STREAK",
-    desc:"For the next 6 rounds, winning pays ×3 instead of ×2.",
-    color:"#886600",
-    rounds:6,
-    prob:0.03,
-    // applicato in resolveRound come betMultiplier override
+    id:"lucky_streak", icon:"✨", label:"LUCKY STREAK",
+    desc:"Every win pays ×3 instead of ×2 for the duration. Stack it with Jackpot for ×4.",
+    color:"#997700", rounds:6, prob:0.028,
   },
   {
-    id:"heal",
-    icon:"💚",
-    label:"SCORE REGEN",
-    desc:"You recover +1 score per round for the next 7 rounds, win or lose.",
-    color:"#006622",
-    rounds:7,
-    prob:0.035,
-    onRound: () => {
-      score = Math.max(0, score + 1);
+    id:"heal", icon:"💚", label:"SCORE REGEN",
+    desc:"+1 score per round automatically, win or lose. Survives the Joker.",
+    color:"#006622", rounds:7, prob:0.032,
+    onRound: () => { score = Math.max(0,score+1); updateHUD(); },
+  },
+
+  // --- CARTE LSD PERSONAGGIO ---
+  {
+    id:"leonardo", icon:"🎨", label:"CARTA LSD: LEONARDO",
+    desc:"SCHIZOPHRENIC BUT CRAZY — Leonardo reshuffles the deck in your favour (weighted toward a good card), then doubles your current bet for free. But there's a 30% chance he panics and swaps HIGHER/LOWER for this round.",
+    color:"#880044", rounds:4, prob:0.022,
+    isLSD: true,
+    onActivate: (s) => {
+      // Genera una carta successiva leggermente favorevole
+      const biasedNext = pickBiasedCard(currentValue);
+      nextValue = biasedNext;
+      // Raddoppia la puntata gratis (aggiunge coins pari alla bet)
+      if (bet > 0) { coins += bet; updateHUD(); }
+      // 30% chance: lo schizofrenico fa un casino e swappa i tasti
+      if (Math.random() < 0.30) {
+        s.swapButtons = true;
+        document.getElementById("btnHigher").innerHTML = "▼<br>LOWER";
+        document.getElementById("btnLower").innerHTML  = "▲<br>HIGHER";
+      }
+    },
+  },
+  {
+    id:"skywalker", icon:"🧠", label:"CARTA LSD: SKYWALKER",
+    desc:"GENIUS BUT INSANE — Skywalker reveals the exact next card value for 1 round (Oracle guaranteed). But being a genius is stressful: your bet multiplier drops to ×1.5 this round.",
+    color:"#003388", rounds:3, prob:0.020,
+    isLSD: true,
+    onActivate: (s) => {
+      // Rivela la carta esatta (oracle perfetto)
+      showPerfectOracle();
+      // Penalità: moltiplicatore ridotto
+      s.betMultiplier = 1.5;
+    },
+  },
+  {
+    id:"dario", icon:"🍀", label:"CARTA LSD: DARIO",
+    desc:"STONED BUT LUCKY — Dario is too high to care about rules. He randomly gives you +10 to +50 coins (pure luck), ignores the next debuff event, and applies a random visual trip for 1–4 rounds.",
+    color:"#226600", rounds:5, prob:0.022,
+    isLSD: true,
+    onActivate: (s) => {
+      // Coins casuali (fortuna)
+      const bonus = (Math.floor(Math.random()*5)+1) * 10;
+      coins += bonus;
       updateHUD();
-    }
+      showMessage(`🍀 Dario gift: +${bonus} coins!`, "#00ff44");
+      // Scudo prossimo evento debuff
+      s.darioShield = true;
+      // Visual trip random per 1-4 round
+      const trips = ["fx-rainbow","fx-dizzy-loop","fx-wave-loop","fx-zoom"];
+      const chosen = trips[Math.floor(Math.random()*trips.length)];
+      const tripRounds = Math.floor(Math.random()*4)+1;
+      activateMultiRoundFx(chosen, tripRounds);
+    },
   },
 ];
 
 function trySpawnBuff() {
-  const baseMod = Math.min(totalRounds * 0.002, 0.06);
-  for (const def of BUFF_DEFS) {
+  const baseMod = Math.min(totalRounds * 0.002, 0.055);
+  const shuffled = [...BUFF_DEFS].sort(() => Math.random()-0.5);
+  for (const def of shuffled) {
     if (Math.random() < def.prob + baseMod) {
-      // Non aggiungere duplicati dello stesso tipo
-      if (activeBuffs.find(b => b.id === def.id)) return;
+      if (activeBuffs.find(b => b.id === def.id)) continue;
       const buff = {
         ...def,
         roundsLeft: def.rounds,
         stateData: def.state ? JSON.parse(JSON.stringify(def.state)) : {},
       };
       activeBuffs.push(buff);
+      // Attiva subito l'effetto per carte LSD personaggio
+      if (def.onActivate) def.onActivate(roundState);
+      showBuffToast(buff);
       renderBuffs();
       return;
     }
@@ -133,7 +165,6 @@ function tickBuffs() {
     b.roundsLeft--;
     if (b.onRound) b.onRound();
   });
-  // rimuovi scaduti
   activeBuffs = activeBuffs.filter(b => b.roundsLeft > 0);
   renderBuffs();
 }
@@ -142,8 +173,8 @@ function renderBuffs() {
   buffsList.innerHTML = "";
   activeBuffs.forEach(b => {
     const el = document.createElement("div");
-    el.className = "buff-item";
-    el.innerHTML = `${b.icon}<span class="buff-rounds">${b.roundsLeft}</span>`;
+    el.className = "buff-item" + (b.isLSD ? " buff-lsd" : "");
+    el.innerHTML = `<span class="buff-icon">${b.icon}</span><span class="buff-rounds">${b.roundsLeft}</span>`;
     el.title = b.label;
     el.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -155,91 +186,155 @@ function renderBuffs() {
 
 function hasActiveBuff(id) { return !!activeBuffs.find(b => b.id === id); }
 
-// Oracle hint
+// Toast di notifica buff (appare in alto a sinistra sopra il panel)
+function showBuffToast(buff) {
+  const toast = document.createElement("div");
+  toast.className = "buff-toast" + (buff.isLSD ? " buff-toast-lsd" : "");
+  toast.innerHTML = `${buff.icon} <b>${buff.label}</b> activated!`;
+  document.getElementById("gameWrapper").appendChild(toast);
+  setTimeout(() => toast.classList.add("buff-toast-show"), 50);
+  setTimeout(() => { toast.classList.remove("buff-toast-show"); setTimeout(()=>toast.remove(),500); }, 3000);
+}
+
+// Oracle normale (freccia indizio)
 function showOracleHint() {
   if (!nextValue || !currentValue) return;
   const hint = nextValue > currentValue ? "▲" : nextValue < currentValue ? "▼" : "≈";
   const hintEl = document.createElement("div");
-  hintEl.style.cssText = `position:absolute;top:-28px;left:50%;transform:translateX(-50%);
-    font-size:clamp(16px,3vw,26px);color:rgba(180,0,255,0.6);font-weight:900;
-    animation:iconFloat 1s ease-in-out infinite alternate;pointer-events:none;z-index:25;`;
+  hintEl.className = "oracle-hint";
   hintEl.textContent = hint;
   const cardBox = document.querySelector(".card-box.right");
-  cardBox.appendChild(hintEl);
-  setTimeout(() => hintEl.remove(), 3500);
+  if (cardBox) { cardBox.appendChild(hintEl); setTimeout(()=>hintEl.remove(), 3500); }
+}
+
+// Oracle perfetto Skywalker (mostra valore esatto)
+function showPerfectOracle() {
+  if (!nextValue) return;
+  const hintEl = document.createElement("div");
+  hintEl.className = "oracle-hint oracle-perfect";
+  hintEl.textContent = CARD_NAMES[nextValue] || nextValue;
+  const cardBox = document.querySelector(".card-box.right");
+  if (cardBox) { cardBox.appendChild(hintEl); setTimeout(()=>hintEl.remove(), 8000); }
+}
+
+// Carta biased per Leonardo (leggermente favorevole)
+function pickBiasedCard(current) {
+  const pool = [];
+  for (let i=1; i<=10; i++) {
+    if (i===current) continue;
+    // Peso verso la direzione "ovvia" (aiuto leggero)
+    let w = 1;
+    if (current <= 5 && i > current) w += 2;
+    if (current >= 6 && i < current) w += 2;
+    w += Math.random() * 1.5;
+    for (let k=0;k<Math.max(1,Math.floor(w));k++) pool.push(i);
+  }
+  return pool[Math.floor(Math.random()*pool.length)];
 }
 
 // ============================================================
-// LSD EVENTS — debuff (comuni) + nuovi infami + visivi
+// MULTI-ROUND FX (per Dario e debuff visivi multi-round)
+// ============================================================
+function activateMultiRoundFx(cls, rounds) {
+  if (persistentFxClass) getWrapper().classList.remove(persistentFxClass);
+  persistentFxClass  = cls;
+  persistentFxRounds = rounds;
+  getWrapper().classList.add(cls);
+}
+
+function tickVisualFx() {
+  if (persistentFxClass && persistentFxRounds > 0) {
+    persistentFxRounds--;
+    if (persistentFxRounds <= 0) {
+      getWrapper().classList.remove(persistentFxClass);
+      persistentFxClass = null;
+    }
+  }
+}
+
+// ============================================================
+// LSD EVENTS
 // ============================================================
 const LSD_EVENTS = [
+
   // --- DEBUFF CLASSICI ---
-  { id:"mirror",       icon:"🪞", label:"MIRROR WORLD",     desc:"Results INVERTED this round. Higher means lower!",                        color:"#8800ff", prob:0.08, type:"debuff",
+  { id:"mirror",        icon:"🪞", label:"MIRROR WORLD",      desc:"Results INVERTED this round. Higher means lower!",                                    color:"#8800ff", prob:0.08, type:"debuff",
     apply:(s)=>{ s.mirrorRound=true; } },
-  { id:"acid_tax",     icon:"💸", label:"ACID TAX",         desc:"The Dealer takes 30% of your coins. Right now.",                          color:"#cc0000", prob:0.07, type:"debuff", needsCoins:true,
+  { id:"acid_tax",      icon:"💸", label:"ACID TAX",           desc:"The Dealer takes 30% of your coins. Right now.",                                      color:"#cc0000", prob:0.07, type:"debuff", needsCoins:true,
     apply:()=>{ coins=Math.max(0,coins-Math.floor(coins*0.30)); updateHUD(); } },
-  { id:"double_nothing",icon:"⚡",label:"DOUBLE OR NOTHING", desc:"WIN → ×3 coins. LOSE → you lose EVERYTHING.",                            color:"#ff6600", prob:0.06, type:"debuff",
+  { id:"double_nothing",icon:"⚡", label:"DOUBLE OR NOTHING",  desc:"WIN → ×3 coins. LOSE → you lose EVERYTHING.",                                         color:"#ff6600", prob:0.06, type:"debuff",
     apply:(s)=>{ s.doubleOrNothing=true; } },
-  { id:"trip_blind",   icon:"🕶️",label:"TRIP BLIND",        desc:"Your current card is hidden for 3 rounds.",                              color:"#004488", prob:0.09, type:"debuff",
+  { id:"trip_blind",    icon:"🕶️", label:"TRIP BLIND",         desc:"Your current card is hidden for 3 rounds.",                                           color:"#004488", prob:0.09, type:"debuff",
     apply:(s)=>{ s.blindRounds=3; } },
-  { id:"deck_shuffle", icon:"🌀", label:"DECK SHUFFLE",      desc:"The deck reshuffles. Your current card changed.",                         color:"#006644", prob:0.10, type:"debuff",
+  { id:"deck_shuffle",  icon:"🌀", label:"DECK SHUFFLE",       desc:"The deck reshuffles. Your current card changed.",                                      color:"#006644", prob:0.10, type:"debuff",
     apply:(s)=>{ currentValue=pickRandom(); nextValue=pickNextCardHard(currentValue);
                  elCurrentImg.src=s.blindRounds>0?backImgPath():cardImgPath(currentValue);
                  elCurrentLabel.textContent=s.blindRounds>0?"???":(CARD_NAMES[currentValue]||""); } },
-  { id:"jackpot",      icon:"🎰", label:"JACKPOT CHANCE",    desc:"Win this round → bet pays ×4. But odds are against you.",                color:"#886600", prob:0.07, type:"debuff",
+  { id:"jackpot",       icon:"🎰", label:"JACKPOT CHANCE",     desc:"Win this round → bet pays ×4. But odds are against you.",                             color:"#886600", prob:0.07, type:"debuff",
     apply:(s)=>{ s.betMultiplier=4; } },
-  { id:"coin_bomb",    icon:"💣", label:"COIN BOMB",         desc:"BOOM. Half your coins vanish. Instantly.",                                color:"#880000", prob:0.06, type:"debuff", needsCoins:true,
+  { id:"coin_bomb",     icon:"💣", label:"COIN BOMB",          desc:"BOOM. Half your coins vanish. Instantly.",                                             color:"#880000", prob:0.06, type:"debuff", needsCoins:true,
     apply:()=>{ coins=Math.max(0,Math.floor(coins/2)); updateHUD(); } },
-  { id:"ghost_card",   icon:"👻", label:"GHOST CARD",        desc:"Next card mirrors current. You cannot win.",                             color:"#334455", prob:0.07, type:"debuff",
+  { id:"ghost_card",    icon:"👻", label:"GHOST CARD",         desc:"Next card mirrors current. You cannot win.",                                           color:"#334455", prob:0.07, type:"debuff",
     apply:(s)=>{ s.ghostCard=true; } },
-  { id:"mind_melt",    icon:"🧠", label:"MIND MELT",         desc:"3 score points dissolve. Just like that.",                               color:"#550055", prob:0.06, type:"debuff", needsScore:true,
+  { id:"mind_melt",     icon:"🧠", label:"MIND MELT",          desc:"3 score points dissolve. Just like that.",                                             color:"#550055", prob:0.06, type:"debuff", needsScore:true,
     apply:()=>{ score=Math.max(0,score-3); updateHUD(); } },
-  { id:"freeze",       icon:"🧊", label:"BET FREEZE",        desc:"Bet controls locked this round.",                                        color:"#003366", prob:0.07, type:"debuff",
+  { id:"freeze",        icon:"🧊", label:"BET FREEZE",         desc:"Bet controls locked this round. Your current bet stands.",                            color:"#003366", prob:0.07, type:"debuff",
     apply:(s)=>{ s.freezeBet=true; setBetControlsEnabled(false); } },
-  { id:"swap_buttons", icon:"🔀", label:"CONTROLS SWAPPED",  desc:"HIGHER and LOWER buttons are swapped.",                                  color:"#993300", prob:0.08, type:"debuff",
+  { id:"swap_buttons",  icon:"🔀", label:"CONTROLS SWAPPED",   desc:"HIGHER and LOWER buttons are physically swapped. Think before you tap.",              color:"#993300", prob:0.08, type:"debuff",
     apply:(s)=>{ s.swapButtons=true; document.getElementById("btnHigher").innerHTML="▼<br>LOWER"; document.getElementById("btnLower").innerHTML="▲<br>HIGHER"; } },
-  { id:"forced_allin", icon:"🎭", label:"ALL IN FORCED",     desc:"Your entire wallet is the bet. No choice.",                              color:"#660000", prob:0.05, type:"debuff", needsCoins:true,
+  { id:"forced_allin",  icon:"🎭", label:"ALL IN FORCED",      desc:"Your entire wallet is the bet. No choice.",                                           color:"#660000", prob:0.05, type:"debuff", needsCoins:true,
     apply:(s)=>{ bet=coins; s.forcedBet=true; s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
-  { id:"score_steal",  icon:"🦹", label:"SCORE BANDIT",      desc:"The Dealer steals HALF your score.",                                     color:"#440066", prob:0.05, type:"debuff", needsScore:true,
+  { id:"score_steal",   icon:"🦹", label:"SCORE BANDIT",       desc:"The Dealer steals HALF your score.",                                                   color:"#440066", prob:0.05, type:"debuff", needsScore:true,
     apply:()=>{ score=Math.max(0,Math.floor(score/2)); updateHUD(); } },
-  { id:"reverse_pay",  icon:"🔄", label:"REVERSE PAYOUT",    desc:"Win this round and you still lose your bet.",                            color:"#004400", prob:0.05, type:"debuff",
+  { id:"reverse_pay",   icon:"🔄", label:"REVERSE PAYOUT",     desc:"Win this round and you still lose your bet. Psychedelic economics.",                  color:"#004400", prob:0.05, type:"debuff",
     apply:(s)=>{ s.reversePayout=true; } },
-  { id:"bleed",        icon:"🩸", label:"COIN BLEED",        desc:"You lose 5 coins/second until this round ends. Hurry.",                  color:"#550000", prob:0.05, type:"debuff", needsCoins:true,
+  { id:"bleed",         icon:"🩸", label:"COIN BLEED",         desc:"You lose 5 coins/second until this round ends. Hurry.",                               color:"#550000", prob:0.05, type:"debuff", needsCoins:true,
     apply:(s)=>{ s.bleedInterval=setInterval(()=>{ coins=Math.max(0,coins-5); updateHUD(); },1000); } },
-
-  // --- NUOVI DEBUFF INFAMI ---
-  { id:"bet_floor",    icon:"📉", label:"MINIMUM BET",       desc:"You must bet at least 10 coins this round.",                             color:"#660033", prob:0.06, type:"debuff", needsCoins:true,
+  { id:"bet_floor",     icon:"📉", label:"MINIMUM BET",        desc:"You must bet at least 10 coins this round.",                                          color:"#660033", prob:0.06, type:"debuff", needsCoins:true,
     apply:(s)=>{ if(bet<10){ bet=Math.min(10,coins); } s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
-  { id:"flip_score",   icon:"🔃", label:"SCORE FLIP",        desc:"Your score is reset to zero. Start over.",                               color:"#440000", prob:0.03, type:"debuff", needsScore:true,
+  { id:"flip_score",    icon:"🔃", label:"SCORE FLIP",         desc:"Your score is reset to zero. Start over.",                                             color:"#440000", prob:0.03, type:"debuff", needsScore:true,
     apply:()=>{ score=0; updateHUD(); } },
-  { id:"joker",        icon:"🃏", label:"WILD JOKER",        desc:"ALL your active buffs are wiped. The house always wins.",                color:"#222200", prob:0.04, type:"debuff",
+  { id:"joker",         icon:"🃏", label:"WILD JOKER",         desc:"ALL your active buffs are wiped. The house always wins.",                             color:"#222200", prob:0.04, type:"debuff",
     apply:()=>{ activeBuffs=[]; renderBuffs(); } },
-  { id:"drunk",        icon:"🍺", label:"DRUNK DEALER",      desc:"Buttons move randomly for 6 seconds. Can you still click?",             color:"#663300", prob:0.06, type:"debuff",
-    apply:()=>{ drunkButtons(6000); } },
-  { id:"blind_bet",    icon:"🙈", label:"BLIND BET",         desc:"Your bet display is hidden. You don't know how much you're wagering.",   color:"#2a0044", prob:0.06, type:"debuff",
+  { id:"blind_bet",     icon:"🙈", label:"BLIND BET",          desc:"Your bet display is hidden. You don't know how much you're wagering.",                color:"#2a0044", prob:0.06, type:"debuff",
     apply:(s)=>{ s.blindBet=true; elBet.textContent="???"; } },
-  { id:"coin_tax_win", icon:"💰", label:"WIN TAX",           desc:"If you win, the house takes 50% of your winnings.",                      color:"#aa4400", prob:0.05, type:"debuff",
+  { id:"coin_tax_win",  icon:"💰", label:"WIN TAX",            desc:"If you win, the house takes 50% of your winnings.",                                    color:"#aa4400", prob:0.05, type:"debuff",
     apply:(s)=>{ s.winTax=0.5; } },
+  { id:"score_drain",   icon:"📛", label:"SCORE DRAIN",        desc:"-1 score per round for the next 3 rounds. Passive damage.",                           color:"#330022", prob:0.05, type:"debuff", needsScore:true,
+    apply:()=>{ let r=3; const iv=setInterval(()=>{ score=Math.max(0,score-1); updateHUD(); if(--r<=0)clearInterval(iv); },1200); } },
+  { id:"chaos_bet",     icon:"🎲", label:"CHAOS BET",          desc:"Your bet is set to a random value between 1 and your total coins. You can't change it.",color:"#553300",prob:0.05,type:"debuff",needsCoins:true,
+    apply:(s)=>{ bet=Math.max(1,Math.floor(Math.random()*coins)); s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
+  { id:"hot_potato",    icon:"🥔", label:"HOT POTATO",         desc:"If you win, you lose score instead of gaining. If you lose, you gain score instead. Everything is backwards.",color:"#885500",prob:0.04,type:"debuff",
+    apply:(s)=>{ s.hotPotato=true; } },
+  { id:"coin_floor",    icon:"🏦", label:"BROKER",             desc:"You can only bet 1 coin this round. The house sets the rules.",                        color:"#004422", prob:0.05, type:"debuff", needsCoins:true,
+    apply:(s)=>{ bet=1; s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
 
-  // --- EFFETTI VISIVI (attivi fino al prossimo click) ---
-  { id:"redvision",    icon:"🔴", label:"RED EYES",          desc:"Your vision burns red until you play the next card.",                    color:"#660000", prob:0.09, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-redvision",s); } },
-  { id:"blur_vision",  icon:"😵", label:"BLURRED VISION",    desc:"Everything blurs until you guess.",                                      color:"#220044", prob:0.09, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-blur",s); } },
-  { id:"negative",     icon:"☯️", label:"NEGATIVE REALITY",  desc:"Colors invert until your next guess.",                                   color:"#111111", prob:0.06, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-negative",s); } },
-  { id:"dark_room",    icon:"🌑", label:"LIGHTS OUT",        desc:"Almost total darkness until you play.",                                  color:"#000011", prob:0.06, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-dark",s); } },
-  { id:"rainbow",      icon:"🌈", label:"RAINBOW TRIP",      desc:"Acid rainbow until your next guess. Fun? Maybe.",                        color:"#330033", prob:0.07, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-rainbow",s); } },
-  { id:"dizzy",        icon:"💫", label:"DIZZY SPELL",       desc:"The room spins once.",                                                   color:"#004466", prob:0.08, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-dizzy-loop",s); } },
-  { id:"shake",        icon:"💥", label:"TABLE QUAKE",       desc:"The table shakes violently.",                                            color:"#663300", prob:0.08, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-shake-loop",s); } },
-  { id:"glitch",       icon:"👾", label:"MATRIX GLITCH",     desc:"Reality glitches for a moment.",                                        color:"#003300", prob:0.07, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-glitch-loop",s); } },
-  { id:"zoom_loop",    icon:"🔭", label:"ZOOM LOOP",         desc:"The screen breathes in and out until you play.",                        color:"#001133", prob:0.06, type:"visual",
-    apply:(s)=>{ activatePersistentFx("fx-zoom",s); } },
+  // --- EFFETTI VISIVI MULTI-ROUND (1-10 round casuali) ---
+  { id:"redvision",     icon:"🔴", label:"RED EYES",           desc:"Your eyes are burning red for several rounds. Vision impaired.",                       color:"#660000", prob:0.09, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-redvision",  Math.ceil(Math.random()*6)); s.activeVisualFx="fx-redvision"; } },
+  { id:"blur_vision",   icon:"😵", label:"BLURRED VISION",     desc:"Everything blurs for several rounds. The cards mock you.",                             color:"#220044", prob:0.09, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-blur",       Math.ceil(Math.random()*6)); s.activeVisualFx="fx-blur"; } },
+  { id:"negative",      icon:"☯️", label:"NEGATIVE REALITY",   desc:"Colors invert for several rounds. Welcome to the other side.",                         color:"#111111", prob:0.06, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-negative",   Math.ceil(Math.random()*5)); s.activeVisualFx="fx-negative"; } },
+  { id:"dark_room",     icon:"🌑", label:"LIGHTS OUT",         desc:"Almost total darkness for several rounds. Squint harder.",                             color:"#000011", prob:0.06, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-dark",       Math.ceil(Math.random()*4)); s.activeVisualFx="fx-dark"; } },
+  { id:"rainbow",       icon:"🌈", label:"RAINBOW TRIP",       desc:"Acid rainbow for several rounds. Psychedelic.",                                        color:"#330033", prob:0.07, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-rainbow",    Math.ceil(Math.random()*8)); s.activeVisualFx="fx-rainbow"; } },
+  { id:"dizzy",         icon:"💫", label:"DIZZY SPELL",        desc:"The room spins for several rounds. Hold on.",                                          color:"#004466", prob:0.08, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-dizzy-loop", Math.ceil(Math.random()*6)); s.activeVisualFx="fx-dizzy-loop"; } },
+  { id:"shake",         icon:"💥", label:"TABLE QUAKE",        desc:"The table shakes for several rounds.",                                                 color:"#663300", prob:0.08, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-shake-loop", Math.ceil(Math.random()*5)); s.activeVisualFx="fx-shake-loop"; } },
+  { id:"glitch",        icon:"👾", label:"MATRIX GLITCH",      desc:"Reality glitches for several rounds.",                                                 color:"#003300", prob:0.07, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-glitch-loop",Math.ceil(Math.random()*7)); s.activeVisualFx="fx-glitch-loop"; } },
+  { id:"zoom_loop",     icon:"🔭", label:"ZOOM LOOP",          desc:"The screen breathes in and out for several rounds.",                                   color:"#001133", prob:0.06, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-zoom",       Math.ceil(Math.random()*6)); s.activeVisualFx="fx-zoom"; } },
+  { id:"drunk_walk",    icon:"🍺", label:"DRUNK WALK",         desc:"The screen wobbles like a drunkard for several rounds.",                               color:"#553300", prob:0.07, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-drunk-loop", Math.ceil(Math.random()*8)); s.activeVisualFx="fx-drunk-loop";
+                 drunkButtons(Math.ceil(Math.random()*5)*1000); } },
+  { id:"wave",          icon:"🌊", label:"WAVE REALITY",       desc:"Reality waves and warps for several rounds.",                                          color:"#002244", prob:0.06, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-wave-loop",  Math.ceil(Math.random()*7)); s.activeVisualFx="fx-wave-loop"; } },
+  { id:"spin",          icon:"🌀", label:"FULL SPIN",          desc:"Everything slowly rotates. Play fast before you puke.",                                color:"#220022", prob:0.05, type:"visual",
+    apply:(s)=>{ activateMultiRoundFx("fx-spin-loop",  Math.ceil(Math.random()*4)+1); s.activeVisualFx="fx-spin-loop"; } },
 ];
 
 // ============================================================
@@ -253,7 +348,9 @@ function activatePersistentFx(cls, s) {
   s.activeVisualFx = cls;
 }
 function clearPersistentFx(s) {
-  if (s.activeVisualFx) {
+  // NON rimuovere multi-round fx — quelli li gestisce tickVisualFx
+  // Rimuovi solo quelli single-round residui
+  if (s.activeVisualFx && persistentFxRounds <= 0) {
     getWrapper().classList.remove(s.activeVisualFx);
     s.activeVisualFx = null;
   }
@@ -261,29 +358,21 @@ function clearPersistentFx(s) {
 function applyTempFx(cls, ms) {
   const el = getWrapper();
   el.classList.add(cls);
-  setTimeout(() => el.classList.remove(cls), ms);
+  setTimeout(()=>el.classList.remove(cls), ms);
 }
 
 // ============================================================
 // DRUNK BUTTONS
 // ============================================================
 function drunkButtons(duration) {
-  const btns = [
-    document.getElementById("btnHigher"),
-    document.getElementById("btnLower"),
-    document.getElementById("btnAllIn"),
-  ];
-  const interval = setInterval(() => {
-    btns.forEach(b => {
-      const dx = (Math.random()-0.5)*60;
-      const dy = (Math.random()-0.5)*40;
-      b.style.transform = `translate(${dx}px,${dy}px) rotate(${(Math.random()-0.5)*20}deg)`;
+  const btns = ["btnHigher","btnLower","btnAllIn"].map(id=>document.getElementById(id));
+  const iv = setInterval(()=>{
+    btns.forEach(b=>{
+      if(!b) return;
+      b.style.transform = `translate(${(Math.random()-.5)*60}px,${(Math.random()-.5)*38}px) rotate(${(Math.random()-.5)*18}deg)`;
     });
-  }, 300);
-  setTimeout(() => {
-    clearInterval(interval);
-    btns.forEach(b => b.style.transform = "");
-  }, duration);
+  },280);
+  setTimeout(()=>{ clearInterval(iv); btns.forEach(b=>{ if(b) b.style.transform=""; }); }, duration);
 }
 
 // ============================================================
@@ -297,12 +386,12 @@ function pickNextCardHard(current) {
   for (let i=1; i<=10; i++) {
     if (i===current) continue;
     let w=1;
-    if      (current<=3) { w += i<current?(current-i)*2.0*difficulty:(i-current)*0.15; w+=Math.random()*1.0; }
-    else if (current>=8) { w += i>current?(i-current)*2.0*difficulty:(current-i)*0.15; w+=Math.random()*1.0; }
+    if      (current<=3) { w += i<current?(current-i)*2.0*difficulty:(i-current)*0.15; w+=Math.random(); }
+    else if (current>=8) { w += i>current?(i-current)*2.0*difficulty:(current-i)*0.15; w+=Math.random(); }
     else if (current===5||current===6) { w+=Math.random()*7; }
     else { w += Math.abs(current-i)<2?2.8*difficulty:0.6; w+=Math.random()*1.5; }
     if (winStreak>=3 && Math.abs(current-i)===1) w+=4;
-    if (loseStreak>=4) { if(current<=5?(i>current):(i<current)) w+=1.5; }
+    if (loseStreak>=4) { if((current<=5 && i>current)||(current>5 && i<current)) w+=1.5; }
     for (let k=0;k<Math.max(1,Math.floor(w));k++) pool.push(i);
   }
   return pool[Math.floor(Math.random()*pool.length)];
@@ -311,25 +400,25 @@ function pickNextCardHard(current) {
 // ============================================================
 // EVENT SYSTEM
 // ============================================================
-let activeEventDef = null;  // per il badge click
+let activeEventDef = null;
 
 function tryLSDEvent() {
   const baseMod = Math.min(totalRounds*0.006, 0.18);
   const shuffled = [...LSD_EVENTS].sort(()=>Math.random()-0.5);
+
   for (const ev of shuffled) {
-    // Filtri condizionali
-    if (ev.needsCoins && coins<=0) continue;
-    if (ev.needsScore && score<=0) continue;
-    if (Math.random() < ev.prob+baseMod) {
-      showLSDModal(ev, () => {
-        ev.apply(roundState);
-        activeEventDef = ev;
-        showEventBadge(ev);
-      });
+    if (ev.needsCoins && coins <= 1) continue;
+    if (ev.needsScore && score <= 0) continue;
+    // Dario shield blocca il prossimo debuff
+    if (roundState.darioShield && ev.type === "debuff") {
+      roundState.darioShield = false;
+      continue;
+    }
+    if (Math.random() < ev.prob + baseMod) {
+      showLSDModal(ev, ()=>{ ev.apply(roundState); activeEventDef=ev; showEventBadge(ev); });
       return;
     }
   }
-  // prova a spawnare un buff
   trySpawnBuff();
 }
 
@@ -342,16 +431,15 @@ function showLSDModal(ev, onClose) {
   document.getElementById("lsdModalDesc").textContent  = ev.desc;
   document.getElementById("lsdModalBox").style.borderColor = ev.color||"gold";
   const timerEl = document.getElementById("lsdModalTimer");
-
   modal.classList.add("active");
-  applyTempFx("fx-shake",400);
+  applyTempFx("fx-shake-loop", 400);
 
   let cd = 3;
   timerEl.textContent = `Tap anywhere or wait ${cd}s…`;
   if (modalCountdown) clearInterval(modalCountdown);
   modalCountdown = setInterval(()=>{
     cd--;
-    if (cd<=0) { closeModal(); }
+    if (cd<=0) closeModal();
     else timerEl.textContent = `Tap anywhere or wait ${cd}s…`;
   },1000);
 
@@ -359,14 +447,13 @@ function showLSDModal(ev, onClose) {
     clearInterval(modalCountdown);
     modal.classList.remove("active");
     if (onClose) onClose();
-    // rimuovi listener tap
     modal.removeEventListener("click", onTap);
   }
-  function onTap(e) { closeModal(); }
+  function onTap() { closeModal(); }
   modal.addEventListener("click", onTap, {once:true});
 }
 
-// --- EVENT BADGE ---
+// --- BADGE ---
 function showEventBadge(ev) {
   if (!eventBadge) return;
   eventBadge.textContent = `${ev.icon} ${ev.label}`;
@@ -376,8 +463,6 @@ function hideEventBadge() {
   if (eventBadge) eventBadge.classList.add("hidden");
   activeEventDef = null;
 }
-
-// Badge click → info modal
 eventBadge.addEventListener("click", (e)=>{
   e.stopPropagation();
   if (!activeEventDef) return;
@@ -385,29 +470,26 @@ eventBadge.addEventListener("click", (e)=>{
 });
 
 // ============================================================
-// INFO MODAL (badge click / buff click)
+// INFO MODAL
 // ============================================================
 function showInfoModal(icon, title, desc, sub, borderColor) {
   const modal = document.getElementById("infoModal");
-  document.getElementById("infoModalIcon").textContent  = icon;
-  document.getElementById("infoModalTitle").textContent = title;
-  document.getElementById("infoModalDesc").textContent  = desc;
+  document.getElementById("infoModalIcon").textContent   = icon;
+  document.getElementById("infoModalTitle").textContent  = title;
+  document.getElementById("infoModalDesc").textContent   = desc;
   document.getElementById("infoModalRounds").textContent = sub||"";
   document.getElementById("infoModalBox").style.borderColor = borderColor||"#00ff88";
   modal.classList.add("active");
-
-  function close(){ modal.classList.remove("active"); }
+  function close() { modal.classList.remove("active"); }
   document.getElementById("infoModalClose").onclick = (e)=>{ e.stopPropagation(); close(); };
-  // click fuori dalla box chiude
   modal.onclick = (e)=>{ if(e.target===modal) close(); };
 }
 
 // ============================================================
-// RULES MODAL (prima volta)
+// RULES MODAL
 // ============================================================
 function showRulesIfFirst() {
-  const seen = localStorage.getItem("LSD_RULES_SEEN");
-  if (seen) return;
+  if (localStorage.getItem("LSD_RULES_SEEN")) return;
   const modal = document.getElementById("rulesModal");
   modal.classList.add("active");
   document.getElementById("rulesClose").onclick = ()=>{
@@ -425,11 +507,11 @@ function setBetControlsEnabled(en) {
     if(el){ el.disabled=!en; el.style.opacity=en?"1":"0.4"; }
   });
 }
-document.getElementById("btnMinus").addEventListener("click",()=>{ if(roundState.freezeBet)return; bet=Math.max(0,bet-1); updateHUD(); });
-document.getElementById("btnPlus").addEventListener("click",()=>{ if(roundState.freezeBet)return; bet=Math.min(coins,bet+1); updateHUD(); });
+document.getElementById("btnMinus").addEventListener("click",  ()=>{ if(roundState.freezeBet)return; bet=Math.max(0,bet-1);  updateHUD(); });
+document.getElementById("btnPlus").addEventListener("click",   ()=>{ if(roundState.freezeBet)return; bet=Math.min(coins,bet+1); updateHUD(); });
 document.getElementById("btnMinus10").addEventListener("click",()=>{ if(roundState.freezeBet)return; bet=Math.max(0,bet-10); updateHUD(); });
-document.getElementById("btnPlus10").addEventListener("click",()=>{ if(roundState.freezeBet)return; bet=Math.min(coins,bet+10); updateHUD(); });
-document.getElementById("btnAllIn").addEventListener("click",()=>{ if(roundState.freezeBet)return; bet=coins; updateHUD(); });
+document.getElementById("btnPlus10").addEventListener("click", ()=>{ if(roundState.freezeBet)return; bet=Math.min(coins,bet+10); updateHUD(); });
+document.getElementById("btnAllIn").addEventListener("click",  ()=>{ if(roundState.freezeBet)return; bet=coins; updateHUD(); });
 
 // ============================================================
 // HUD
@@ -437,7 +519,6 @@ document.getElementById("btnAllIn").addEventListener("click",()=>{ if(roundState
 function updateHUD() {
   elCoins.textContent = coins;
   elScore.textContent = score;
-  // blind bet: nasconde il valore
   if (!roundState.blindBet) elBet.textContent = bet;
   const d=loadData();
   d.coins=coins; d.score=score; d.bet=bet;
@@ -453,11 +534,15 @@ function resolveRound(wantHigher) {
   if (isAnimating) return;
   isAnimating = true;
 
-  // Ferma bleed
   if (roundState.bleedInterval) clearInterval(roundState.bleedInterval);
 
-  // Rimuovi effetti visivi persistenti
-  clearPersistentFx(roundState);
+  // Effetto visivo: rimane finché ci sono round residui (tickVisualFx lo gestisce)
+  // Per single-round clear:
+  if (persistentFxRounds <= 1 && persistentFxClass) {
+    getWrapper().classList.remove(persistentFxClass);
+    persistentFxClass = null;
+    persistentFxRounds = 0;
+  }
 
   const effectiveHigher = roundState.swapButtons ? !wantHigher : wantHigher;
   const revealed = roundState.ghostCard ? currentValue : nextValue;
@@ -468,60 +553,52 @@ function resolveRound(wantHigher) {
   hideEventBadge();
 
   let isWin = effectiveHigher?(revealed>currentValue):(revealed<currentValue);
-  if (roundState.mirrorRound) isWin=!isWin;
-  if (roundState.ghostCard && revealed===currentValue) isWin=false;
-  if (roundState.reversePayout) isWin=!isWin;
+  if (roundState.mirrorRound)   isWin = !isWin;
+  if (roundState.ghostCard && revealed===currentValue) isWin = false;
+  if (roundState.reversePayout) isWin = !isWin;
 
-  // Reveal blind bet
-  roundState.blindBet = false;
-
-  // LUCKY STREAK buff override
-  if (isWin && hasActiveBuff("double_win") && roundState.betMultiplier<3) {
-    roundState.betMultiplier = 3;
+  // Hot Potato
+  if (roundState.hotPotato) {
+    if (isWin) { score=Math.max(0,score-1); showMessage("🥔 Hot Potato: win = score loss!","#ff8800"); }
+    else       { score+=1;                  showMessage("🥔 Hot Potato: loss = score gain!","#88ff00"); }
   }
 
-  if (isWin) {
+  roundState.blindBet = false;
+
+  // Lucky Streak buff
+  if (isWin && hasActiveBuff("lucky_streak") && roundState.betMultiplier < 3) roundState.betMultiplier = 3;
+
+  if (isWin && !roundState.hotPotato) {
     score+=1; winStreak++; loseStreak=0;
     const mult = roundState.betMultiplier||2;
     let gain = bet>0 ? bet*mult : 0;
-    // Win Tax debuff
     if (roundState.winTax && gain>0) gain = Math.floor(gain*(1-roundState.winTax));
     if (bet>0) coins += gain;
     showMessage(`✓ Correct! +${gain}${mult>2?` (×${mult})`:""}`, "#00ff88");
-  } else {
+  } else if (!isWin && !roundState.hotPotato) {
     score=Math.max(0,score-1); loseStreak++; winStreak=0;
-    // COIN SHIELD buff
     if (roundState.doubleOrNothing) {
       const shieldBuff = activeBuffs.find(b=>b.id==="shield");
       if (shieldBuff && shieldBuff.stateData.shieldCharges>0) {
         shieldBuff.stateData.shieldCharges--;
         if (shieldBuff.stateData.shieldCharges<=0) activeBuffs=activeBuffs.filter(b=>b.id!=="shield");
-        showMessage("🛡️ Shield absorbed the hit!", "#4488ff");
-        renderBuffs();
-      } else {
-        const lost=coins; coins=0;
-        showMessage(`✗ DOUBLE OR NOTHING — Lost everything! −${lost}`,"#ff2222");
-      }
+        showMessage("🛡️ Shield absorbed DOUBLE OR NOTHING!","#4488ff"); renderBuffs();
+      } else { const lost=coins; coins=0; showMessage(`✗ DOUBLE OR NOTHING — Lost everything! −${lost}`,"#ff2222"); }
     } else if (bet>0) {
       const shieldBuff = activeBuffs.find(b=>b.id==="shield");
       if (shieldBuff && shieldBuff.stateData.shieldCharges>0) {
         shieldBuff.stateData.shieldCharges--;
         if (shieldBuff.stateData.shieldCharges<=0) activeBuffs=activeBuffs.filter(b=>b.id!=="shield");
-        showMessage("🛡️ Shield absorbed the loss!", "#4488ff");
-        renderBuffs();
-      } else {
-        coins=Math.max(0,coins-bet);
-        showMessage(`✗ Wrong! −${bet}`,"#ff4444");
-      }
-    } else {
-      showMessage("✗ Wrong!","#ff4444");
-    }
+        showMessage("🛡️ Shield absorbed the loss!","#4488ff"); renderBuffs();
+      } else { coins=Math.max(0,coins-bet); showMessage(`✗ Wrong! −${bet}`,"#ff4444"); }
+    } else { showMessage("✗ Wrong!","#ff4444"); }
   }
 
   totalRounds++;
   bet=0;
   updateHUD();
   tickBuffs();
+  tickVisualFx();
 
   setTimeout(()=>{
     currentValue=revealed;
@@ -542,7 +619,7 @@ function resolveRound(wantHigher) {
       mirrorRound:false, doubleOrNothing:false, blindRounds:prevBlind,
       betMultiplier:2, ghostCard:false, freezeBet:false, forcedBet:false,
       swapButtons:false, reversePayout:false, bleedInterval:null,
-      activeVisualFx:null, blindBet:false, winTax:0,
+      activeVisualFx:null, blindBet:false, winTax:0, hotPotato:false, darioShield:false,
     };
     setBetControlsEnabled(true);
 
@@ -560,7 +637,7 @@ function resolveRound(wantHigher) {
 // ============================================================
 function animateEl(el) { el.classList.remove("animate"); void el.offsetWidth; el.classList.add("animate"); }
 let msgTimer=null;
-function showMessage(text,color="white") {
+function showMessage(text, color="white") {
   elResult.textContent=text; elResult.style.color=color;
   elResult.classList.remove("hidden");
   if(msgTimer) clearTimeout(msgTimer);
@@ -598,16 +675,14 @@ document.getElementById("btnHigher").addEventListener("click",()=>resolveRound(t
 document.getElementById("btnLower").addEventListener("click", ()=>resolveRound(false));
 
 // ============================================================
-// FULLSCREEN helper (mobile)
+// FULLSCREEN
 // ============================================================
 function tryFullscreen() {
-  const el = document.documentElement;
-  if (el.requestFullscreen)            el.requestFullscreen().catch(()=>{});
-  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-  // iOS Safari non supporta fullscreen API — usiamo posizionamento fixed nel CSS
+  const el=document.documentElement;
+  if(el.requestFullscreen)            el.requestFullscreen().catch(()=>{});
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 }
-// Tenta fullscreen al primo tap utente (richiesto dai browser)
-document.body.addEventListener("click", ()=>{ tryFullscreen(); }, {once:true});
+document.body.addEventListener("click",()=>tryFullscreen(),{once:true});
 
 // ============================================================
 // INIT
@@ -622,7 +697,6 @@ function init() {
   elNextLabel.textContent="?";
   updateHUD();
   showRulesIfFirst();
-  setTimeout(tryLSDEvent,4000);
+  setTimeout(tryLSDEvent, 4000);
 }
-
 document.addEventListener("DOMContentLoaded",init);

@@ -2,11 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- zoom-out: minimum-scale=0.4 permette al browser di dezoomare fino al 40% -->
-  <meta name="viewport" content="width=device-width, initial-scale=0.8, minimum-scale=0.4, maximum-scale=3.0">
+  <meta name="viewport" content="width=device-width, initial-scale=0.8, minimum-scale=0.4, maximum-scale=3.0, viewport-fit=cover">
   <link rel="icon" type="image/png" href="data_cg/logo.png">
-  <title>LSD Card Game — Play</title>
-  <meta name="robots" content="noindex">
+  <title>LSD Card Game — Playing | LSD Software</title>
+  <!-- Game screen: noindex, follow — non vogliamo indicizzare la schermata di gioco -->
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="LSD Card Game — active game session. Higher or lower? Bet, guess, survive.">
+  <meta name="theme-color" content="#000033">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LSD Card Game">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
@@ -14,36 +20,35 @@
 </head>
 <body id="gameBody">
 
+  <div id="gameWrapper">
   <header id="topbar">
     <div class="stat left">💰 <b id="coins">0</b></div>
-    <div class="home">
-      <a href="main.html"><button id="homeBtn">☰ MENU</button></a>
-    </div>
+    <div class="home"><a href="main.html"><button id="homeBtn">☰ MENU</button></a></div>
     <div class="stat right">⭐ <b id="score">0</b></div>
   </header>
 
   <main id="table">
 
-    <!-- CARTA CORRENTE (sinistra) -->
+    <!-- BUFFS PANEL — sinistra -->
+    <div id="buffsPanel">
+      <div id="buffsLabel">BUFFS</div>
+      <div id="buffsList"></div>
+    </div>
+
+    <!-- CARTA CORRENTE -->
     <div class="card-box left">
-      <div class="card-frame">
-        <img id="currentCardImg" src="" alt="Current card">
-      </div>
+      <div class="card-frame"><img id="currentCardImg" src="" alt="Current card"></div>
       <div class="card-label" id="currentCardLabel"></div>
     </div>
 
-    <!-- CENTRO: chip + bottoni -->
+    <!-- CENTRO -->
     <div id="centerBox">
       <div id="chipBox"></div>
-
       <div id="controls">
         <button class="btn round blue" id="btnLower">▼<br>LOWER</button>
-        <button class="btn-allin" id="btnAllIn">
-          <img src="data_cg/Tasto_All_In.png" alt="ALL IN">
-        </button>
+        <button class="btn-allin" id="btnAllIn"><img src="data_cg/Tasto_All_In.png" alt="ALL IN"></button>
         <button class="btn round green" id="btnHigher">▲<br>HIGHER</button>
       </div>
-
       <div id="betControls">
         <button class="btn small red" id="btnMinus10">−10</button>
         <button class="btn small red" id="btnMinus">−1</button>
@@ -51,22 +56,57 @@
         <button class="btn small blue" id="btnPlus">+1</button>
         <button class="btn small blue" id="btnPlus10">+10</button>
       </div>
-
       <div id="resultMessage" class="hidden"></div>
     </div>
 
-    <!-- CARTA SUCCESSIVA (destra) con badge evento sopra -->
+    <!-- CARTA SUCCESSIVA + badge evento -->
     <div class="card-box right">
       <div id="eventBadge" class="event-badge hidden"></div>
-      <div class="card-frame">
-        <img id="nextCardImg" src="" alt="Next card">
-      </div>
+      <div class="card-frame"><img id="nextCardImg" src="" alt="Next card"></div>
       <div class="card-label" id="nextCardLabel"></div>
     </div>
 
   </main>
 
-  <!-- Overlay ruota dispositivo -->
+  </div><!-- /gameWrapper -->
+
+  <!-- MODALE EVENTO LSD -->
+  <div id="lsdModal">
+    <div id="lsdModalBox">
+      <span id="lsdModalIcon"></span>
+      <div id="lsdModalTitle"></div>
+      <div id="lsdModalDesc"></div>
+      <div id="lsdModalTimer">Tap anywhere or wait...</div>
+    </div>
+  </div>
+
+  <!-- MODALE INFO BUFF (click su badge) -->
+  <div id="infoModal">
+    <div id="infoModalBox">
+      <button id="infoModalClose">✕</button>
+      <span id="infoModalIcon"></span>
+      <div id="infoModalTitle"></div>
+      <div id="infoModalDesc"></div>
+      <div id="infoModalRounds"></div>
+    </div>
+  </div>
+
+  <!-- POPUP REGOLE (prima volta) -->
+  <div id="rulesModal">
+    <div id="rulesBox">
+      <div id="rulesTitle">🃏 HOW TO PLAY</div>
+      <div id="rulesBody">
+        <p>A card is shown on the left. Predict if the <b>next card</b> will be <b>HIGHER</b> or <b>LOWER</b>.</p>
+        <p>Set a <b>BET</b> before guessing. Win → coins ×2. Lose → lose your bet.</p>
+        <p><b>⚡ LSD Events</b> appear randomly and twist the rules. Read them carefully!</p>
+        <p><b>✨ Buffs</b> (left panel) help you for several rounds. Protect them — a Joker wipes them all.</p>
+        <p>Visual effects may distort the screen until your next guess. Stay focused.</p>
+      </div>
+      <button id="rulesClose">LET'S PLAY</button>
+    </div>
+  </div>
+
+  <!-- OVERLAY RUOTA -->
   <div id="rotate-device">
     <span>↻</span>
     Rotate your device to landscape to play

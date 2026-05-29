@@ -1,14 +1,77 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, minimum-scale=0.4, maximum-scale=3.0, viewport-fit=cover">
   <link rel="icon" type="image/png" href="data_cg/logo.png">
-  <title>Settings — LSD Card Game</title>
-  <meta name="robots" content="noindex">
-  <link rel="stylesheet" href="css_cg/settings.css" />
+  <title>Settings — LSD Card Game | Audio, Controls & Game Info</title>
+  <!-- Settings: indexable — utenti cercano come configurare il gioco -->
+  <meta name="robots" content="index, follow">
+  <meta name="description" content="LSD Card Game Settings — adjust audio volume, mute music, and read the full game rules and description. Learn how LSD events, buffs and the higher-or-lower mechanic work.">
+  <meta name="keywords" content="LSD Card Game settings, card game rules, how to play LSD Card Game, game audio settings, LSD Software game guide">
+  <meta name="author" content="LSD Software">
+  <link rel="canonical" href="https://lsd-software.github.io/cardGameWeb/settings.html">
+  <meta name="theme-color" content="#000033">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- OPEN GRAPH -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://lsd-software.github.io/cardGameWeb/settings.html">
+  <meta property="og:title" content="LSD Card Game Settings — Rules & Audio Controls">
+  <meta property="og:description" content="Configure audio and read the full rules for LSD Card Game by LSD Software.">
+  <meta property="og:image" content="https://lsd-software.github.io/cardGameWeb/data_cg/logo.png">
+  <meta property="og:site_name" content="LSD Software">
+
+  <!-- SCHEMA FAQ (regole del gioco come FAQ) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do you play LSD Card Game?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A card is shown on screen. Predict whether the next card will be higher or lower. Set a coin bet before guessing. Win and your bet is doubled; lose and you lose your bet."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are LSD Events in LSD Card Game?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "LSD Events are random debuffs and effects that activate between rounds, twisting the rules: inverted controls, forced all-in, visual distortions, coin taxes and more."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are Buffs in LSD Card Game?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Buffs are rare positive effects that last several rounds, like Coin Shield (protects coins from loss), Oracle Sight (shows a hint), Lucky Streak (2x win multiplier) and Score Regen."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- SCHEMA BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type":"ListItem","position":1,"name":"Home","item":"https://lsd-software.github.io/"},
+      {"@type":"ListItem","position":2,"name":"LSD Card Game","item":"https://lsd-software.github.io/cardGameWeb/main.html"},
+      {"@type":"ListItem","position":3,"name":"Settings","item":"https://lsd-software.github.io/cardGameWeb/settings.html"}
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="css_cg/settings.css">
 </head>
 
 <body id="settingsBody">

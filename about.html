@@ -6,17 +6,25 @@
   <link rel="icon" type="image/png" href="img/icon.png">
 
   <title>About LSD Software | Indie Game Dev Collective — Milan, Italy</title>
-  <meta name="description" content="Meet LSD Software: a collective of computer science students from Milan creating free indie games. Our mission is art for art's sake — 100% free games for everyone.">
-  <meta name="keywords" content="LSD Software team, indie game developers Milan, computer science students games Italy, free indie games, retro game dev Milan, low-poly indie studio">
+  <meta name="description" content="LSD Software is a free indie game development collective of computer science students from Milan. We create browser-based retro games with low-poly aesthetics. Art for art's sake — 100% free forever.">
+  <meta name="keywords" content="LSD Software team, who is LSD Software, indie game developers Milan, computer science students Italy, free indie game dev collective, retro game studio Milan, giochi indie Milano">
   <meta name="author" content="LSD Software">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
   <link rel="canonical" href="https://lsd-software.github.io/about.html">
+  <meta name="theme-color" content="#000000">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://lsd-software.github.io/about.html">
-  <meta property="og:title" content="About LSD Software | Indie Game Dev Collective Milan">
-  <meta property="og:description" content="A collective of computer science students from Milan making free retro indie games.">
+  <meta property="og:title" content="About LSD Software | Free Indie Game Dev Collective Milan">
+  <meta property="og:description" content="Computer science students from Milan making free retro browser games. Low-poly, psychedelic, 100% free.">
   <meta property="og:image" content="https://lsd-software.github.io/img/icon.png">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:site_name" content="LSD Software">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About LSD Software | Indie Devs Milan">
+  <meta name="twitter:description" content="Computer science students from Milan making free retro browser games.">
+  <meta name="twitter:image" content="https://lsd-software.github.io/img/icon.png">
 
   <script type="application/ld+json">
   {
@@ -24,12 +32,21 @@
     "@type": "AboutPage",
     "name": "About LSD Software",
     "url": "https://lsd-software.github.io/about.html",
-    "description": "LSD Software is an indie game development collective of computer science students in Milan, Italy creating free games.",
+    "description": "LSD Software is a free indie game development collective of computer science students in Milan, Italy.",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://lsd-software.github.io/" },
+        { "@type": "ListItem", "position": 2, "name": "About", "item": "https://lsd-software.github.io/about.html" }
+      ]
+    },
     "mainEntity": {
       "@type": "Organization",
       "name": "LSD Software",
-      "foundingLocation": "Milan, Italy",
-      "description": "Indie game development collective creating free retro-style games."
+      "url": "https://lsd-software.github.io/",
+      "foundingLocation": { "@type": "Place", "name": "Milan, Italy" },
+      "description": "Indie game development collective creating free retro browser games.",
+      "knowsAbout": ["Indie Game Development", "Low-Poly Graphics", "Browser Games", "Retro Games"]
     }
   }
   </script>
@@ -37,13 +54,12 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/about.css">
 </head>
-
 <body>
   <header>
     <div id="navbar">
       <div id="logo"><img src="img/icon.png" alt="LSD Software Logo" width="80" height="80"></div>
       <h1>LSD MANIFESTO</h1>
-      <div id="hamburger" aria-label="Toggle navigation menu" role="button" tabindex="0">
+      <div id="hamburger" aria-label="Open navigation menu" role="button" tabindex="0" aria-expanded="false">
         <span></span><span></span><span></span>
       </div>
       <nav id="menu" aria-label="Main navigation">
@@ -56,16 +72,16 @@
   </header>
 
   <main id="container">
-    <article>
+    <article itemscope itemtype="https://schema.org/Organization">
       <fieldset id="about-lsd" class="retro-card">
         <legend>WHO ARE LSD?</legend>
         <div class="about-content">
 
-          <h2 class="gold-text courier-prime-bold">INDEPENDENT GAME DEVELOPMENT MILAN</h2>
+          <h2 class="gold-text courier-prime-bold" itemprop="name">INDEPENDENT GAME DEVELOPMENT MILAN</h2>
 
           <section>
             <h3 class="white-title">The Team &amp; The Mission</h3>
-            <p>
+            <p itemprop="description">
               <strong>LSD Software</strong> is an emerging indie game development collective founded by
               dedicated <strong>computer science students in Milan</strong>. Our mission is to bridge the gap
               between technical expertise and artistic storytelling, creating 100% free digital experiences
@@ -76,7 +92,7 @@
           <section>
             <h3 class="white-title">Creative Trilogies &amp; Lore</h3>
             <p>
-              We specialise in crafting deep, narrative-driven experiences. Our portfolio includes acclaimed
+              We specialise in crafting deep, narrative-driven experiences. Our portfolio includes
               indie titles and trilogies such as <strong>Arcana</strong>, <strong>The Machine</strong>, and
               <strong>In the Name of God</strong>. Every project features original dialogues, atmospheric
               low-poly graphics, and immersive soundtracks designed to push the boundaries of the indie genre.
@@ -92,7 +108,7 @@
             <p>
               In an industry driven by profit, LSD Software stands for <strong>free access to art</strong>.
               We believe games should be an accessible medium for everyone. That's why all our software,
-              assets, and stories are available at no cost to our community.
+              assets, and stories are available at no cost to our community — forever.
             </p>
           </section>
 
@@ -109,7 +125,10 @@
   </main>
 
   <footer>
-    © 2024 <strong>LSD Software</strong> — Milan, Italy | <span class="gold-text">Indie Game Dev Collective</span>
+    <p>© 2024 <strong>LSD Software</strong> — Milan, Italy &nbsp;|&nbsp;
+    <a href="index.html" style="color:gold;text-decoration:none;">Home</a> &nbsp;·&nbsp;
+    <a href="project.html" style="color:gold;text-decoration:none;">Games</a> &nbsp;·&nbsp;
+    <a href="contact.html" style="color:gold;text-decoration:none;">Contact</a></p>
   </footer>
 
   <script src="js/script.js"></script>

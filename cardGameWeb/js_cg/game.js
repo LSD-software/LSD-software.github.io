@@ -9,6 +9,7 @@ let bet        = data.bet;
 let currentDeck       = data.deck;
 let currentBack       = data.backDeck;
 let currentBackground = data.background;
+// Nota: questi valori vengono sovrascritti dopo initStorage() nel DOMContentLoaded
 
 const CARD_NAMES = ["","Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"];
 
@@ -699,4 +700,17 @@ function init() {
   showRulesIfFirst();
   setTimeout(tryLSDEvent, 4000);
 }
-document.addEventListener("DOMContentLoaded",init);
+document.addEventListener("DOMContentLoaded", async () => {
+  // Prima carica lo stato dal server (o usa defaults per guest)
+  await initStorage();
+  // Poi ricarica data per usare i valori aggiornati
+  data = loadData();
+  coins      = data.coins;
+  score      = data.score;
+  bet        = data.bet;
+  currentDeck       = data.deck;
+  currentBack       = data.backDeck;
+  currentBackground = data.background;
+  // Infine avvia il gioco
+  init();
+});

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="data_cg/logo.png">
+  <title>LSD Card Game — Sign In</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css_cg/auth.css">
+</head>
+<body>
+
+  <div id="authWrapper">
+
+    <div id="authLogo">
+      <img src="data_cg/logo.png" alt="LSD Card Game">
+      <h1>LSD CARD GAME</h1>
+    </div>
+
+    <!-- TAB SELECTOR -->
+    <div id="tabBar">
+      <button class="tab active" data-tab="login">SIGN IN</button>
+      <button class="tab"        data-tab="register">REGISTER</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" class="auth-form">
+      <div class="field">
+        <label>Username or Email</label>
+        <input type="text" id="loginIdentifier" autocomplete="username" placeholder="username or email" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••" required>
+          <button type="button" class="pw-toggle" data-target="loginPassword">👁</button>
+        </div>
+      </div>
+      <div id="loginError" class="form-error hidden"></div>
+      <button type="submit" class="auth-btn" id="loginBtn">SIGN IN</button>
+      <button type="button" class="link-btn" id="showForgot">Forgot password?</button>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form id="registerForm" class="auth-form hidden">
+      <div class="field">
+        <label>Username <span class="hint">(3–20 chars, letters/numbers/_)</span></label>
+        <input type="text" id="regUsername" autocomplete="username" placeholder="CoolPlayer99" required minlength="3" maxlength="20">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="regEmail" autocomplete="email" placeholder="you@example.com" required>
+      </div>
+      <div class="field">
+        <label>Password <span class="hint">(min 8 characters)</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="regPassword" autocomplete="new-password" placeholder="••••••••" required minlength="8">
+          <button type="button" class="pw-toggle" data-target="regPassword">👁</button>
+        </div>
+      </div>
+      <div id="registerError" class="form-error hidden"></div>
+      <button type="submit" class="auth-btn" id="registerBtn">CREATE ACCOUNT</button>
+    </form>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <form id="forgotForm" class="auth-form hidden">
+      <p class="form-info">Enter your email address and we'll send you a reset link.</p>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="forgotEmail" placeholder="you@example.com" required>
+      </div>
+      <div id="forgotError"   class="form-error   hidden"></div>
+      <div id="forgotSuccess" class="form-success hidden"></div>
+      <button type="submit" class="auth-btn" id="forgotBtn">SEND RESET LINK</button>
+      <button type="button" class="link-btn" id="backToLogin">← Back to Sign In</button>
+    </form>
+
+    <!-- DIVIDER -->
+    <div class="divider"><span>or</span></div>
+
+    <!-- GUEST -->
+    <button id="guestBtn" class="guest-btn">
+      🎲 PLAY AS GUEST
+      <span class="guest-note">Progress not saved permanently</span>
+    </button>
+
+    <div id="globalError" class="form-error hidden" style="margin-top:12px;text-align:center;"></div>
+  </div>
+
+  <script src="js_cg/api.js"></script>
+  <script src="js_cg/auth.js"></script>
+</body>
+</html>

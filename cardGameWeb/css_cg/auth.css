@@ -1,0 +1,242 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at center, #1a0030 0%, #000 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  padding: 20px;
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
+
+/* ── WRAPPER ─────────────────────────────────────── */
+#authWrapper {
+  background: linear-gradient(160deg, #0d001a, #1a0008);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 16px;
+  padding: clamp(24px, 5vw, 48px) clamp(20px, 6vw, 52px);
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 0 60px rgba(128, 0, 128, 0.25), 0 0 120px rgba(0, 0, 0, 0.8);
+}
+
+/* ── LOGO ────────────────────────────────────────── */
+#authLogo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+#authLogo img {
+  width: clamp(64px, 16vw, 96px);
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.4));
+}
+#authLogo h1 {
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  font-weight: 900;
+  color: gold;
+  letter-spacing: 4px;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+/* ── TAB BAR ─────────────────────────────────────── */
+#tabBar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 4px;
+}
+.tab {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.75rem, 2.2vw, 0.88rem);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.tab.active {
+  background: linear-gradient(145deg, #800000, #4a0000);
+  color: gold;
+  box-shadow: 0 0 12px rgba(128, 0, 0, 0.4);
+}
+.tab:not(.active):hover { color: rgba(255, 255, 255, 0.8); }
+
+/* ── FORMS ───────────────────────────────────────── */
+.auth-form { display: flex; flex-direction: column; gap: 16px; }
+.auth-form.hidden { display: none; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: clamp(0.72rem, 1.8vw, 0.82rem);
+  color: rgba(255, 215, 0, 0.8);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.hint {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.7em;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.field input {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: white;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+.field input:focus {
+  outline: none;
+  border-color: rgba(255, 215, 0, 0.6);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.15);
+}
+.field input::placeholder { color: rgba(255, 255, 255, 0.25); }
+
+/* password toggle */
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 44px; }
+.pw-toggle {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; padding: 4px; color: rgba(255,255,255,0.5);
+  -webkit-tap-highlight-color: transparent;
+}
+.pw-toggle:hover { color: white; }
+
+/* ── BUTTONS ─────────────────────────────────────── */
+.auth-btn {
+  padding: 14px;
+  background: linear-gradient(145deg, #800000, #4a0000);
+  color: gold;
+  border: 2px solid gold;
+  border-radius: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: 4px;
+}
+.auth-btn:hover, .auth-btn:active {
+  background: gold; color: #800000;
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.4);
+  transform: scale(1.02);
+}
+.auth-btn:disabled {
+  opacity: 0.55; cursor: not-allowed; transform: none;
+}
+
+.link-btn {
+  background: none; border: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.72rem, 1.8vw, 0.8rem);
+  cursor: pointer;
+  text-align: center;
+  padding: 4px;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.link-btn:hover { color: rgba(255, 215, 0, 0.8); }
+
+/* ── DIVIDER ─────────────────────────────────────── */
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.8rem;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ── GUEST ───────────────────────────────────────── */
+.guest-btn {
+  width: 100%;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.guest-btn:hover, .guest-btn:active {
+  border-color: rgba(255,255,255,0.4); color: white;
+  background: rgba(255,255,255,0.06);
+}
+.guest-note {
+  font-size: clamp(0.62rem, 1.5vw, 0.7rem);
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.5px;
+  font-weight: 400;
+  text-transform: none;
+}
+
+/* ── FEEDBACK ────────────────────────────────────── */
+.form-error {
+  background: rgba(200, 0, 0, 0.15);
+  border: 1px solid rgba(200, 0, 0, 0.5);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: #ff6666;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.form-success {
+  background: rgba(0, 180, 0, 0.15);
+  border: 1px solid rgba(0, 180, 0, 0.4);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: #66ff88;
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
+  text-align: center;
+}
+.form-info {
+  color: rgba(255,255,255,0.55);
+  font-size: clamp(0.75rem, 2vw, 0.85rem);
+  text-align: center;
+  line-height: 1.6;
+}
+.hidden { display: none !important; }
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,215,0,0.3);
+  border-top-color: gold;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

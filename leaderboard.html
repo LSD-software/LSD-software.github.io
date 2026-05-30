@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="img/icon.png">
+
+  <title>LSD Software | Leaderboard — Top Players</title>
+  <meta name="description" content="LSD Software global leaderboard. See the top players for LSD Card Game ranked by score, coins and win streak.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://lsd-software.github.io/leaderboard.html">
+  <meta property="og:title" content="LSD Software Leaderboard — Top Players">
+  <meta property="og:description" content="Who's on top? Check the global LSD Card Game rankings.">
+  <meta property="og:image" content="https://lsd-software.github.io/img/icon.png">
+  <meta property="og:url" content="https://lsd-software.github.io/leaderboard.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/leaderboard.css">
+</head>
+
+<body>
+  <header>
+    <div id="navbar">
+      <div id="logo">
+        <img src="img/icon.png" alt="LSD Software Logo" width="80" height="80">
+      </div>
+      <h1>LEADERBOARD</h1>
+      <div id="hamburger" aria-label="Toggle navigation menu" role="button" tabindex="0">
+        <span></span><span></span><span></span>
+      </div>
+      <nav id="menu" aria-label="Main navigation">
+        <a href="index.html">HOME</a>
+        <a href="about.html">ABOUT</a>
+        <a href="project.html">PROJECTS</a>
+        <a href="leaderboard.html">LEADERBOARD</a>
+        <a href="contact.html">CONTACTS</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="lbContainer">
+
+    <!-- GAME SELECTOR -->
+    <div id="gameSelector">
+      <button class="game-tab active" data-game="cardgame">
+        <img src="img/logoCG.png" alt="Card Game"> LSD CARD GAME
+      </button>
+      <button class="game-tab locked" data-game="pesca" disabled>
+        <img src="img/logoPesca.png" alt="P-E-S-C-A"> P-E-S-C-A
+        <span class="coming-badge">SOON</span>
+      </button>
+      <button class="game-tab locked" data-game="console" disabled>
+        <span class="placeholder-icon">🎮</span> LSD CONSOLE
+        <span class="coming-badge">SOON</span>
+      </button>
+    </div>
+
+    <!-- SORT TABS -->
+    <div id="sortBar">
+      <span class="sort-label">SORT BY:</span>
+      <button class="sort-btn active" data-sort="score">⭐ SCORE</button>
+      <button class="sort-btn" data-sort="coins">💰 COINS</button>
+      <button class="sort-btn" data-sort="winStreak">🔥 WIN STREAK</button>
+    </div>
+
+    <!-- LEADERBOARD TABLE -->
+    <div id="lbPanel">
+      <div id="lbLoading" class="lb-loading">
+        <div class="lb-spinner"></div>
+        <span>Loading rankings…</span>
+      </div>
+
+      <div id="lbError" class="lb-error hidden"></div>
+
+      <table id="lbTable" class="hidden">
+        <thead>
+          <tr>
+            <th class="col-rank">RANK</th>
+            <th class="col-name">PLAYER</th>
+            <th class="col-score">SCORE</th>
+            <th class="col-coins">COINS</th>
+            <th class="col-streak">WIN STREAK</th>
+          </tr>
+        </thead>
+        <tbody id="lbBody"></tbody>
+      </table>
+
+      <!-- MY RANK separato -->
+      <div id="myRankPanel" class="hidden">
+        <div class="my-rank-label">YOUR POSITION</div>
+        <table class="my-rank-table">
+          <tbody id="myRankBody"></tbody>
+        </table>
+        <p id="notLoggedNote" class="not-logged hidden">
+          <a href="cardGameWeb/auth.html">Sign in</a> to see your position in the ranking.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- SIGN IN CTA (se non loggato) -->
+    <div id="lbCta" class="lb-cta hidden">
+      <p>Want your name on this board?</p>
+      <a href="cardGameWeb/auth.html" class="cta-btn">SIGN IN / REGISTER</a>
+    </div>
+
+  </main>
+
+  <footer>
+    © 2024 <strong>LSD Software</strong> — Milan, Italy
+  </footer>
+
+  <script src="cardGameWeb/js_cg/api.js"></script>
+  <script src="js/script.js"></script>
+  <script src="js/leaderboard.js"></script>
+</body>
+</html>

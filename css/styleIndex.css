@@ -176,3 +176,22 @@
     gap: 20px;
   }
 }
+
+/* Bottone leaderboard — variante gold */
+.retro-btn-lb {
+  background: linear-gradient(145deg,#2a1a00,#4a3000);
+  border-color: gold;
+  color: gold !important;
+  margin-top: 12px;
+}
+.retro-btn-lb:hover {
+  background: gold;
+  color: #2a1a00 !important;
+  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+.discover-more-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}

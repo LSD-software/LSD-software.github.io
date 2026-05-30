@@ -86,8 +86,8 @@ const Api = {
     return this.request("/game/save", "POST", state);
   },
 
-  async getLeaderboard() {
-    return this.request("/game/leaderboard");
+  async getLeaderboard(sortBy = "score") {
+    return this.request(`/game/leaderboard?sortBy=${sortBy}`);
   }
 };
 

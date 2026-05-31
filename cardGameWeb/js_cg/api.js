@@ -3,7 +3,8 @@
 // Tutti i file del gioco importano questo per parlare con Render
 // ============================================================
 
-const API_URL = "https://lsd-backend-4phu.onrender.com"; 
+const API_URL = "https://lsd-card-game.onrender.com"; // ← aggiorna con il tuo URL Render
+
 const Api = {
 
   // ── TOKEN ──────────────────────────────────────────────

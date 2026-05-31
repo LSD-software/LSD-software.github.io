@@ -1,9 +1,8 @@
 // ============================================================
 // api.js — LSD Card Game API client
-// Tutti i file del gioco importano questo per parlare con Render
 // ============================================================
 
-const API_URL = "https://lsd-backend-4phu.onrender.com"; 
+const API_URL = "https://lsd-backend-4phu.onrender.com";
 
 const Api = {
 
@@ -14,8 +13,8 @@ const Api = {
   isLoggedIn(){ return !!this.getToken(); },
 
   saveSession(token, user) {
-    localStorage.setItem("lsd_token",  token);
-    localStorage.setItem("lsd_user",   JSON.stringify(user));
+    localStorage.setItem("lsd_token", token);
+    localStorage.setItem("lsd_user",  JSON.stringify(user));
   },
 
   clearSession() {
@@ -23,8 +22,8 @@ const Api = {
     localStorage.removeItem("lsd_user");
   },
 
-  // ── REQUEST HELPER ─────────────────────────────────────
-  async request(path, method = "GET", body = null) {
+  // ── REQUEST ────────────────────────────────────────────
+  async request(path, method = "GET", body = null, timeoutMs = 15000) {
     const headers = { "Content-Type": "application/json" };
     const token = this.getToken();
     if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -32,11 +31,29 @@ const Api = {
     const opts = { method, headers };
     if (body) opts.body = JSON.stringify(body);
 
-    const res  = await fetch(`${API_URL}${path}`, opts);
-    const data = await res.json();
+    // Timeout controller
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    opts.signal = controller.signal;
 
-    if (!res.ok) throw new Error(data.error || "API error");
-    return data;
+    try {
+      const res = await fetch(`${API_URL}${path}`, opts);
+      clearTimeout(timer);
+
+      // Leggi il body una volta sola
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); }
+      catch(e) { throw new Error(`Server returned non-JSON: ${text.slice(0,100)}`); }
+
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data;
+
+    } catch(e) {
+      clearTimeout(timer);
+      if (e.name === "AbortError") throw new Error("Request timed out. Server may be waking up, try again.");
+      throw e;
+    }
   },
 
   // ── AUTH ───────────────────────────────────────────────
@@ -68,7 +85,7 @@ const Api = {
 
   async verifyToken() {
     try {
-      const data = await this.request("/auth/me");
+      const data = await this.request("/auth/me", "GET", null, 8000);
       return data.user;
     } catch {
       this.clearSession();
@@ -78,42 +95,41 @@ const Api = {
 
   // ── GAME STATE ─────────────────────────────────────────
   async loadState() {
-    const data = await this.request("/game/state");
+    const data = await this.request("/game/state", "GET", null, 15000);
     return data.state;
   },
 
   async saveState(state) {
-    return this.request("/game/save", "POST", state);
+    return this.request("/game/save", "POST", state, 10000);
   },
 
   async getLeaderboard(sortBy = "score") {
-    return this.request(`/game/leaderboard?sortBy=${sortBy}`);
+    return this.request(`/game/leaderboard?sortBy=${sortBy}`, "GET", null, 10000);
+  },
+
+  // ── WAKE UP (sveglia Render free tier) ─────────────────
+  async wakeUp() {
+    try {
+      const res = await fetch(`${API_URL}/health`, { method: "GET" });
+      if (res.ok) console.log("🟢 Server awake");
+    } catch(e) {
+      console.warn("⚠️ Server warming up, first request may be slow…");
+    }
+  },
+
+  // ── REQUIRE AUTH ───────────────────────────────────────
+  requireAuth(redirectTo = "/cardGameWeb/auth.html") {
+    if (!this.isLoggedIn()) {
+      window.location.href = redirectTo;
+      return false;
+    }
+    return true;
   }
 };
 
-// Wake-up ping: sveglia Render free tier all'avvio
-Api.wakeUp = async function() {
-  try {
-    await fetch(`${API_URL}/health`, { method: "GET" });
-    console.log("🟢 Server awake");
-  } catch(e) {
-    console.warn("⚠️ Server warming up…");
-  }
-};
-
-// Chiama wakeUp appena il DOM è pronto
+// Sveglia il server appena la pagina si carica
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => Api.wakeUp());
 } else {
   Api.wakeUp();
 }
-
-// Reindirizza alla pagina auth se non loggato
-// (chiamare da ogni pagina protetta)
-Api.requireAuth = function(redirectTo = "/cardGameWeb/auth.html") {
-  if (!this.isLoggedIn()) {
-    window.location.href = redirectTo;
-    return false;
-  }
-  return true;
-};

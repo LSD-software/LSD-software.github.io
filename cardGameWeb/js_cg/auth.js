@@ -44,7 +44,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       await Api.login(identifier, password);
       goToGame();
     } catch (err) {
-      showError("loginError", err.message);
+      const msg = err.message.includes("timed out") || err.message.includes("fetch")
+        ? "Server is waking up (free tier). Wait 30 seconds and try again."
+        : err.message;
+      showError("loginError", msg);
     } finally {
       setLoading(btn, false);
     }
@@ -64,7 +67,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       await Api.register(username, email, password);
       goToGame();
     } catch (err) {
-      showError("registerError", err.message);
+      const msg = err.message.includes("timed out") || err.message.includes("fetch")
+        ? "Server is waking up (free tier). Wait 30 seconds and try again."
+        : err.message;
+      showError("registerError", msg);
     } finally {
       setLoading(btn, false);
     }

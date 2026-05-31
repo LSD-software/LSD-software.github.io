@@ -42,6 +42,11 @@ let nextValue    = null;
 let isAnimating  = false;
 let winStreak = 0, loseStreak = 0, totalRounds = 0;
 
+// Stats locali sincronizzate con storage
+let _stats_wins    = 0;
+let _stats_losses  = 0;
+let _state_winStreak = 0;
+
 let roundState = {
   mirrorRound:false, doubleOrNothing:false, blindRounds:0,
   betMultiplier:2, ghostCard:false, freezeBet:false,
@@ -521,10 +526,21 @@ function updateHUD() {
   elCoins.textContent = coins;
   elScore.textContent = score;
   if (!roundState.blindBet) elBet.textContent = bet;
-  const d=loadData();
-  d.coins=coins; d.score=score; d.bet=bet;
-  d.deck=currentDeck; d.backDeck=currentBack; d.background=currentBackground;
-  saveData(d);
+
+  // Aggiorna winStreak corrente nei stats
+  _state_winStreak = winStreak;
+
+  saveData({
+    coins, score, bet,
+    deck: currentDeck, backDeck: currentBack, background: currentBackground,
+    stats: {
+      totalRounds,
+      wins:          _stats_wins,
+      losses:        _stats_losses,
+      winStreak:     winStreak,
+      bestWinStreak: Math.max(winStreak, loadData().stats.bestWinStreak || 0),
+    }
+  });
   generateChips(bet);
 }
 
@@ -570,14 +586,14 @@ function resolveRound(wantHigher) {
   if (isWin && hasActiveBuff("lucky_streak") && roundState.betMultiplier < 3) roundState.betMultiplier = 3;
 
   if (isWin && !roundState.hotPotato) {
-    score+=1; winStreak++; loseStreak=0;
+    score+=1; winStreak++; loseStreak=0; _stats_wins++;
     const mult = roundState.betMultiplier||2;
     let gain = bet>0 ? bet*mult : 0;
     if (roundState.winTax && gain>0) gain = Math.floor(gain*(1-roundState.winTax));
     if (bet>0) coins += gain;
     showMessage(`✓ Correct! +${gain}${mult>2?` (×${mult})`:""}`, "#00ff88");
   } else if (!isWin && !roundState.hotPotato) {
-    score=Math.max(0,score-1); loseStreak++; winStreak=0;
+    score=Math.max(0,score-1); loseStreak++; winStreak=0; _stats_losses++;
     if (roundState.doubleOrNothing) {
       const shieldBuff = activeBuffs.find(b=>b.id==="shield");
       if (shieldBuff && shieldBuff.stateData.shieldCharges>0) {
@@ -598,6 +614,8 @@ function resolveRound(wantHigher) {
   totalRounds++;
   bet=0;
   updateHUD();
+  // Salvataggio immediato a fine round — non aspetta il debounce
+  if (typeof saveNow === "function") saveNow();
   tickBuffs();
   tickVisualFx();
 
@@ -707,10 +725,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   data = loadData();
   coins      = data.coins;
   score      = data.score;
-  bet        = data.bet;
+  bet        = 0;  // bet non si ripristina mai tra sessioni
   currentDeck       = data.deck;
   currentBack       = data.backDeck;
   currentBackground = data.background;
+  // Ripristina stats locali
+  _stats_wins   = data.stats?.wins   || 0;
+  _stats_losses = data.stats?.losses || 0;
+  totalRounds   = data.stats?.totalRounds || 0;
+  winStreak     = data.stats?.winStreak   || 0;
   // Infine avvia il gioco
   init();
 });

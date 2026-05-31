@@ -2,14 +2,17 @@
 // LSD CARD GAME — game.js  v5.0
 // ============================================================
 
-let data = loadData();
-let coins      = data.coins;
-let score      = data.score;
-let bet        = data.bet;
-let currentDeck       = data.deck;
-let currentBack       = data.backDeck;
-let currentBackground = data.background;
-// Nota: questi valori vengono sovrascritti dopo initStorage() nel DOMContentLoaded
+// FIX v5.1: NON chiamare loadData() qui al top-level.
+// I dati del server non sono ancora arrivati in questo momento.
+// Le variabili vengono impostate correttamente nel DOMContentLoaded,
+// DOPO await initStorage(). Così non si rischia di sovrascrivere
+// il DB con i valori di default (coins=100, score=0) durante init().
+let coins      = 100;
+let score      = 0;
+let bet        = 0;
+let currentDeck       = 1;
+let currentBack       = 1;
+let currentBackground = 1;
 
 const CARD_NAMES = ["","Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten"];
 
@@ -719,21 +722,27 @@ function init() {
   setTimeout(tryLSDEvent, 4000);
 }
 document.addEventListener("DOMContentLoaded", async () => {
-  // Prima carica lo stato dal server (o usa defaults per guest)
+  // FIX: aspetta il caricamento dal server PRIMA di qualsiasi altra cosa.
+  // initStorage() imposta _serverReady=true solo quando i dati reali arrivano.
+  // Fino ad allora, _push() è bloccato e non può sovrascrivere il DB.
   await initStorage();
-  // Poi ricarica data per usare i valori aggiornati
-  data = loadData();
-  coins      = data.coins;
-  score      = data.score;
-  bet        = 0;  // bet non si ripristina mai tra sessioni
+
+  // Ora i dati sono affidabili (dal server o da localStorage come fallback)
+  const data    = loadData();
+  coins         = data.coins;
+  score         = data.score;
+  bet           = 0;  // il bet non si porta tra sessioni
   currentDeck       = data.deck;
   currentBack       = data.backDeck;
   currentBackground = data.background;
-  // Ripristina stats locali
-  _stats_wins   = data.stats?.wins   || 0;
-  _stats_losses = data.stats?.losses || 0;
-  totalRounds   = data.stats?.totalRounds || 0;
-  winStreak     = data.stats?.winStreak   || 0;
-  // Infine avvia il gioco
+
+  // Ripristina contatori locali dalle stats salvate
+  _stats_wins   = data.stats?.wins         || 0;
+  _stats_losses = data.stats?.losses       || 0;
+  totalRounds   = data.stats?.totalRounds  || 0;
+  winStreak     = data.stats?.winStreak    || 0;
+
+  // Solo ora avvia il gioco — updateHUD() dentro init() chiamerà saveData()
+  // che a sua volta chiamerà _push(), che ora è abilitato correttamente
   init();
 });

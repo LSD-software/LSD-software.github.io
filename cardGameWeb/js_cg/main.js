@@ -1,7 +1,9 @@
-// js_cg/main.js — menu principale
+// js_cg/main.js — menu principale (FIXED)
+//
+// FIX: await initStorage() prima di leggere loadData()
+// Senza questo, il menu caricava il background con i dati di default
 
 document.addEventListener("DOMContentLoaded", async function () {
-  // ✅ FIX: Carica dati dal server prima di applicare lo sfondo
   if (typeof initStorage === "function") {
     await initStorage();
   }

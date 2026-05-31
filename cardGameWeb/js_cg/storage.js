@@ -1,6 +1,11 @@
 // ============================================================
-// storage.js v5
+// storage.js v6 — FIXED
 // Flusso: LOGIN → carica da server → gioca → salva su LS + server ad ogni azione
+//
+// BUG FIXES:
+// 1. coins iniziali 100 (erano 10)
+// 2. _serverReady impedisce salvataggi prima che il server abbia risposto
+// 3. _guardSave() blocca push se i dati non sono stati caricati dal server
 // ============================================================
 
 const LS_KEY = "lsd_gamestate";
@@ -17,7 +22,9 @@ let _state = {
   audioVolume: 0.5, audioMuted: false, audioTime: 0,
 };
 
-let _serverReady = false; // true dopo il primo load dal server
+// FIX: _serverReady = true solo dopo aver ricevuto dati reali dal server
+// Finché è false, _push() non invia nulla (evita di sovrascrivere col default)
+let _serverReady = false;
 let _saveTimer   = null;
 let _saving      = false;
 let _retries     = 0;
@@ -42,7 +49,7 @@ async function loadStateFromAPI() {
     const remote = await Api.loadState();
 
     // Il server è la fonte di verità: sovrascrive tutto
-    _state.coins      = typeof remote.coins === "number" ? remote.coins : 10;
+    _state.coins      = typeof remote.coins === "number" ? remote.coins : 100;
     _state.score      = typeof remote.score === "number" ? remote.score : 0;
     _state.bet        = 0;
     _state.deck       = remote.equippedDeck  || 1;
@@ -65,14 +72,14 @@ async function loadStateFromAPI() {
       };
     }
 
+    // FIX: solo ora i dati sono affidabili → abilita i salvataggi
     _serverReady = true;
-    _lsSave(); // allinea localStorage col server
+    _lsSave();
     console.log(`✅ Loaded from server — coins:${_state.coins} score:${_state.score}`);
 
   } catch(e) {
     console.warn("⚠️ Server unreachable, loading from localStorage…", e.message);
 
-    // Fallback: localStorage solo se il server non risponde
     const backup = _lsLoad();
     if (backup && typeof backup.coins === "number") {
       Object.assign(_state, {
@@ -81,25 +88,41 @@ async function loadStateFromAPI() {
         deck:       backup.deck       ?? 1,
         backDeck:   backup.backDeck   ?? 1,
         background: backup.background ?? 1,
+        unlockedDecks: Array.isArray(backup.unlockedDecks) ? backup.unlockedDecks : [1],
+        unlockedBacks: Array.isArray(backup.unlockedBacks) ? backup.unlockedBacks : [1],
+        unlockedBgs:   Array.isArray(backup.unlockedBgs)   ? backup.unlockedBgs   : [1],
       });
       if (backup.stats) Object.assign(_state.stats, backup.stats);
+      // FIX: con fallback localStorage consideriamo i dati comunque validi
+      // così il gioco può salvare appena si riconnette
+      _serverReady = true;
       console.log(`📦 Fallback localStorage — coins:${_state.coins} score:${_state.score}`);
-      // Ritenta il server tra 5 secondi
+
+      // Ritenta il server dopo 5 secondi per sincronizzare
       setTimeout(async () => {
         try {
           const remote = await Api.loadState();
-          _state.coins = typeof remote.coins === "number" ? remote.coins : _state.coins;
-          _state.score = typeof remote.score === "number" ? remote.score : _state.score;
+          _state.coins      = typeof remote.coins === "number" ? remote.coins : _state.coins;
+          _state.score      = typeof remote.score === "number" ? remote.score : _state.score;
+          _state.deck       = remote.equippedDeck  || _state.deck;
+          _state.backDeck   = remote.equippedBack  || _state.backDeck;
+          _state.background = remote.equippedBg    || _state.background;
+          _state.unlockedDecks = Array.isArray(remote.unlockedDecks) ? remote.unlockedDecks : _state.unlockedDecks;
+          _state.unlockedBacks = Array.isArray(remote.unlockedBacks) ? remote.unlockedBacks : _state.unlockedBacks;
+          _state.unlockedBgs   = Array.isArray(remote.unlockedBgs)   ? remote.unlockedBgs   : _state.unlockedBgs;
           if (remote.stats) Object.assign(_state.stats, remote.stats);
           _serverReady = true;
           _lsSave();
           console.log(`✅ Retry server load OK — coins:${_state.coins}`);
-          // Aggiorna UI se il gioco è già partito
           if (typeof updateHUD === "function") updateHUD();
         } catch(e2) {
           console.warn("⚠️ Retry also failed:", e2.message);
         }
       }, 5000);
+    } else {
+      // Nessun dato locale: lascia i default MA abilita i salvataggi
+      // (nuovo utente, giusto partire da valori freschi)
+      _serverReady = true;
     }
   }
 }
@@ -107,6 +130,13 @@ async function loadStateFromAPI() {
 // ── PUSH AL SERVER ────────────────────────────────────────
 async function _push() {
   if (_saving) return;
+  // FIX: non salvare MAI prima che il server abbia caricato i dati reali
+  // Questo era il bug principale: il gioco chiamava updateHUD() con coins=10/0
+  // durante init(), prima che loadStateFromAPI() finisse, sovrascrivendo il DB
+  if (!_serverReady) {
+    console.warn("⏳ Push skipped — server not ready yet");
+    return;
+  }
   if (typeof Api === "undefined" || !Api.isLoggedIn()) return;
 
   _saving = true;
@@ -142,9 +172,9 @@ function saveNow() {
   _push();
 }
 
-// Salva con debounce 500ms (per azioni rapide come +1 bet)
+// Salva con debounce 500ms
 function _scheduleSave() {
-  _lsSave(); // localStorage sempre immediato
+  _lsSave();
   if (_saveTimer) clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => { _saveTimer = null; _push(); }, 500);
 }
@@ -160,7 +190,6 @@ function loadData() {
 }
 
 function saveData(d) {
-  // Aggiorna stato in memoria
   if (typeof d.coins      === "number") _state.coins      = d.coins;
   if (typeof d.score      === "number") _state.score      = d.score;
   if (typeof d.bet        === "number") _state.bet        = d.bet;
@@ -175,11 +204,10 @@ function saveData(d) {
   if (Array.isArray(d.unlockedBgs))   _state.unlockedBgs   = d.unlockedBgs;
   if (d.stats && typeof d.stats === "object") Object.assign(_state.stats, d.stats);
 
-  // Aggiorna massimi
   if (_state.coins > _state.stats.maxCoins) _state.stats.maxCoins = _state.coins;
   if (_state.score > _state.stats.maxScore) _state.stats.maxScore = _state.score;
 
-  _scheduleSave(); // localStorage immediato + server dopo 500ms
+  _scheduleSave();
 }
 
 async function initStorage() {

@@ -1,7 +1,11 @@
-// js_cg/shop.js — LSD Card Game Shop  (fixed)
+// js_cg/shop.js — LSD Card Game Shop (FIXED)
+//
+// BUG FIXES:
+// 1. Aggiunto await initStorage() — senza questo lo shop caricava coins=10/score=0
+// 2. Chiavi corrette: unlockedDecks/unlockedBacks/unlockedBgs (erano ownedDecks etc.)
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ FIX: Carica dati dal server prima di mostrare shop
+  // FIX: carica i dati reali dal server prima di mostrare lo shop
   if (typeof initStorage === "function") {
     await initStorage();
   }
@@ -13,14 +17,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateEquipUI();
 });
 
-// BUY
 function setupBuyButtons() {
   document.querySelectorAll(".buy").forEach(btn => {
     const type  = btn.dataset.type;
     const id    = Number(btn.dataset.id);
     const price = Number(btn.dataset.price);
 
-    // ✅ FIX: usa le chiavi corrette (unlockedDecks, non ownedDecks)
     if (isOwned(type, id)) {
       btn.style.display = "none";
     }
@@ -35,7 +37,7 @@ function setupBuyButtons() {
 
       data.coins -= price;
 
-      // ✅ FIX: chiavi corrette unlockedDecks / unlockedBacks / unlockedBgs
+      // FIX: chiavi corrette (unlockedDecks, non ownedDecks)
       if (type === "deck"       && !data.unlockedDecks.includes(id)) data.unlockedDecks.push(id);
       if (type === "back"       && !data.unlockedBacks.includes(id)) data.unlockedBacks.push(id);
       if (type === "background" && !data.unlockedBgs.includes(id))   data.unlockedBgs.push(id);
@@ -49,7 +51,6 @@ function setupBuyButtons() {
   });
 }
 
-// EQUIP
 function setupEquipButtons() {
   document.querySelectorAll(".equip").forEach(btn => {
     const type = btn.dataset.type;
@@ -66,7 +67,6 @@ function setupEquipButtons() {
   });
 }
 
-// CONVERT
 function setupConvert() {
   const btn = document.getElementById("converti");
   if (!btn) return;
@@ -92,7 +92,7 @@ function setupConvert() {
   });
 }
 
-// OWNED — ✅ FIX: chiavi corrette
+// FIX: chiavi corrette
 function isOwned(type, id) {
   const data = loadData();
   if (type === "deck")       return data.unlockedDecks.includes(id);
@@ -109,7 +109,6 @@ function equip(type, id) {
   saveData(data);
 }
 
-// UI
 function updateStatsUI() {
   const data = loadData();
   const el1 = document.getElementById("shopScore");
@@ -131,13 +130,13 @@ function updateEquipUI() {
     if (type === "background") equipped = (data.background === id);
 
     if (equipped) {
-      btn.textContent       = "EQUIPPED";
-      btn.style.background  = "#03a9f4";
-      btn.style.color       = "#fff";
+      btn.textContent      = "EQUIPPED";
+      btn.style.background = "#03a9f4";
+      btn.style.color      = "#fff";
     } else {
-      btn.textContent       = "EQUIP";
-      btn.style.background  = "";
-      btn.style.color       = "";
+      btn.textContent      = "EQUIP";
+      btn.style.background = "";
+      btn.style.color      = "";
     }
   });
 }

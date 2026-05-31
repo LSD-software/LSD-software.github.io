@@ -4,7 +4,6 @@
 // ============================================================
 
 const API_URL = "https://lsd-backend-4phu.onrender.com"; 
-
 const Api = {
 
   // ── TOKEN ──────────────────────────────────────────────
@@ -90,6 +89,23 @@ const Api = {
     return this.request(`/game/leaderboard?sortBy=${sortBy}`);
   }
 };
+
+// Wake-up ping: sveglia Render free tier all'avvio
+Api.wakeUp = async function() {
+  try {
+    await fetch(`${API_URL}/health`, { method: "GET" });
+    console.log("🟢 Server awake");
+  } catch(e) {
+    console.warn("⚠️ Server warming up…");
+  }
+};
+
+// Chiama wakeUp appena il DOM è pronto
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => Api.wakeUp());
+} else {
+  Api.wakeUp();
+}
 
 // Reindirizza alla pagina auth se non loggato
 // (chiamare da ogni pagina protetta)

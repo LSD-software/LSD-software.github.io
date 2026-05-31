@@ -6,12 +6,12 @@
 const LS_KEY = "lsd_gamestate";
 
 let _state = {
-  coins: 10, score: 0, bet: 0,
+  coins: 100, score: 0, bet: 0,
   deck: 1, backDeck: 1, background: 1,
   unlockedDecks: [1], unlockedBacks: [1], unlockedBgs: [1],
   stats: {
     totalRounds:0, wins:0, losses:0,
-    maxScore:0, maxCoins:10,
+    maxScore:0, maxCoins:100,
     totalPlayed:0, winStreak:0, bestWinStreak:0
   },
   audioVolume: 0.5, audioMuted: false, audioTime: 0,

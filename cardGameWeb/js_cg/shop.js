@@ -1,6 +1,11 @@
-// js/shop.js
+// js_cg/shop.js — LSD Card Game Shop  (fixed)
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // ✅ FIX: Carica dati dal server prima di mostrare shop
+  if (typeof initStorage === "function") {
+    await initStorage();
+  }
+
   updateStatsUI();
   setupBuyButtons();
   setupEquipButtons();
@@ -11,10 +16,11 @@ document.addEventListener("DOMContentLoaded", () => {
 // BUY
 function setupBuyButtons() {
   document.querySelectorAll(".buy").forEach(btn => {
-    const type = btn.dataset.type;
-    const id = Number(btn.dataset.id);
+    const type  = btn.dataset.type;
+    const id    = Number(btn.dataset.id);
     const price = Number(btn.dataset.price);
 
+    // ✅ FIX: usa le chiavi corrette (unlockedDecks, non ownedDecks)
     if (isOwned(type, id)) {
       btn.style.display = "none";
     }
@@ -27,15 +33,13 @@ function setupBuyButtons() {
         return;
       }
 
-      // aggiorno coins
       data.coins -= price;
 
-      // aggiorno owned nello stesso oggetto
-      if (type === "deck" && !data.ownedDecks.includes(id)) data.ownedDecks.push(id);
-      if (type === "back" && !data.ownedBacks.includes(id)) data.ownedBacks.push(id);
-      if (type === "background" && !data.ownedBackgrounds.includes(id)) data.ownedBackgrounds.push(id);
+      // ✅ FIX: chiavi corrette unlockedDecks / unlockedBacks / unlockedBgs
+      if (type === "deck"       && !data.unlockedDecks.includes(id)) data.unlockedDecks.push(id);
+      if (type === "back"       && !data.unlockedBacks.includes(id)) data.unlockedBacks.push(id);
+      if (type === "background" && !data.unlockedBgs.includes(id))   data.unlockedBgs.push(id);
 
-      // salvo tutto insieme
       saveData(data);
 
       btn.style.display = "none";
@@ -49,14 +53,13 @@ function setupBuyButtons() {
 function setupEquipButtons() {
   document.querySelectorAll(".equip").forEach(btn => {
     const type = btn.dataset.type;
-    const id = Number(btn.dataset.id);
+    const id   = Number(btn.dataset.id);
 
     btn.addEventListener("click", () => {
       if (!isOwned(type, id)) {
         alert("You must buy it first!");
         return;
       }
-
       equip(type, id);
       updateEquipUI();
     });
@@ -89,29 +92,30 @@ function setupConvert() {
   });
 }
 
-// OWNED
+// OWNED — ✅ FIX: chiavi corrette
 function isOwned(type, id) {
   const data = loadData();
-  if (type === "deck") return data.ownedDecks.includes(id);
-  if (type === "back") return data.ownedBacks.includes(id);
-  if (type === "background") return data.ownedBackgrounds.includes(id);
+  if (type === "deck")       return data.unlockedDecks.includes(id);
+  if (type === "back")       return data.unlockedBacks.includes(id);
+  if (type === "background") return data.unlockedBgs.includes(id);
+  return false;
 }
 
 function equip(type, id) {
   const data = loadData();
-
-  if (type === "deck") data.deck = id;
-  if (type === "back") data.backDeck = id;
+  if (type === "deck")       data.deck       = id;
+  if (type === "back")       data.backDeck   = id;
   if (type === "background") data.background = id;
-
   saveData(data);
 }
 
 // UI
 function updateStatsUI() {
   const data = loadData();
-  document.getElementById("shopScore").textContent = "Score: " + data.score;
-  document.getElementById("shopCoins").textContent = "Coins: " + data.coins;
+  const el1 = document.getElementById("shopScore");
+  const el2 = document.getElementById("shopCoins");
+  if (el1) el1.textContent = "Score: " + data.score;
+  if (el2) el2.textContent = "Coins: " + data.coins;
 }
 
 function updateEquipUI() {
@@ -119,22 +123,21 @@ function updateEquipUI() {
 
   document.querySelectorAll(".equip").forEach(btn => {
     const type = btn.dataset.type;
-    const id = Number(btn.dataset.id);
+    const id   = Number(btn.dataset.id);
 
     let equipped = false;
-    if (type === "deck") equipped = (data.deck === id);
-    if (type === "back") equipped = (data.backDeck === id);
+    if (type === "deck")       equipped = (data.deck       === id);
+    if (type === "back")       equipped = (data.backDeck   === id);
     if (type === "background") equipped = (data.background === id);
 
     if (equipped) {
-      btn.textContent = "EQUIPPED";
-      btn.style.background = "#03a9f4";
-      btn.style.color = "#fff";
+      btn.textContent       = "EQUIPPED";
+      btn.style.background  = "#03a9f4";
+      btn.style.color       = "#fff";
     } else {
-      btn.textContent = "EQUIP";
-      btn.style.background = "";
-      btn.style.color = "";
+      btn.textContent       = "EQUIP";
+      btn.style.background  = "";
+      btn.style.color       = "";
     }
   });
 }
-

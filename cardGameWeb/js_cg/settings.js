@@ -1,6 +1,11 @@
-// js/settings.js
+// js_cg/settings.js — LSD Card Game Settings (fixed)
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // ✅ FIX: Carica dati dal server prima di mostrare settings
+  if (typeof initStorage === "function") {
+    await initStorage();
+  }
+
   const data = loadData();
 
   // Imposta sfondo attuale
@@ -15,28 +20,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Slider volume
   const slider = document.getElementById("volumeSlider");
-  slider.value = data.audioVolume;
+  if (slider) {
+    slider.value = data.audioVolume;
 
-  slider.addEventListener("input", () => {
-    let d = loadData();
-    d.audioVolume = Number(slider.value);
-    saveData(d);
-
-    audio.volume = d.audioVolume;
-  });
+    slider.addEventListener("input", () => {
+      let d = loadData();
+      d.audioVolume = Number(slider.value);
+      saveData(d);
+      if (typeof audio !== "undefined") audio.volume = d.audioVolume;
+    });
+  }
 
   // Mute
   const muteBtn = document.getElementById("muteBtn");
-  muteBtn.textContent = data.audioMuted ? "Unmute" : "Mute";
+  if (muteBtn) {
+    muteBtn.textContent = data.audioMuted ? "Unmute" : "Mute";
 
-  muteBtn.addEventListener("click", () => {
-    let d = loadData();
-    d.audioMuted = !d.audioMuted;
-    saveData(d);
-
-    audio.muted = d.audioMuted;
-    muteBtn.textContent = d.audioMuted ? "Unmute" : "Mute";
-
-    if (!d.audioMuted) audio.play().catch(() => {});
-  });
+    muteBtn.addEventListener("click", () => {
+      let d = loadData();
+      d.audioMuted = !d.audioMuted;
+      saveData(d);
+      if (typeof audio !== "undefined") {
+        audio.muted = d.audioMuted;
+        if (!d.audioMuted) audio.play().catch(() => {});
+      }
+      muteBtn.textContent = d.audioMuted ? "Unmute" : "Mute";
+    });
+  }
 });

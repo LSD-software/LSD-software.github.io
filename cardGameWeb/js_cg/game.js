@@ -70,6 +70,10 @@ let activeBuffs = [];
 // Debuff visivi multi-round tracciati per il panel laterale
 let activeDebuffs = [];
 
+// Debuff da roundState che durano più round (mirror, swap, ghost, ecc.)
+// struttura: { id, icon, label, desc, color, roundsLeft, reapply: fn(s) }
+let activeRoundDebuffs = [];
+
 const BUFF_DEFS = [
 
   // --- CLASSICI ---
@@ -219,6 +223,25 @@ function tickDebuffs() {
   renderDebuffs();
 }
 
+function tickRoundDebuffs() {
+  activeRoundDebuffs.forEach(d => d.roundsLeft--);
+  activeRoundDebuffs = activeRoundDebuffs.filter(d => d.roundsLeft > 0);
+}
+
+// Chiama reapply() su tutti i debuff multi-round ancora attivi
+// Viene chiamata all'inizio del nuovo round (dopo il reset di roundState)
+function applyRoundDebuffs() {
+  activeRoundDebuffs.forEach(d => {
+    if (d.reapply) d.reapply(roundState);
+  });
+  // Aggiorna panel visivo con roundsLeft sincronizzati
+  activeRoundDebuffs.forEach(rd => {
+    const vis = activeDebuffs.find(d => d.id === rd.id);
+    if (vis) vis.roundsLeft = rd.roundsLeft;
+  });
+  renderDebuffs();
+}
+
 function hasActiveBuff(id) { return !!activeBuffs.find(b => b.id === id); }
 
 // Fullscreen modal per buff (stile verde — diverso da debuff viola/rosso)
@@ -332,56 +355,122 @@ function tickVisualFx() {
 const LSD_EVENTS = [
 
   // --- DEBUFF CLASSICI ---
-  { id:"mirror",        icon:"🪞", label:"MIRROR WORLD",      desc:"Results INVERTED this round. Higher means lower!",                                    color:"#8800ff", prob:0.08, type:"debuff",
-    apply:(s)=>{ s.mirrorRound=true; } },
-  { id:"acid_tax",      icon:"💸", label:"ACID TAX",           desc:"The Dealer takes 30% of your coins. Right now.",                                      color:"#cc0000", prob:0.07, type:"debuff", needsCoins:true,
+  // rounds=1 → single round (istantanei o durano 1 round di stato)
+  // rounds>1 → multi-round: il debuff viene re-applicato ogni round tramite reapply()
+  // reapply(s) viene chiamata all'inizio di ogni round successivo per ripristinare l'effetto
+
+  { id:"mirror",        icon:"🪞", label:"MIRROR WORLD",      desc:"Results INVERTED for 2 rounds. Higher means lower!",
+    color:"#8800ff", prob:0.08, type:"debuff", rounds:2,
+    apply:(s)=>{ s.mirrorRound=true; },
+    reapply:(s)=>{ s.mirrorRound=true; } },
+
+  { id:"acid_tax",      icon:"💸", label:"ACID TAX",           desc:"The Dealer takes 30% of your coins. Right now.",
+    color:"#cc0000", prob:0.07, type:"debuff", rounds:1, needsCoins:true,
     apply:()=>{ coins=Math.max(0,coins-Math.floor(coins*0.30)); updateHUD(); } },
-  { id:"double_nothing",icon:"⚡", label:"DOUBLE OR NOTHING",  desc:"WIN → ×3 coins. LOSE → you lose EVERYTHING.",                                         color:"#ff6600", prob:0.06, type:"debuff",
-    apply:(s)=>{ s.doubleOrNothing=true; } },
-  { id:"trip_blind",    icon:"🕶️", label:"TRIP BLIND",         desc:"Your current card is hidden for 3 rounds.",                                           color:"#004488", prob:0.09, type:"debuff",
-    apply:(s)=>{ s.blindRounds=3; } },
-  { id:"deck_shuffle",  icon:"🌀", label:"DECK SHUFFLE",       desc:"The deck reshuffles. Your current card changed.",                                      color:"#006644", prob:0.10, type:"debuff",
+
+  { id:"double_nothing",icon:"⚡", label:"DOUBLE OR NOTHING",  desc:"WIN → ×3 coins. LOSE → you lose EVERYTHING. Lasts 2 rounds.",
+    color:"#ff6600", prob:0.06, type:"debuff", rounds:2,
+    apply:(s)=>{ s.doubleOrNothing=true; },
+    reapply:(s)=>{ s.doubleOrNothing=true; } },
+
+  { id:"trip_blind",    icon:"🕶️", label:"TRIP BLIND",         desc:"Your current card is hidden for 3 rounds.",
+    color:"#004488", prob:0.09, type:"debuff", rounds:3,
+    apply:(s)=>{ s.blindRounds=3; },
+    reapply:()=>{ /* blindRounds è gestito da prevBlind nel reset — non serve reapply */ } },
+
+  { id:"deck_shuffle",  icon:"🌀", label:"DECK SHUFFLE",       desc:"The deck reshuffles. Your current card changed.",
+    color:"#006644", prob:0.10, type:"debuff", rounds:1,
     apply:(s)=>{ currentValue=pickRandom(); nextValue=pickNextCardHard(currentValue);
                  elCurrentImg.src=s.blindRounds>0?backImgPath():cardImgPath(currentValue);
                  elCurrentLabel.textContent=s.blindRounds>0?"???":(CARD_NAMES[currentValue]||""); } },
-  { id:"jackpot",       icon:"🎰", label:"JACKPOT CHANCE",     desc:"Win this round → bet pays ×4. But odds are against you.",                             color:"#886600", prob:0.07, type:"debuff",
-    apply:(s)=>{ s.betMultiplier=4; } },
-  { id:"coin_bomb",     icon:"💣", label:"COIN BOMB",          desc:"BOOM. Half your coins vanish. Instantly.",                                             color:"#880000", prob:0.06, type:"debuff", needsCoins:true,
+
+  { id:"jackpot",       icon:"🎰", label:"JACKPOT CHANCE",     desc:"Win → ×4 payout. But odds are against you. Lasts 2 rounds.",
+    color:"#886600", prob:0.07, type:"debuff", rounds:2,
+    apply:(s)=>{ s.betMultiplier=4; },
+    reapply:(s)=>{ s.betMultiplier=4; } },
+
+  { id:"coin_bomb",     icon:"💣", label:"COIN BOMB",          desc:"BOOM. Half your coins vanish. Instantly.",
+    color:"#880000", prob:0.06, type:"debuff", rounds:1, needsCoins:true,
     apply:()=>{ coins=Math.max(0,Math.floor(coins/2)); updateHUD(); } },
-  { id:"ghost_card",    icon:"👻", label:"GHOST CARD",         desc:"Next card mirrors current. You cannot win.",                                           color:"#334455", prob:0.07, type:"debuff",
-    apply:(s)=>{ s.ghostCard=true; } },
-  { id:"mind_melt",     icon:"🧠", label:"MIND MELT",          desc:"3 score points dissolve. Just like that.",                                             color:"#550055", prob:0.06, type:"debuff", needsScore:true,
+
+  { id:"ghost_card",    icon:"👻", label:"GHOST CARD",         desc:"Next card mirrors current for 2 rounds. You cannot win.",
+    color:"#334455", prob:0.07, type:"debuff", rounds:2,
+    apply:(s)=>{ s.ghostCard=true; },
+    reapply:(s)=>{ s.ghostCard=true; } },
+
+  { id:"mind_melt",     icon:"🧠", label:"MIND MELT",          desc:"3 score points dissolve. Just like that.",
+    color:"#550055", prob:0.06, type:"debuff", rounds:1, needsScore:true,
     apply:()=>{ score=Math.max(0,score-3); updateHUD(); } },
-  { id:"freeze",        icon:"🧊", label:"BET FREEZE",         desc:"Bet controls locked this round. Your current bet stands.",                            color:"#003366", prob:0.07, type:"debuff",
-    apply:(s)=>{ s.freezeBet=true; setBetControlsEnabled(false); } },
-  { id:"swap_buttons",  icon:"🔀", label:"CONTROLS SWAPPED",   desc:"HIGHER and LOWER buttons are physically swapped. Think before you tap.",              color:"#993300", prob:0.08, type:"debuff",
-    apply:(s)=>{ s.swapButtons=true; document.getElementById("btnHigher").innerHTML="▼<br>LOWER"; document.getElementById("btnLower").innerHTML="▲<br>HIGHER"; } },
-  { id:"forced_allin",  icon:"🎭", label:"ALL IN FORCED",      desc:"Your entire wallet is the bet. No choice.",                                           color:"#660000", prob:0.05, type:"debuff", needsCoins:true,
+
+  { id:"freeze",        icon:"🧊", label:"BET FREEZE",         desc:"Bet controls locked for 3 rounds. Your current bet stands.",
+    color:"#003366", prob:0.07, type:"debuff", rounds:3,
+    apply:(s)=>{ s.freezeBet=true; setBetControlsEnabled(false); },
+    reapply:(s)=>{ s.freezeBet=true; setBetControlsEnabled(false); } },
+
+  { id:"swap_buttons",  icon:"🔀", label:"CONTROLS SWAPPED",   desc:"HIGHER and LOWER are swapped for 3 rounds. Think before you tap.",
+    color:"#993300", prob:0.08, type:"debuff", rounds:3,
+    apply:(s)=>{ s.swapButtons=true; document.getElementById("btnHigher").innerHTML="▼<br>LOWER"; document.getElementById("btnLower").innerHTML="▲<br>HIGHER"; },
+    reapply:(s)=>{ s.swapButtons=true; document.getElementById("btnHigher").innerHTML="▼<br>LOWER"; document.getElementById("btnLower").innerHTML="▲<br>HIGHER"; } },
+
+  { id:"forced_allin",  icon:"🎭", label:"ALL IN FORCED",      desc:"Your entire wallet is the bet. No choice.",
+    color:"#660000", prob:0.05, type:"debuff", rounds:1, needsCoins:true,
     apply:(s)=>{ bet=coins; s.forcedBet=true; s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
-  { id:"score_steal",   icon:"🦹", label:"SCORE BANDIT",       desc:"The Dealer steals HALF your score.",                                                   color:"#440066", prob:0.05, type:"debuff", needsScore:true,
+
+  { id:"score_steal",   icon:"🦹", label:"SCORE BANDIT",       desc:"The Dealer steals HALF your score.",
+    color:"#440066", prob:0.05, type:"debuff", rounds:1, needsScore:true,
     apply:()=>{ score=Math.max(0,Math.floor(score/2)); updateHUD(); } },
-  { id:"reverse_pay",   icon:"🔄", label:"REVERSE PAYOUT",     desc:"Win this round and you still lose your bet. Psychedelic economics.",                  color:"#004400", prob:0.05, type:"debuff",
-    apply:(s)=>{ s.reversePayout=true; } },
-  { id:"bleed",         icon:"🩸", label:"COIN BLEED",         desc:"You lose 5 coins/second until this round ends. Hurry.",                               color:"#550000", prob:0.05, type:"debuff", needsCoins:true,
+
+  { id:"reverse_pay",   icon:"🔄", label:"REVERSE PAYOUT",     desc:"Win and you still lose your bet for 2 rounds. Psychedelic economics.",
+    color:"#004400", prob:0.05, type:"debuff", rounds:2,
+    apply:(s)=>{ s.reversePayout=true; },
+    reapply:(s)=>{ s.reversePayout=true; } },
+
+  { id:"bleed",         icon:"🩸", label:"COIN BLEED",         desc:"You lose 5 coins/second until this round ends. Hurry.",
+    color:"#550000", prob:0.05, type:"debuff", rounds:1, needsCoins:true,
     apply:(s)=>{ s.bleedInterval=setInterval(()=>{ coins=Math.max(0,coins-5); updateHUD(); },1000); } },
-  { id:"bet_floor",     icon:"📉", label:"MINIMUM BET",        desc:"You must bet at least 10 coins this round.",                                          color:"#660033", prob:0.06, type:"debuff", needsCoins:true,
-    apply:(s)=>{ if(bet<10){ bet=Math.min(10,coins); } s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
-  { id:"flip_score",    icon:"🔃", label:"SCORE FLIP",         desc:"Your score is reset to zero. Start over.",                                             color:"#440000", prob:0.03, type:"debuff", needsScore:true,
+
+  { id:"bet_floor",     icon:"📉", label:"MINIMUM BET",        desc:"You must bet at least 10 coins for 2 rounds.",
+    color:"#660033", prob:0.06, type:"debuff", rounds:2, needsCoins:true,
+    apply:(s)=>{ if(bet<10){ bet=Math.min(10,coins); } s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); },
+    reapply:(s)=>{ if(bet<10){ bet=Math.min(10,coins); } s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
+
+  { id:"flip_score",    icon:"🔃", label:"SCORE FLIP",         desc:"Your score is reset to zero. Start over.",
+    color:"#440000", prob:0.03, type:"debuff", rounds:1, needsScore:true,
     apply:()=>{ score=0; updateHUD(); } },
-  { id:"joker",         icon:"🃏", label:"WILD JOKER",         desc:"ALL your active buffs are wiped. The house always wins.",                             color:"#222200", prob:0.04, type:"debuff",
-    apply:()=>{ activeBuffs=[]; renderBuffs(); } }, // joker only clears buffs, debuffs remain
-  { id:"blind_bet",     icon:"🙈", label:"BLIND BET",          desc:"Your bet display is hidden. You don't know how much you're wagering.",                color:"#2a0044", prob:0.06, type:"debuff",
-    apply:(s)=>{ s.blindBet=true; elBet.textContent="???"; } },
-  { id:"coin_tax_win",  icon:"💰", label:"WIN TAX",            desc:"If you win, the house takes 50% of your winnings.",                                    color:"#aa4400", prob:0.05, type:"debuff",
-    apply:(s)=>{ s.winTax=0.5; } },
-  { id:"score_drain",   icon:"📛", label:"SCORE DRAIN",        desc:"-1 score per round for the next 3 rounds. Passive damage.",                           color:"#330022", prob:0.05, type:"debuff", needsScore:true,
-    apply:()=>{ let r=3; const iv=setInterval(()=>{ score=Math.max(0,score-1); updateHUD(); if(--r<=0)clearInterval(iv); },1200); } },
-  { id:"chaos_bet",     icon:"🎲", label:"CHAOS BET",          desc:"Your bet is set to a random value between 1 and your total coins. You can't change it.",color:"#553300",prob:0.05,type:"debuff",needsCoins:true,
-    apply:(s)=>{ bet=Math.max(1,Math.floor(Math.random()*coins)); s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
-  { id:"hot_potato",    icon:"🥔", label:"HOT POTATO",         desc:"If you win, you lose score instead of gaining. If you lose, you gain score instead. Everything is backwards.",color:"#885500",prob:0.04,type:"debuff",
-    apply:(s)=>{ s.hotPotato=true; } },
-  { id:"coin_floor",    icon:"🏦", label:"BROKER",             desc:"You can only bet 1 coin this round. The house sets the rules.",                        color:"#004422", prob:0.05, type:"debuff", needsCoins:true,
-    apply:(s)=>{ bet=1; s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); } },
+
+  { id:"joker",         icon:"🃏", label:"WILD JOKER",         desc:"ALL your active buffs are wiped. The house always wins.",
+    color:"#222200", prob:0.04, type:"debuff", rounds:1,
+    apply:()=>{ activeBuffs=[]; renderBuffs(); } },
+
+  { id:"blind_bet",     icon:"🙈", label:"BLIND BET",          desc:"Your bet display is hidden for 2 rounds.",
+    color:"#2a0044", prob:0.06, type:"debuff", rounds:2,
+    apply:(s)=>{ s.blindBet=true; elBet.textContent="???"; },
+    reapply:(s)=>{ s.blindBet=true; elBet.textContent="???"; } },
+
+  { id:"coin_tax_win",  icon:"💰", label:"WIN TAX",            desc:"If you win, the house takes 50% of your winnings for 3 rounds.",
+    color:"#aa4400", prob:0.05, type:"debuff", rounds:3,
+    apply:(s)=>{ s.winTax=0.5; },
+    reapply:(s)=>{ s.winTax=0.5; } },
+
+  { id:"score_drain",   icon:"📛", label:"SCORE DRAIN",        desc:"-1 score per round for the next 3 rounds. Passive damage.",
+    color:"#330022", prob:0.05, type:"debuff", rounds:3, needsScore:true,
+    apply:()=>{ /* il danno è applicato da reapply ogni round */ score=Math.max(0,score-1); updateHUD(); },
+    reapply:()=>{ score=Math.max(0,score-1); updateHUD(); } },
+
+  { id:"chaos_bet",     icon:"🎲", label:"CHAOS BET",          desc:"Your bet is randomized and locked for 2 rounds.",
+    color:"#553300", prob:0.05, type:"debuff", rounds:2, needsCoins:true,
+    apply:(s)=>{ bet=Math.max(1,Math.floor(Math.random()*coins)); s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); },
+    reapply:(s)=>{ s.freezeBet=true; setBetControlsEnabled(false); } },
+
+  { id:"hot_potato",    icon:"🥔", label:"HOT POTATO",         desc:"Win=score loss, Lose=score gain for 2 rounds. Everything is backwards.",
+    color:"#885500", prob:0.04, type:"debuff", rounds:2,
+    apply:(s)=>{ s.hotPotato=true; },
+    reapply:(s)=>{ s.hotPotato=true; } },
+
+  { id:"coin_floor",    icon:"🏦", label:"BROKER",             desc:"You can only bet 1 coin for 2 rounds. The house sets the rules.",
+    color:"#004422", prob:0.05, type:"debuff", rounds:2, needsCoins:true,
+    apply:(s)=>{ bet=1; s.freezeBet=true; setBetControlsEnabled(false); updateHUD(); },
+    reapply:(s)=>{ if(bet>1){ bet=1; updateHUD(); } s.freezeBet=true; setBetControlsEnabled(false); } },
 
   // --- EFFETTI VISIVI MULTI-ROUND (1-10 round casuali) ---
   { id:"redvision",     icon:"🔴", label:"RED EYES",           desc:"Your eyes are burning red for several rounds. Vision impaired.",                       color:"#660000", prob:0.09, type:"visual",
@@ -489,11 +578,25 @@ function tryLSDEvent() {
       continue;
     }
     if (Math.random() < ev.prob + baseMod) {
-      showLSDModal(ev, ()=>{ ev.apply(roundState, ev); activeEventDef=ev; showEventBadge(ev);
+      showLSDModal(ev, ()=>{
+        ev.apply(roundState, ev);
+        activeEventDef = ev;
+        showEventBadge(ev);
+
         // Track visual debuffs for side panel
         if (ev.type === "visual") {
           activeDebuffs = activeDebuffs.filter(d => d.id !== ev.id);
           activeDebuffs.push({ ...ev, roundsLeft: persistentFxRounds });
+          renderDebuffs();
+        }
+
+        // Track multi-round state debuffs (rounds > 1 con reapply)
+        if (ev.type === "debuff" && ev.rounds > 1 && ev.reapply) {
+          activeRoundDebuffs = activeRoundDebuffs.filter(d => d.id !== ev.id);
+          activeRoundDebuffs.push({ ...ev, roundsLeft: ev.rounds });
+          // Aggiungi al panel visivo anche questi
+          activeDebuffs = activeDebuffs.filter(d => d.id !== ev.id);
+          activeDebuffs.push({ ...ev, roundsLeft: ev.rounds });
           renderDebuffs();
         }
       });
@@ -694,6 +797,7 @@ function resolveRound(wantHigher) {
   tickBuffs();
   tickVisualFx();
   tickDebuffs();
+  tickRoundDebuffs();
 
   setTimeout(()=>{
     currentValue=revealed;
@@ -717,6 +821,8 @@ function resolveRound(wantHigher) {
       activeVisualFx:null, blindBet:false, winTax:0, hotPotato:false, darioShield:false,
     };
     setBetControlsEnabled(true);
+    // Riapplica i debuff multi-round ancora attivi nel nuovo round
+    applyRoundDebuffs();
 
     nextValue=pickNextCardHard(currentValue);
     elNextImg.src=backImgPath();

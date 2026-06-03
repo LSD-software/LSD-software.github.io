@@ -1,23 +1,20 @@
 // ============================================================
-// leaderboard-console.js  v2
-// Gestisce il tab "LSD CONSOLE" con sub-filtri per minigioco:
-//   AFUE (wins/losses) | Target Shooting (bestScore) | Ball (bestScore)
+// leaderboard-console.js  v3
+// LSD CONSOLE tab: sub-filtri AFUE | Target Shooting | Ball
 // ============================================================
 
 const BACKEND = "https://lsd-backend-4phu.onrender.com";
 
 (function () {
-  const GAME_MAP = { afue: "afue", target: "target", ball: "ball" };
-  let activeConsoleGame = "afue"; // default quando si entra in Console
+  let activeConsoleGame = "afue";
 
-  // ── Bind main Console tab ────────────────────────────────
+  // ── Bind tab principale Console ──────────────────────────
   document.querySelectorAll(".game-tab[data-game='console']").forEach(tab => {
     tab.addEventListener("click", () => {
       document.querySelectorAll(".game-tab").forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
-      showConsoleSubBar(true);
-      hideSortBar();
-      // Carica subito il minigioco attivo
+      document.getElementById("consoleSubBar").classList.remove("hidden");
+      document.getElementById("sortBar").classList.add("hidden");
       loadConsoleGame(activeConsoleGame);
     });
   });
@@ -32,41 +29,29 @@ const BACKEND = "https://lsd-backend-4phu.onrender.com";
     });
   });
 
-  // ── Torna a Card Game → nascondi console bar ────────────
+  // ── Torna a Card Game ────────────────────────────────────
   document.querySelectorAll(".game-tab[data-game='cardgame']").forEach(tab => {
     tab.addEventListener("click", () => {
-      showConsoleSubBar(false);
-      showSortBar();
+      document.getElementById("consoleSubBar").classList.add("hidden");
+      document.getElementById("sortBar").classList.remove("hidden");
       hidePodium();
+      // Restore sort buttons
+      document.querySelectorAll(".sort-btn").forEach(b => {
+        b.classList.remove("hidden");
+        if (b.classList.contains("console-only")) b.classList.add("hidden");
+      });
+      // Restore CG thead columns
+      restoreCGHead();
     });
   });
 
-  // ── UI helpers ───────────────────────────────────────────
-  function showConsoleSubBar(show) {
-    const bar = document.getElementById("consoleSubBar");
-    if (bar) bar.classList.toggle("hidden", !show);
-  }
-  function hideSortBar() {
-    const sb = document.getElementById("sortBar");
-    if (sb) sb.classList.add("hidden");
-  }
-  function showSortBar() {
-    const sb = document.getElementById("sortBar");
-    if (sb) sb.classList.remove("hidden");
-    // Restore sort button visibility
-    document.querySelectorAll(".sort-btn").forEach(b => {
-      b.classList.remove("hidden");
-      if (b.classList.contains("console-only")) b.classList.add("hidden");
-    });
-  }
-
-  // ── Main loader ──────────────────────────────────────────
+  // ── Load classifica per minigioco ───────────────────────
   async function loadConsoleGame(game) {
-    setConsoleColumns(game);
     showLoading(true);
     hideError();
     hideTables();
     hidePodium();
+    buildConsoleHead(game);
 
     try {
       const token = localStorage.getItem("lsd_token");
@@ -86,79 +71,102 @@ const BACKEND = "https://lsd-backend-4phu.onrender.com";
     }
   }
 
-  // ── Column setup ─────────────────────────────────────────
-  function setConsoleColumns(game) {
+  // ── Ricostruisce thead per il gioco console scelto ──────
+  function buildConsoleHead(game) {
     const isAFUE = game === "afue";
-    document.querySelectorAll(".cg-col").forEach(el => el.classList.add("hidden"));
-    document.querySelectorAll(".console-col").forEach(el => el.classList.remove("hidden"));
-    document.querySelectorAll(".col-wins, .col-losses").forEach(el =>
-      el.classList.toggle("hidden", !isAFUE));
-    document.querySelectorAll(".col-bestscore").forEach(el =>
-      el.classList.toggle("hidden", isAFUE));
-
-    // Sort bar: nascondi tutto, per AFUE mostra wins
-    document.querySelectorAll(".sort-btn:not(.console-only)").forEach(b => b.classList.add("hidden"));
-    document.querySelectorAll(".sort-btn.console-only").forEach(b =>
-      b.classList.toggle("hidden", !isAFUE));
+    const headRow = document.getElementById("lbHeadRow");
+    if (!headRow) return;
+    headRow.innerHTML = `
+      <th class="col-rank">RANK</th>
+      <th class="col-name">PLAYER</th>
+      ${isAFUE
+        ? `<th style="text-align:right;color:#4EC600;">WINS</th>
+           <th style="text-align:right;color:#ff6666;">LOSSES</th>`
+        : `<th style="text-align:right;color:gold;">BEST SCORE</th>`
+      }
+    `;
   }
 
-  // ── Render table ─────────────────────────────────────────
+  function restoreCGHead() {
+    const headRow = document.getElementById("lbHeadRow");
+    if (!headRow) return;
+    headRow.innerHTML = `
+      <th class="col-rank">RANK</th>
+      <th class="col-name">PLAYER</th>
+      <th class="col-score cg-col">SCORE</th>
+      <th class="col-coins cg-col">COINS</th>
+      <th class="col-streak cg-col">WIN STREAK</th>
+      <th class="col-wins console-col hidden">WINS</th>
+      <th class="col-losses console-col hidden">LOSSES</th>
+      <th class="col-bestscore console-col hidden">BEST SCORE</th>
+    `;
+  }
+
+  // ── Render tabella console ───────────────────────────────
   function renderConsoleTable(rows, game) {
     const isAFUE = game === "afue";
     const tbody = document.getElementById("lbBody");
+    const table = document.getElementById("lbTable");
     tbody.innerHTML = "";
 
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:32px;font-family:'Cinzel',serif;letter-spacing:2px;">NO DATA YET — BE THE FIRST</td></tr>`;
-      document.getElementById("lbTable").classList.remove("hidden");
+      tbody.innerHTML = `<tr><td colspan="4"
+        style="text-align:center;color:rgba(255,255,255,0.3);padding:32px;
+               font-family:'Cinzel',serif;letter-spacing:2px;">
+        NO DATA YET — BE THE FIRST
+      </td></tr>`;
+      table.classList.remove("hidden");
       return;
     }
 
     // Podio top 3
     if (rows.length >= 2) renderPodium(rows, isAFUE);
 
-    // Tabella dal 4° posto in poi
+    // Righe dal 4° posto in poi
     rows.slice(3).forEach(row => {
-      const val = isAFUE
-        ? `<td class="col-wins console-col" style="text-align:right;color:#4EC600;">${row.wins||0}</td><td class="col-losses console-col" style="text-align:right;color:#ff6666;">${row.losses||0}</td><td class="col-bestscore console-col hidden"></td>`
-        : `<td class="col-wins console-col hidden"></td><td class="col-losses console-col hidden"></td><td class="col-bestscore console-col" style="text-align:right;color:gold;">${row.bestScore||0}</td>`;
+      const cells = isAFUE
+        ? `<td style="text-align:right;color:#4EC600;">${row.wins || 0}</td>
+           <td style="text-align:right;color:#ff6666;">${row.losses || 0}</td>`
+        : `<td style="text-align:right;color:gold;">${row.bestScore || 0}</td>`;
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td class="col-rank"><span class="rank-medal medal-n">${row.rank}</span></td>
         <td><span class="player-name">${escHtml(row.username)}</span></td>
-        ${val}`;
+        ${cells}`;
       tbody.appendChild(tr);
     });
 
-    document.getElementById("lbTable").classList.remove("hidden");
+    table.classList.remove("hidden");
   }
 
-  // ── Podio ────────────────────────────────────────────────
+  // ── Podio top 3 ─────────────────────────────────────────
   function renderPodium(rows, isAFUE) {
-    const el = getPodium();
+    const el = ensurePodium();
     el.innerHTML = "";
     el.style.display = "flex";
 
-    const order = rows.length >= 3 ? [rows[1], rows[0], rows[2]] : rows;
+    const order   = rows.length >= 3 ? [rows[1], rows[0], rows[2]] : rows;
     const heights = ["180px", "220px", "150px"];
     const colors  = ["#C0C0C0", "#FFD700", "#CD7F32"];
-    const medals  = ["🥈","🥇","🥉"];
+    const medals  = ["🥈", "🥇", "🥉"];
 
     order.forEach((entry, pi) => {
       if (!entry) return;
       const val = isAFUE
-        ? `${entry.wins||0}W / ${entry.losses||0}L`
-        : (entry.bestScore||0);
-      el.innerHTML += `
-        <div class="podium-block" style="height:${heights[pi]};border-color:${colors[pi]};">
-          <div class="podium-rank" style="color:${colors[pi]};">${medals[pi]}</div>
-          <div class="podium-name">${escHtml(entry.username)}</div>
-          <div class="podium-val" style="color:${colors[pi]};">${val}</div>
-        </div>`;
+        ? `${entry.wins || 0}W / ${entry.losses || 0}L`
+        : String(entry.bestScore || 0);
+      const div = document.createElement("div");
+      div.className = "podium-block";
+      div.style.cssText = `height:${heights[pi]};border-color:${colors[pi]};`;
+      div.innerHTML = `
+        <div class="podium-rank" style="color:${colors[pi]};">${medals[pi]}</div>
+        <div class="podium-name">${escHtml(entry.username)}</div>
+        <div class="podium-val" style="color:${colors[pi]};">${val}</div>`;
+      el.appendChild(div);
     });
   }
 
-  // ── My Rank ──────────────────────────────────────────────
+  // ── My rank ──────────────────────────────────────────────
   function renderConsoleMyRank(myRank, game) {
     const isAFUE = game === "afue";
     const panel  = document.getElementById("myRankPanel");
@@ -166,52 +174,46 @@ const BACKEND = "https://lsd-backend-4phu.onrender.com";
     const note   = document.getElementById("notLoggedNote");
     panel.classList.remove("hidden");
     tbody.innerHTML = "";
+    note.classList.add("hidden");
 
     const user = typeof Api !== "undefined" ? Api.getUser() : null;
-    if (!user || user.isGuest) { note.classList.remove("hidden"); return; }
-
+    if (!user || user.isGuest) {
+      note.classList.remove("hidden");
+      return;
+    }
     if (!myRank) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.85rem;">Play some rounds to appear in the ranking!</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3"
+        style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.85rem;">
+        Play some rounds to appear in the ranking!
+      </td></tr>`;
       return;
     }
 
-    const rankEmoji = myRank.rank <= 3 ? ["🥇","🥈","🥉"][myRank.rank-1] : `#${myRank.rank}`;
-    const val = isAFUE
-      ? `<td style="color:#4EC600;text-align:right;">${myRank.wins||0}W</td><td style="color:#ff6666;text-align:right;">${myRank.losses||0}L</td>`
-      : `<td style="color:gold;text-align:right;">${myRank.bestScore||0}</td>`;
+    const rankEmoji = myRank.rank <= 3
+      ? ["🥇", "🥈", "🥉"][myRank.rank - 1]
+      : `#${myRank.rank}`;
+    const cells = isAFUE
+      ? `<td style="color:#4EC600;text-align:right;">${myRank.wins || 0}W</td>
+         <td style="color:#ff6666;text-align:right;">${myRank.losses || 0}L</td>`
+      : `<td style="color:gold;text-align:right;">${myRank.bestScore || 0}</td>`;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="col-rank" style="font-weight:700;color:gold;">${rankEmoji}</td>
       <td><span class="player-name is-me">${escHtml(myRank.username)}</span></td>
-      ${val}`;
+      ${cells}`;
     tbody.appendChild(tr);
   }
 
-  // ── Podium element ───────────────────────────────────────
-  function getPodium() {
+  // ── Podium DOM helper ────────────────────────────────────
+  function ensurePodium() {
     let el = document.getElementById("consolePodium");
     if (!el) {
       el = document.createElement("div");
       el.id = "consolePodium";
-      el.style.cssText = "display:none;justify-content:center;align-items:flex-end;gap:16px;margin:24px auto 0;max-width:700px;";
+      el.className = "podium-container";
       const lbPanel = document.getElementById("lbPanel");
       lbPanel.insertBefore(el, lbPanel.firstChild);
-
-      const style = document.createElement("style");
-      style.textContent = `
-        .podium-block{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;width:180px;border:2px solid gold;border-radius:10px 10px 0 0;padding:12px 8px;background:rgba(0,0,0,0.5);}
-        .podium-rank{font-size:2rem;margin-bottom:6px;}
-        .podium-name{font-family:'Cinzel',serif;color:#fff;font-size:0.85rem;text-align:center;word-break:break-word;}
-        .podium-val{font-family:'Courier Prime',monospace;font-size:1rem;font-weight:700;margin-top:4px;}
-        #consoleTitleBar{font-family:'Cinzel',serif;font-size:clamp(1rem,3vw,1.5rem);font-weight:900;color:gold;text-align:center;letter-spacing:3px;text-shadow:0 0 18px gold;padding:10px 0 6px;text-transform:uppercase;}
-        #consoleGameTabs{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;padding:0 12px 12px;}
-        .console-game-btn{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,215,0,0.4);color:rgba(255,255,255,0.8);font-family:'Cinzel',serif;font-size:clamp(0.72rem,1.8vw,0.9rem);font-weight:700;letter-spacing:1px;padding:7px 18px;border-radius:8px;cursor:pointer;transition:all 0.2s;text-transform:uppercase;}
-        .console-game-btn:hover{background:rgba(255,215,0,0.15);border-color:gold;color:gold;}
-        .console-game-btn.active{background:linear-gradient(145deg,rgba(255,215,0,0.25),rgba(255,150,0,0.15));border-color:gold;color:gold;box-shadow:0 0 12px rgba(255,215,0,0.4);}
-        #consoleSubBar{margin-bottom:8px;}
-      `;
-      document.head.appendChild(style);
     }
     return el;
   }
@@ -221,13 +223,13 @@ const BACKEND = "https://lsd-backend-4phu.onrender.com";
     const el = document.getElementById("lbLoading");
     if (el) el.style.display = show ? "flex" : "none";
   }
-  function showError(msg) {
-    const el = document.getElementById("lbError");
-    if (el) { el.textContent = msg; el.classList.remove("hidden"); }
-  }
   function hideError() {
     const el = document.getElementById("lbError");
     if (el) el.classList.add("hidden");
+  }
+  function showError(msg) {
+    const el = document.getElementById("lbError");
+    if (el) { el.textContent = msg; el.classList.remove("hidden"); }
   }
   function hideTables() {
     document.getElementById("lbTable")?.classList.add("hidden");
@@ -239,6 +241,6 @@ const BACKEND = "https://lsd-backend-4phu.onrender.com";
   }
   function escHtml(s) {
     return String(s).replace(/[&<>"']/g, c =>
-      ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 })();

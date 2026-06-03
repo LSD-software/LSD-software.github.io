@@ -38,18 +38,11 @@
       font-family: 'Cinzel', serif;
       font-size: clamp(12px, 3vw, 16px);
       letter-spacing: 3px;
-      animation: splashDots 1.4s steps(3, end) infinite;
-    " id="splashLoadingText">LOADING</div>
+    " id="splashLoadingText">CONNECTING...</div>
     <style>
       @keyframes splashPulse {
         0%,100% { opacity:0.85; transform:scale(1); filter:drop-shadow(0 0 18px #6600ff88); }
         50%      { opacity:1;    transform:scale(1.04); filter:drop-shadow(0 0 36px #aa44ffcc); }
-      }
-      @keyframes splashDots {
-        0%   { content: 'LOADING'; }
-        33%  { opacity:0.6; }
-        66%  { opacity:0.3; }
-        100% { opacity:1; }
       }
     </style>
   </div>

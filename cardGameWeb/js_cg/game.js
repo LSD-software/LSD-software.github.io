@@ -900,11 +900,56 @@ function init() {
   showRulesIfFirst();
   setTimeout(tryLSDEvent, 4000);
 }
+function _hideSplash() {
+  const splash = document.getElementById("splashScreen");
+  if (splash && splash.style.display !== "none") {
+    splash.style.opacity = "0";
+    setTimeout(() => { splash.style.display = "none"; }, 650);
+  }
+}
+
+function _setSplashText(txt) {
+  const el = document.getElementById("splashLoadingText");
+  if (el) el.textContent = txt;
+}
+
+// Aspetta che il server Render risponda davvero, con retry
+async function _waitForServer() {
+  const MAX_WAIT_MS = 90000; // max 90 secondi
+  const RETRY_MS   = 5000;   // riprova ogni 5s
+  const start      = Date.now();
+
+  _setSplashText("CONNECTING...");
+
+  while (Date.now() - start < MAX_WAIT_MS) {
+    try {
+      // Prova a caricare lo stato dal server
+      await loadStateFromAPI();
+      // Se _serverReady è true significa che il server ha risposto
+      if (typeof _serverReady !== "undefined" ? _serverReady : true) {
+        _setSplashText("READY!");
+        await new Promise(r => setTimeout(r, 300));
+        return; // server ok, esci
+      }
+    } catch(e) {}
+
+    const elapsed = Math.round((Date.now() - start) / 1000);
+    _setSplashText(`WAKING SERVER... ${elapsed}s`);
+    await new Promise(r => setTimeout(r, RETRY_MS));
+  }
+
+  // Timeout massimo superato: vai avanti comunque con localStorage
+  _setSplashText("OFFLINE MODE");
+  await new Promise(r => setTimeout(r, 600));
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
-  // FIX: aspetta il caricamento dal server PRIMA di qualsiasi altra cosa.
-  // initStorage() imposta _serverReady=true solo quando i dati reali arrivano.
-  // Fino ad allora, _push() è bloccato e non può sovrascrivere il DB.
-  await initStorage();
+  if (typeof Api !== "undefined" && Api.isLoggedIn()) {
+    await _waitForServer();
+  } else {
+    // Non loggato: initStorage gestirà il redirect
+    await initStorage();
+  }
 
   // Ora i dati sono affidabili (dal server o da localStorage come fallback)
   const data    = loadData();
@@ -926,9 +971,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   init();
 
   // Nascondi splash screen con fade out
-  const splash = document.getElementById("splashScreen");
-  if (splash) {
-    splash.style.opacity = "0";
-    setTimeout(() => { splash.style.display = "none"; }, 650);
-  }
+  _hideSplash();
 });

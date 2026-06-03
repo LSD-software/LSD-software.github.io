@@ -20,6 +20,40 @@
 </head>
 <body id="gameBody">
 
+  <!-- SPLASH SCREEN — mostrato durante il caricamento dal server -->
+  <div id="splashScreen" style="
+    position:fixed; inset:0; z-index:9999;
+    background:#000018;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:24px;
+    transition: opacity 0.6s ease;
+  ">
+    <img src="data_cg/LSDlogo.png" alt="LSD Logo" style="
+      width: min(280px, 70vw);
+      animation: splashPulse 1.8s ease-in-out infinite;
+    ">
+    <div style="
+      color: #8855ff;
+      font-family: 'Cinzel', serif;
+      font-size: clamp(12px, 3vw, 16px);
+      letter-spacing: 3px;
+      animation: splashDots 1.4s steps(3, end) infinite;
+    " id="splashLoadingText">LOADING</div>
+    <style>
+      @keyframes splashPulse {
+        0%,100% { opacity:0.85; transform:scale(1); filter:drop-shadow(0 0 18px #6600ff88); }
+        50%      { opacity:1;    transform:scale(1.04); filter:drop-shadow(0 0 36px #aa44ffcc); }
+      }
+      @keyframes splashDots {
+        0%   { content: 'LOADING'; }
+        33%  { opacity:0.6; }
+        66%  { opacity:0.3; }
+        100% { opacity:1; }
+      }
+    </style>
+  </div>
+
   <div id="gameWrapper">
   <header id="topbar">
     <div class="stat left">💰 <b id="coins">0</b></div>

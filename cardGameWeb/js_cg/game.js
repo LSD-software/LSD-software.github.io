@@ -80,24 +80,24 @@ const BUFF_DEFS = [
   {
     id:"shield", icon:"🛡️", label:"COIN SHIELD",
     desc:"Your coins are protected from the next 2 loss deductions. The shield breaks after 2 hits.",
-    color:"#0044cc", rounds:8, prob:0.038,
+    color:"#0044cc", rounds:8, prob:0.072,
     state:{ shieldCharges:2 },
   },
   {
     id:"oracle", icon:"🔮", label:"ORACLE SIGHT",
     desc:"A faint arrow appears above the hidden card each round, hinting the direction. Trust it... or not.",
-    color:"#6600bb", rounds:5, prob:0.032,
+    color:"#6600bb", rounds:5, prob:0.060,
     onRound: () => showOracleHint(),
   },
   {
     id:"lucky_streak", icon:"✨", label:"LUCKY STREAK",
     desc:"Every win pays ×3 instead of ×2 for the duration. Stack it with Jackpot for ×4.",
-    color:"#997700", rounds:6, prob:0.028,
+    color:"#997700", rounds:6, prob:0.055,
   },
   {
     id:"heal", icon:"💚", label:"SCORE REGEN",
     desc:"+1 score per round automatically, win or lose. Survives the Joker.",
-    color:"#006622", rounds:7, prob:0.032,
+    color:"#006622", rounds:7, prob:0.060,
     onRound: () => { score = Math.max(0,score+1); updateHUD(); },
   },
 
@@ -105,7 +105,7 @@ const BUFF_DEFS = [
   {
     id:"leonardo", isRareLSD: true, icon:"🎨", label:"CARTA LSD: LEONARDO",
     desc:"SCHIZOPHRENIC BUT CRAZY — Leonardo reshuffles the deck in your favour (weighted toward a good card), then doubles your current bet for free. But there's a 30% chance he panics and swaps HIGHER/LOWER for this round.",
-    color:"#880044", rounds:4, prob:0.022,
+    color:"#880044", rounds:4, prob:0.045,
     isLSD: true,
     onActivate: (s) => {
       // Genera una carta successiva leggermente favorevole
@@ -124,7 +124,7 @@ const BUFF_DEFS = [
   {
     id:"skywalker", isRareLSD: true, icon:"🧠", label:"CARTA LSD: SKYWALKER",
     desc:"GENIUS BUT INSANE — Skywalker reveals the exact next card value for 1 round (Oracle guaranteed). But being a genius is stressful: your bet multiplier drops to ×1.5 this round.",
-    color:"#003388", rounds:3, prob:0.020,
+    color:"#003388", rounds:3, prob:0.042,
     isLSD: true,
     onActivate: (s) => {
       // Rivela la carta esatta (oracle perfetto)
@@ -136,7 +136,7 @@ const BUFF_DEFS = [
   {
     id:"dario", isRareLSD: true, icon:"🍀", label:"CARTA LSD: DARIO",
     desc:"STONED BUT LUCKY — Dario is too high to care about rules. He randomly gives you +10 to +50 coins (pure luck), ignores the next debuff event, and applies a random visual trip for 1–4 rounds.",
-    color:"#226600", rounds:5, prob:0.022,
+    color:"#226600", rounds:5, prob:0.045,
     isLSD: true,
     onActivate: (s) => {
       // Coins casuali (fortuna)
@@ -156,7 +156,7 @@ const BUFF_DEFS = [
 ];
 
 function trySpawnBuff() {
-  const baseMod = Math.min(totalRounds * 0.002, 0.055);
+  const baseMod = Math.min(totalRounds * 0.004, 0.10);
   const shuffled = [...BUFF_DEFS].sort(() => Math.random()-0.5);
   for (const def of shuffled) {
     if (Math.random() < def.prob + baseMod) {
@@ -924,4 +924,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Solo ora avvia il gioco — updateHUD() dentro init() chiamerà saveData()
   // che a sua volta chiamerà _push(), che ora è abilitato correttamente
   init();
+
+  // Nascondi splash screen con fade out
+  const splash = document.getElementById("splashScreen");
+  if (splash) {
+    splash.style.opacity = "0";
+    setTimeout(() => { splash.style.display = "none"; }, 650);
+  }
 });

@@ -67,6 +67,9 @@ let persistentFxClass  = null;
 // ============================================================
 let activeBuffs = [];
 
+// Debuff visivi multi-round tracciati per il panel laterale
+let activeDebuffs = [];
+
 const BUFF_DEFS = [
 
   // --- CLASSICI ---
@@ -96,7 +99,7 @@ const BUFF_DEFS = [
 
   // --- CARTE LSD PERSONAGGIO ---
   {
-    id:"leonardo", icon:"🎨", label:"CARTA LSD: LEONARDO",
+    id:"leonardo", isRareLSD: true, icon:"🎨", label:"CARTA LSD: LEONARDO",
     desc:"SCHIZOPHRENIC BUT CRAZY — Leonardo reshuffles the deck in your favour (weighted toward a good card), then doubles your current bet for free. But there's a 30% chance he panics and swaps HIGHER/LOWER for this round.",
     color:"#880044", rounds:4, prob:0.022,
     isLSD: true,
@@ -115,7 +118,7 @@ const BUFF_DEFS = [
     },
   },
   {
-    id:"skywalker", icon:"🧠", label:"CARTA LSD: SKYWALKER",
+    id:"skywalker", isRareLSD: true, icon:"🧠", label:"CARTA LSD: SKYWALKER",
     desc:"GENIUS BUT INSANE — Skywalker reveals the exact next card value for 1 round (Oracle guaranteed). But being a genius is stressful: your bet multiplier drops to ×1.5 this round.",
     color:"#003388", rounds:3, prob:0.020,
     isLSD: true,
@@ -127,7 +130,7 @@ const BUFF_DEFS = [
     },
   },
   {
-    id:"dario", icon:"🍀", label:"CARTA LSD: DARIO",
+    id:"dario", isRareLSD: true, icon:"🍀", label:"CARTA LSD: DARIO",
     desc:"STONED BUT LUCKY — Dario is too high to care about rules. He randomly gives you +10 to +50 coins (pure luck), ignores the next debuff event, and applies a random visual trip for 1–4 rounds.",
     color:"#226600", rounds:5, prob:0.022,
     isLSD: true,
@@ -162,7 +165,7 @@ function trySpawnBuff() {
       activeBuffs.push(buff);
       // Attiva subito l'effetto per carte LSD personaggio
       if (def.onActivate) def.onActivate(roundState);
-      showBuffToast(buff);
+      showBuffModal(buff);
       renderBuffs();
       return;
     }
@@ -182,7 +185,7 @@ function renderBuffs() {
   buffsList.innerHTML = "";
   activeBuffs.forEach(b => {
     const el = document.createElement("div");
-    el.className = "buff-item" + (b.isLSD ? " buff-lsd" : "");
+    el.className = "buff-item" + (b.isLSD ? " buff-lsd" : "") + (b.isRareLSD ? " buff-lsd-rare" : "");
     el.innerHTML = `<span class="buff-icon">${b.icon}</span><span class="buff-rounds">${b.roundsLeft}</span>`;
     el.title = b.label;
     el.addEventListener("click", (e) => {
@@ -193,17 +196,73 @@ function renderBuffs() {
   });
 }
 
+function renderDebuffs() {
+  const debuffsList = document.getElementById("debuffsList");
+  if (!debuffsList) return;
+  debuffsList.innerHTML = "";
+  activeDebuffs.forEach(d => {
+    const el = document.createElement("div");
+    el.className = "debuff-item";
+    el.innerHTML = `<span class="debuff-icon">${d.icon}</span><span class="debuff-rounds">${d.roundsLeft}</span>`;
+    el.title = d.label;
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showInfoModal(d.icon, d.label, d.desc, `${d.roundsLeft} round${d.roundsLeft!==1?"s":""} remaining`, d.color);
+    });
+    debuffsList.appendChild(el);
+  });
+}
+
+function tickDebuffs() {
+  activeDebuffs.forEach(d => d.roundsLeft--);
+  activeDebuffs = activeDebuffs.filter(d => d.roundsLeft > 0);
+  renderDebuffs();
+}
+
 function hasActiveBuff(id) { return !!activeBuffs.find(b => b.id === id); }
 
-// Toast di notifica buff (appare in alto a sinistra sopra il panel)
-function showBuffToast(buff) {
-  const toast = document.createElement("div");
-  toast.className = "buff-toast" + (buff.isLSD ? " buff-toast-lsd" : "");
-  toast.innerHTML = `${buff.icon} <b>${buff.label}</b> activated!`;
-  document.getElementById("gameWrapper").appendChild(toast);
-  setTimeout(() => toast.classList.add("buff-toast-show"), 50);
-  setTimeout(() => { toast.classList.remove("buff-toast-show"); setTimeout(()=>toast.remove(),500); }, 3000);
+// Fullscreen modal per buff (stile verde — diverso da debuff viola/rosso)
+function showBuffModal(buff) {
+  const modal = document.getElementById("buffModal");
+  if (!modal) { // fallback toast se modal non presente
+    const toast = document.createElement("div");
+    toast.className = "buff-toast" + (buff.isLSD ? " buff-toast-lsd" : "");
+    toast.innerHTML = `${buff.icon} <b>${buff.label}</b> activated!`;
+    document.getElementById("gameWrapper").appendChild(toast);
+    setTimeout(() => toast.classList.add("buff-toast-show"), 50);
+    setTimeout(() => { toast.classList.remove("buff-toast-show"); setTimeout(()=>toast.remove(),500); }, 3000);
+    return;
+  }
+  document.getElementById("buffModalIcon").textContent  = buff.icon;
+  document.getElementById("buffModalTitle").textContent = buff.label;
+  document.getElementById("buffModalDesc").textContent  = buff.desc;
+  const isRare = buff.isLSD;
+  const box = document.getElementById("buffModalBox");
+  box.style.borderColor = isRare ? "gold" : "#00ff88";
+  box.classList.toggle("buff-modal-rare", isRare);
+  modal.classList.add("active");
+  applyTempFx("fx-shake-loop", 300);
+
+  let cd = 3;
+  const timerEl = document.getElementById("buffModalTimer");
+  timerEl.textContent = `Tap anywhere or wait ${cd}s…`;
+  const iv = setInterval(() => {
+    cd--;
+    if (cd <= 0) close();
+    else timerEl.textContent = `Tap anywhere or wait ${cd}s…`;
+  }, 1000);
+
+  function close() {
+    clearInterval(iv);
+    modal.classList.remove("active");
+    modal.removeEventListener("click", onTap);
+  }
+  function onTap() { close(); }
+  modal.addEventListener("click", onTap, { once: true });
 }
+
+// Mantieni anche il toast per compatibilità (non usato direttamente ora)
+function showBuffToast(buff) { showBuffModal(buff); }
 
 // Oracle normale (freccia indizio)
 function showOracleHint() {
@@ -244,11 +303,17 @@ function pickBiasedCard(current) {
 // ============================================================
 // MULTI-ROUND FX (per Dario e debuff visivi multi-round)
 // ============================================================
-function activateMultiRoundFx(cls, rounds) {
+function activateMultiRoundFx(cls, rounds, evDef) {
   if (persistentFxClass) getWrapper().classList.remove(persistentFxClass);
   persistentFxClass  = cls;
   persistentFxRounds = rounds;
   getWrapper().classList.add(cls);
+  // Track debuff visivo nel panel laterale
+  if (evDef) {
+    activeDebuffs = activeDebuffs.filter(d => d.id !== evDef.id);
+    activeDebuffs.push({ ...evDef, roundsLeft: rounds });
+    renderDebuffs();
+  }
 }
 
 function tickVisualFx() {
@@ -304,7 +369,7 @@ const LSD_EVENTS = [
   { id:"flip_score",    icon:"🔃", label:"SCORE FLIP",         desc:"Your score is reset to zero. Start over.",                                             color:"#440000", prob:0.03, type:"debuff", needsScore:true,
     apply:()=>{ score=0; updateHUD(); } },
   { id:"joker",         icon:"🃏", label:"WILD JOKER",         desc:"ALL your active buffs are wiped. The house always wins.",                             color:"#222200", prob:0.04, type:"debuff",
-    apply:()=>{ activeBuffs=[]; renderBuffs(); } },
+    apply:()=>{ activeBuffs=[]; renderBuffs(); } }, // joker only clears buffs, debuffs remain
   { id:"blind_bet",     icon:"🙈", label:"BLIND BET",          desc:"Your bet display is hidden. You don't know how much you're wagering.",                color:"#2a0044", prob:0.06, type:"debuff",
     apply:(s)=>{ s.blindBet=true; elBet.textContent="???"; } },
   { id:"coin_tax_win",  icon:"💰", label:"WIN TAX",            desc:"If you win, the house takes 50% of your winnings.",                                    color:"#aa4400", prob:0.05, type:"debuff",
@@ -326,7 +391,7 @@ const LSD_EVENTS = [
   { id:"negative",      icon:"☯️", label:"NEGATIVE REALITY",   desc:"Colors invert for several rounds. Welcome to the other side.",                         color:"#111111", prob:0.06, type:"visual",
     apply:(s)=>{ activateMultiRoundFx("fx-negative",   Math.ceil(Math.random()*5)); s.activeVisualFx="fx-negative"; } },
   { id:"dark_room",     icon:"🌑", label:"LIGHTS OUT",         desc:"Almost total darkness for several rounds. Squint harder.",                             color:"#000011", prob:0.06, type:"visual",
-    apply:(s)=>{ activateMultiRoundFx("fx-dark",       Math.ceil(Math.random()*4)); s.activeVisualFx="fx-dark"; } },
+    apply:(s)=>{ activateMultiRoundFx("fx-dark-blink", Math.ceil(Math.random()*4)); s.activeVisualFx="fx-dark-blink"; } },
   { id:"rainbow",       icon:"🌈", label:"RAINBOW TRIP",       desc:"Acid rainbow for several rounds. Psychedelic.",                                        color:"#330033", prob:0.07, type:"visual",
     apply:(s)=>{ activateMultiRoundFx("fx-rainbow",    Math.ceil(Math.random()*8)); s.activeVisualFx="fx-rainbow"; } },
   { id:"dizzy",         icon:"💫", label:"DIZZY SPELL",        desc:"The room spins for several rounds. Hold on.",                                          color:"#004466", prob:0.08, type:"visual",
@@ -424,7 +489,14 @@ function tryLSDEvent() {
       continue;
     }
     if (Math.random() < ev.prob + baseMod) {
-      showLSDModal(ev, ()=>{ ev.apply(roundState); activeEventDef=ev; showEventBadge(ev); });
+      showLSDModal(ev, ()=>{ ev.apply(roundState, ev); activeEventDef=ev; showEventBadge(ev);
+        // Track visual debuffs for side panel
+        if (ev.type === "visual") {
+          activeDebuffs = activeDebuffs.filter(d => d.id !== ev.id);
+          activeDebuffs.push({ ...ev, roundsLeft: persistentFxRounds });
+          renderDebuffs();
+        }
+      });
       return;
     }
   }
@@ -621,6 +693,7 @@ function resolveRound(wantHigher) {
   if (typeof saveNow === "function") saveNow();
   tickBuffs();
   tickVisualFx();
+  tickDebuffs();
 
   setTimeout(()=>{
     currentValue=revealed;

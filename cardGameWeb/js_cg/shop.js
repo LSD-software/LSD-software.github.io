@@ -73,11 +73,11 @@ function setupConvert() {
 
   btn.addEventListener("click", () => {
     let data = loadData();
-    const rate = 50;
+    const rate = 10; // 10 score = 1 coin
 
     const coinsEarned = Math.floor(data.score / rate);
     if (coinsEarned <= 0) {
-      alert("You don't have enough points.");
+      alert("You need at least 10 score points to convert.");
       return;
     }
 

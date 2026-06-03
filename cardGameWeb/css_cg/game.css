@@ -104,7 +104,7 @@ body {
 /* ============================================================ TABLE */
 #table {
   display: grid;
-  grid-template-columns: auto 1fr 2fr 1fr;
+  grid-template-columns: auto 1fr 2fr 1fr auto;
   align-items: center;
   justify-items: center;
   flex: 1;
@@ -446,7 +446,7 @@ body {
 
 /* ============================================================ RESPONSIVE LANDSCAPE PICCOLO */
 @media screen and (max-height:420px) and (orientation:landscape) {
-  #table { grid-template-columns:auto 0.8fr 2fr 0.8fr; padding:1px 2px; }
+  #table { grid-template-columns:auto 0.8fr 2fr 0.8fr auto; padding:1px 2px; }
   .card-frame { width:clamp(42px,9vw,78px); }
   .btn.round,.btn-allin { width:clamp(32px,7vw,52px);height:clamp(32px,7vw,52px);font-size:clamp(7px,1.6vw,10px); }
   .btn.small { width:clamp(20px,4vw,32px);height:clamp(20px,4vw,32px); }
@@ -460,4 +460,147 @@ body {
 @media screen and (max-width:900px) and (orientation:landscape) {
   .card-frame { width:clamp(54px,11vw,105px); }
   .btn.round,.btn-allin { width:clamp(40px,6.5vw,65px);height:clamp(40px,6.5vw,65px); }
+}
+
+/* ============================================================ DEBUFFS PANEL (destra) */
+#debuffsPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  padding: 4px 3px;
+  min-width: clamp(40px,5.5vw,68px);
+  max-width: clamp(40px,5.5vw,68px);
+  gap: 4px;
+}
+#debuffsLabel {
+  font-size: clamp(7px,0.9vw,11px);
+  color: rgba(255,80,80,0.9);
+  letter-spacing: 2px;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin-bottom: 6px;
+  text-shadow: 0 0 8px rgba(255,60,60,0.6);
+}
+#debuffsList {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 5px; overflow: hidden; flex: 1;
+}
+
+/* Singolo debuff — stile rosso/viola, distinto dai buff verdi */
+.debuff-item {
+  width: clamp(34px,4.2vw,52px);
+  height: clamp(34px,4.2vw,52px);
+  border-radius: 8px;
+  background: linear-gradient(135deg,#1a0000,#330000);
+  border: 2px solid #ff4444;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  font-size: clamp(15px,2vw,24px);
+  box-shadow: 0 0 10px rgba(255,60,60,0.3);
+  animation: debuffGlow 2s ease-in-out infinite alternate;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.debuff-item:hover, .debuff-item:active { transform:scale(1.15); box-shadow:0 0 22px rgba(255,60,60,0.7); }
+.debuff-rounds {
+  position: absolute; bottom:1px; right:3px;
+  font-size: clamp(7px,0.85vw,11px);
+  color: #ff6666; font-family:'Cinzel',serif; font-weight:700;
+  text-shadow: 0 0 4px #ff4444;
+}
+.debuff-icon { font-size: inherit; line-height:1; }
+@keyframes debuffGlow {
+  from { box-shadow:0 0 6px rgba(255,60,60,0.25), inset 0 0 4px rgba(255,0,0,0.1); }
+  to   { box-shadow:0 0 18px rgba(255,60,60,0.65), 0 0 32px rgba(200,0,0,0.2), inset 0 0 8px rgba(255,60,60,0.15); }
+}
+
+/* ============================================================ BUFF LSD RARO — bagliore extra */
+.buff-item.buff-lsd-rare {
+  border-color: gold;
+  background: linear-gradient(135deg,#1a0a00,#2a1000);
+  animation: buffGlowRare 1s ease-in-out infinite alternate;
+}
+@keyframes buffGlowRare {
+  from { box-shadow:0 0 10px rgba(255,215,0,0.5), inset 0 0 6px rgba(255,180,0,0.15); transform: scale(1); }
+  to   { box-shadow:0 0 30px rgba(255,215,0,1), 0 0 55px rgba(255,120,0,0.5), inset 0 0 14px rgba(255,200,0,0.3); transform: scale(1.05); }
+}
+
+/* ============================================================ BUFF MODAL (verde — diverso da debuff viola) */
+#buffModal {
+  position:fixed; inset:0; z-index:8000;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(0,30,10,0.88); backdrop-filter:blur(8px); cursor:pointer;
+}
+#buffModal.active { display:flex; }
+#buffModalBox {
+  background:linear-gradient(160deg,#002010,#003a00);
+  border:2px solid #00ff88; border-radius:14px;
+  padding:clamp(16px,3.5vh,36px) clamp(20px,5vw,60px);
+  text-align:center; max-width:min(88vw,460px);
+  animation:modalIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  box-shadow:0 0 50px rgba(0,255,136,0.5),0 0 100px rgba(0,0,0,0.9);
+  pointer-events:none;
+}
+#buffModalBox.buff-modal-rare {
+  background:linear-gradient(160deg,#1a0a00,#2a1a00);
+  border-color: gold;
+  box-shadow:0 0 60px rgba(255,215,0,0.7), 0 0 120px rgba(255,100,0,0.3), 0 0 200px rgba(0,0,0,0.95);
+  animation: modalInRare 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes modalInRare {
+  0%  { transform:scale(0.5) rotate(-5deg); opacity:0; }
+  60% { transform:scale(1.08) rotate(1deg); opacity:1; }
+  100%{ transform:scale(1) rotate(0deg); opacity:1; }
+}
+#buffModalIcon  { font-size:clamp(2rem,8vw,4rem); display:block; margin-bottom:8px; animation:iconFloat 1s ease-in-out infinite alternate; }
+#buffModalTitle {
+  font-family:'Cinzel',serif; font-size:clamp(1rem,3.5vw,2rem); font-weight:900;
+  color:#00ff88; margin-bottom:10px;
+  text-shadow:0 0 16px #00ff88,0 0 32px #00ff44;
+  letter-spacing:2px; text-transform:uppercase;
+}
+#buffModalBox.buff-modal-rare #buffModalTitle {
+  color: gold;
+  text-shadow:0 0 16px gold, 0 0 32px #ffaa00, 0 0 60px rgba(255,215,0,0.5);
+}
+#buffModalDesc  { font-family:'Cinzel',serif; font-size:clamp(0.78rem,2.2vw,1rem); color:#fff; line-height:1.7; }
+#buffModalTimer { font-size:clamp(0.68rem,1.4vw,0.82rem); color:rgba(255,255,255,0.4); margin-top:12px; font-family:'Cinzel',serif; letter-spacing:1px; }
+
+/* ============================================================ FX-DARK-BLINK — buio con lampeggio + pulsanti visibili */
+#gameWrapper.fx-dark-blink {
+  animation: darkBlink 3s ease-in-out infinite;
+}
+@keyframes darkBlink {
+  0%   { filter: brightness(1) contrast(1); }
+  8%   { filter: brightness(0.05) contrast(3); }
+  16%  { filter: brightness(0.8) contrast(1.2); }
+  22%  { filter: brightness(0.05) contrast(3); }
+  30%  { filter: brightness(0.5) contrast(1.5); }
+  40%  { filter: brightness(0.05) contrast(3); }
+  100% { filter: brightness(0.05) contrast(3); }
+}
+/* Pulsanti sempre visibili durante fx-dark-blink */
+#gameWrapper.fx-dark-blink #topbar,
+#gameWrapper.fx-dark-blink #controls,
+#gameWrapper.fx-dark-blink #betControls,
+#gameWrapper.fx-dark-blink #resultMessage,
+#gameWrapper.fx-dark-blink .event-badge,
+#gameWrapper.fx-dark-blink #buffsPanel,
+#gameWrapper.fx-dark-blink #debuffsPanel {
+  filter: brightness(6) contrast(0.85);
+}
+
+/* ============================================================ TABLE — aggiorna grid per debuffsPanel */
+#table {
+}
+@media screen and (max-height:420px) and (orientation:landscape) {
+  #debuffsPanel { min-width:32px; max-width:44px; }
+  .debuff-item { width:clamp(26px,3.2vw,38px);height:clamp(26px,3.2vw,38px);font-size:clamp(11px,1.6vw,17px); }
 }

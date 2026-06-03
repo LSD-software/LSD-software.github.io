@@ -1,0 +1,372 @@
+/* ============================================================
+   LEADERBOARD — leaderboard.css
+   ============================================================ */
+
+#lbContainer {
+  width: 92%;
+  max-width: 900px;
+  margin: 24px auto 48px;
+  padding: 0 8px;
+}
+
+/* ── GAME SELECTOR ─────────────────────────────────────── */
+#gameSelector {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.game-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,0,0,0.55);
+  border: 2px solid rgba(255,215,0,0.3);
+  border-radius: 10px;
+  padding: 12px 20px;
+  color: rgba(255,255,255,0.65);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.78rem, 2vw, 0.95rem);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+}
+
+.game-tab img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: grayscale(0.4);
+}
+.game-tab .placeholder-icon { font-size: 1.6rem; }
+
+.game-tab.active {
+  border-color: gold;
+  color: gold;
+  background: rgba(128,0,0,0.3);
+  box-shadow: 0 0 18px rgba(255,215,0,0.2);
+}
+.game-tab.active img { filter: none; }
+
+.game-tab.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.coming-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #800000;
+  color: gold;
+  font-size: 0.6rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid gold;
+  letter-spacing: 1px;
+  font-family: 'Cinzel', serif;
+}
+
+/* ── SORT BAR ──────────────────────────────────────────── */
+#sortBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.sort-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 2px;
+  margin-right: 4px;
+}
+
+.sort-btn {
+  background: rgba(0,0,0,0.4);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.55);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.72rem, 1.8vw, 0.82rem);
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sort-btn:hover { border-color: rgba(255,215,0,0.4); color: rgba(255,215,0,0.8); }
+.sort-btn.active {
+  border-color: gold;
+  color: gold;
+  background: rgba(128,0,0,0.25);
+  box-shadow: 0 0 10px rgba(255,215,0,0.15);
+}
+
+/* ── PANEL ─────────────────────────────────────────────── */
+#lbPanel {
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 12px;
+  padding: clamp(16px,3vw,32px);
+  overflow: hidden;
+}
+
+/* ── LOADING ───────────────────────────────────────────── */
+.lb-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 0;
+  color: rgba(255,255,255,0.4);
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+}
+.lb-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,215,0,0.2);
+  border-top-color: gold;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.lb-error {
+  text-align: center;
+  padding: 32px;
+  color: #ff6666;
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+}
+
+/* ── TABLE ─────────────────────────────────────────────── */
+#lbTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Cinzel', serif;
+}
+
+#lbTable thead tr {
+  border-bottom: 1px solid rgba(255,215,0,0.25);
+}
+
+#lbTable th {
+  padding: 10px 12px;
+  font-size: clamp(0.62rem, 1.5vw, 0.75rem);
+  color: rgba(255,215,0,0.6);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-align: left;
+}
+.col-rank   { width: 60px; text-align: center !important; }
+.col-score, .col-coins, .col-streak { text-align: right !important; }
+
+#lbTable tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.2s;
+}
+#lbTable tbody tr:hover { background: rgba(255,215,0,0.04); }
+
+/* Righe top 3 speciali */
+#lbTable tbody tr.rank-1 { background: rgba(255,215,0,0.08); }
+#lbTable tbody tr.rank-2 { background: rgba(192,192,192,0.06); }
+#lbTable tbody tr.rank-3 { background: rgba(205,127,50,0.06); }
+
+#lbTable td {
+  padding: 14px 12px;
+  font-size: clamp(0.78rem, 1.8vw, 0.92rem);
+  color: rgba(255,255,255,0.85);
+}
+
+/* Medaglie rank */
+.rank-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 0.85rem;
+}
+.medal-1 { background: linear-gradient(135deg,#ffd700,#b8860b); color:#000; box-shadow:0 0 10px rgba(255,215,0,0.5); }
+.medal-2 { background: linear-gradient(135deg,#c0c0c0,#888);   color:#000; }
+.medal-3 { background: linear-gradient(135deg,#cd7f32,#8b4513); color:#fff; }
+.medal-n { background: rgba(255,255,255,0.08); color:rgba(255,255,255,0.5); font-size:0.8rem; }
+
+.col-rank { text-align: center; }
+
+/* Nome giocatore */
+.player-name {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.player-name.is-me {
+  color: gold;
+}
+.player-name.is-me::after {
+  content: " ◀ YOU";
+  font-size: 0.65em;
+  color: rgba(255,215,0,0.6);
+  letter-spacing: 1px;
+}
+
+/* Valori numerici */
+.val-score  { color: #ffffff; font-weight: 700; }
+.val-coins  { color: #ffd700; }
+.val-streak { color: #ff8844; }
+
+/* Colonna evidenziata in base al sort attivo */
+.col-active { color: gold !important; }
+
+/* ── MY RANK ───────────────────────────────────────────── */
+#myRankPanel {
+  margin-top: 24px;
+  border-top: 1px solid rgba(255,215,0,0.15);
+  padding-top: 20px;
+}
+
+.my-rank-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: rgba(255,215,0,0.5);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.my-rank-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Cinzel', serif;
+}
+.my-rank-table td {
+  padding: 12px;
+  font-size: clamp(0.78rem,1.8vw,0.92rem);
+}
+.my-rank-table tr {
+  background: rgba(255,215,0,0.06);
+  border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 8px;
+}
+
+.not-logged {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.35);
+  text-align: center;
+  margin-top: 10px;
+}
+.not-logged a { color: gold; text-decoration: none; }
+.not-logged a:hover { text-decoration: underline; }
+
+/* ── CTA ───────────────────────────────────────────────── */
+.lb-cta {
+  text-align: center;
+  margin-top: 28px;
+  padding: 20px;
+  background: rgba(128,0,0,0.15);
+  border: 1px dashed rgba(255,215,0,0.25);
+  border-radius: 10px;
+}
+.lb-cta p {
+  font-family: 'Cinzel', serif;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.88rem;
+  margin-bottom: 14px;
+  letter-spacing: 1px;
+}
+.cta-btn {
+  display: inline-block;
+  background: linear-gradient(145deg,#800000,#4a0000);
+  color: gold;
+  border: 2px solid gold;
+  border-radius: 8px;
+  padding: 12px 32px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.cta-btn:hover { background: gold; color: #800000; box-shadow: 0 0 16px rgba(255,215,0,0.35); }
+
+.hidden { display: none !important; }
+
+/* ── RESPONSIVE ────────────────────────────────────────── */
+@media (max-width: 600px) {
+  #gameSelector { gap: 8px; }
+  .game-tab { padding: 10px 14px; font-size: 0.72rem; gap: 8px; }
+  .game-tab img { width: 28px; height: 28px; }
+
+  #lbTable th, #lbTable td { padding: 10px 8px; }
+  .col-streak { display: none; } /* nasconde win streak su mobile piccolo */
+
+  #lbPanel { padding: 14px 10px; }
+
+  #sortBar { gap: 6px; }
+  .sort-btn { padding: 7px 12px; font-size: 0.7rem; }
+}
+
+/* ============================================================ CONSOLE SUB-BAR */
+#consoleSubBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8px;
+}
+#consoleTitleBar {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-weight: 900;
+  color: gold;
+  text-align: center;
+  letter-spacing: 3px;
+  text-shadow: 0 0 18px gold;
+  padding: 10px 0 8px;
+  text-transform: uppercase;
+}
+#consoleGameTabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+.console-game-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,215,0,0.4);
+  color: rgba(255,255,255,0.8);
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.72rem, 1.8vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 7px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+}
+.console-game-btn:hover,
+.console-game-btn:active {
+  background: rgba(255,215,0,0.15);
+  border-color: gold;
+  color: gold;
+}
+.console-game-btn.active {
+  background: linear-gradient(145deg, rgba(255,215,0,0.25), rgba(255,150,0,0.15));
+  border-color: gold;
+  color: gold;
+  box-shadow: 0 0 12px rgba(255,215,0,0.4);
+}

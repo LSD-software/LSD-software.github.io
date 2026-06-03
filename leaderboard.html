@@ -51,24 +51,28 @@
         <img src="img/logoPesca.png" alt="P-E-S-C-A"> P-E-S-C-A
         <span class="coming-badge">SOON</span>
       </button>
-      <button class="game-tab" data-game="console-afue">
-        <span class="placeholder-icon">⚔️</span> AFUE ONLINE
-      </button>
-      <button class="game-tab" data-game="console-target">
-        <span class="placeholder-icon">🎯</span> TARGET SHOOTING
-      </button>
-      <button class="game-tab" data-game="console-ball">
-        <span class="placeholder-icon">🎱</span> BALL
+      <button class="game-tab" data-game="console">
+        <span class="placeholder-icon">🕹️</span> LSD CONSOLE
       </button>
     </div>
 
-    <!-- SORT TABS -->
+    <!-- SORT TABS (Card Game) -->
     <div id="sortBar">
       <span class="sort-label">SORT BY:</span>
       <button class="sort-btn active" data-sort="score">⭐ SCORE</button>
       <button class="sort-btn" data-sort="coins">💰 COINS</button>
       <button class="sort-btn" data-sort="winStreak">🔥 WIN STREAK</button>
       <button class="sort-btn console-only hidden" data-sort="wins">🏆 WINS</button>
+    </div>
+
+    <!-- CONSOLE SUB-TABS (mostrati solo quando tab Console è attivo) -->
+    <div id="consoleSubBar" class="hidden">
+      <div id="consoleTitleBar">🕹️ LSD CONSOLE</div>
+      <div id="consoleGameTabs">
+        <button class="console-game-btn active" data-console-game="afue">⚔️ ATTACK FORCE UE</button>
+        <button class="console-game-btn" data-console-game="target">🎯 TARGET SHOOTING</button>
+        <button class="console-game-btn" data-console-game="ball">🎱 BALL</button>
+      </div>
     </div>
 
     <!-- LEADERBOARD TABLE -->

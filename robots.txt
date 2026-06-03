@@ -1,8 +1,7 @@
 User-agent: *
 Allow: /
 
-# Schermate di gioco attivo: noindex via meta tag, non bloccare crawler
-# Disallow solo se si vuole evitare completamente il crawl
+# Active game screens — noindex via meta tag; allow crawl for link following
 Disallow: /cardGameWeb/game.html
 
 Sitemap: https://lsd-software.github.io/sitemap.xml

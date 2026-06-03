@@ -51,9 +51,14 @@
         <img src="img/logoPesca.png" alt="P-E-S-C-A"> P-E-S-C-A
         <span class="coming-badge">SOON</span>
       </button>
-      <button class="game-tab locked" data-game="console" disabled>
-        <span class="placeholder-icon">🎮</span> LSD CONSOLE
-        <span class="coming-badge">SOON</span>
+      <button class="game-tab" data-game="console-afue">
+        <span class="placeholder-icon">⚔️</span> AFUE ONLINE
+      </button>
+      <button class="game-tab" data-game="console-target">
+        <span class="placeholder-icon">🎯</span> TARGET SHOOTING
+      </button>
+      <button class="game-tab" data-game="console-ball">
+        <span class="placeholder-icon">🎱</span> BALL
       </button>
     </div>
 
@@ -63,6 +68,7 @@
       <button class="sort-btn active" data-sort="score">⭐ SCORE</button>
       <button class="sort-btn" data-sort="coins">💰 COINS</button>
       <button class="sort-btn" data-sort="winStreak">🔥 WIN STREAK</button>
+      <button class="sort-btn console-only hidden" data-sort="wins">🏆 WINS</button>
     </div>
 
     <!-- LEADERBOARD TABLE -->
@@ -76,12 +82,15 @@
 
       <table id="lbTable" class="hidden">
         <thead>
-          <tr>
+          <tr id="lbHeadRow">
             <th class="col-rank">RANK</th>
             <th class="col-name">PLAYER</th>
-            <th class="col-score">SCORE</th>
-            <th class="col-coins">COINS</th>
-            <th class="col-streak">WIN STREAK</th>
+            <th class="col-score cg-col">SCORE</th>
+            <th class="col-coins cg-col">COINS</th>
+            <th class="col-streak cg-col">WIN STREAK</th>
+            <th class="col-wins console-col hidden">WINS</th>
+            <th class="col-losses console-col hidden">LOSSES</th>
+            <th class="col-bestscore console-col hidden">BEST SCORE</th>
           </tr>
         </thead>
         <tbody id="lbBody"></tbody>
@@ -109,11 +118,15 @@
   </main>
 
   <footer>
-    © 2024 <strong>LSD Software</strong> — Milan, Italy
+    © 2025 <strong>LSD Software</strong> — Milan, Italy &nbsp;|&nbsp;
+    <a href="privacy.html" style="color:gold;text-decoration:none;">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="cookies.html" style="color:gold;text-decoration:none;">Cookie Policy</a>
   </footer>
 
   <script src="cardGameWeb/js_cg/api.js"></script>
   <script src="js/script.js"></script>
+  <script src="js/cookie-banner.js"></script>
   <script src="js/leaderboard.js"></script>
+  <script src="js/leaderboard-console.js"></script>
 </body>
 </html>

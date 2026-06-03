@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="img/icon.png">
+  <title>Cookie Policy — LSD Software</title>
+  <meta name="description" content="LSD Software Cookie Policy — what cookies and local storage we use and how to control them.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://lsd-software.github.io/cookies.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .legal-container{max-width:860px;margin:40px auto;padding:0 24px 60px;}
+    .legal-container h1{font-family:'Cinzel',serif;color:gold;font-size:clamp(1.4rem,4vw,2.2rem);margin-bottom:8px;}
+    .legal-container .last-updated{color:rgba(255,255,255,0.4);font-size:0.82rem;font-family:'Courier Prime',monospace;margin-bottom:32px;}
+    .legal-container h2{font-family:'Cinzel',serif;color:#a10000;font-size:1.15rem;margin:28px 0 10px;}
+    .legal-container p,.legal-container li{font-family:'Courier Prime',monospace;color:rgba(255,255,255,0.82);font-size:0.95rem;line-height:1.75;}
+    .legal-container ul{padding-left:20px;margin:8px 0;}
+    .legal-container a{color:gold;}
+    .legal-container table{width:100%;border-collapse:collapse;margin:16px 0;}
+    .legal-container th,.legal-container td{border:1px solid rgba(186,167,1,0.3);padding:10px 14px;font-family:'Courier Prime',monospace;font-size:0.88rem;color:rgba(255,255,255,0.85);text-align:left;}
+    .legal-container th{background:rgba(128,0,0,0.3);color:gold;}
+    .legal-container tr:hover td{background:rgba(255,255,255,0.03);}
+    .highlight-box{background:rgba(128,0,0,0.15);border:1px solid rgba(128,0,0,0.5);border-radius:8px;padding:16px 20px;margin:20px 0;}
+    .cat-necessary{color:#4EC600;font-weight:700;}
+    .cat-functional{color:#baa701;font-weight:700;}
+  </style>
+</head>
+<body>
+  <header>
+    <div id="navbar">
+      <div id="logo"><img src="img/icon.png" alt="LSD Software Logo" width="80" height="80"></div>
+      <h1 style="font-size:1.2rem;">COOKIE POLICY</h1>
+      <div id="hamburger" aria-label="Toggle navigation" role="button" tabindex="0"><span></span><span></span><span></span></div>
+      <nav id="menu">
+        <a href="index.html">HOME</a>
+        <a href="about.html">ABOUT</a>
+        <a href="project.html">PROJECTS</a>
+        <a href="leaderboard.html">LEADERBOARD</a>
+        <a href="contact.html">CONTACTS</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="legal-container">
+      <h1>Cookie Policy</h1>
+      <p class="last-updated">Last updated: June 2025</p>
+
+      <div class="highlight-box">
+        <p><strong style="color:gold;">Short version:</strong> We use only strictly necessary cookies/storage. No advertising cookies. No third-party tracking. You can clear all stored data via your browser settings at any time.</p>
+      </div>
+
+      <h2>1. What Are Cookies?</h2>
+      <p>Cookies are small text files stored on your device by a website. We also use <strong>localStorage</strong> — a browser storage mechanism similar to cookies but stored locally and never automatically sent to our servers.</p>
+
+      <h2>2. What We Store and Why</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name / Key</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Purpose</th>
+            <th>Expires</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>lsd_token</code></td>
+            <td>localStorage</td>
+            <td><span class="cat-necessary">Strictly Necessary</span></td>
+            <td>Stores your JWT authentication token so you stay logged in between sessions.</td>
+            <td>7 days (JWT expiry)</td>
+          </tr>
+          <tr>
+            <td><code>lsd_user</code></td>
+            <td>localStorage</td>
+            <td><span class="cat-necessary">Strictly Necessary</span></td>
+            <td>Caches basic user info (username, isGuest flag) to avoid repeated API calls.</td>
+            <td>Same as token</td>
+          </tr>
+          <tr>
+            <td><code>lsd_trophies</code></td>
+            <td>localStorage</td>
+            <td><span class="cat-functional">Functional</span></td>
+            <td>Stores LSD Console trophy unlock state locally for offline play.</td>
+            <td>Until browser data cleared</td>
+          </tr>
+          <tr>
+            <td><code>lsd_trophy_version</code></td>
+            <td>localStorage</td>
+            <td><span class="cat-functional">Functional</span></td>
+            <td>Version flag to reset trophy data if game updates change the schema.</td>
+            <td>Persistent</td>
+          </tr>
+          <tr>
+            <td><code>lsd_nation_save</code></td>
+            <td>localStorage</td>
+            <td><span class="cat-functional">Functional</span></td>
+            <td>Saves your LSD Nation Builder game progress so you can continue later.</td>
+            <td>Until browser data cleared</td>
+          </tr>
+          <tr>
+            <td><code>cookie_consent</code></td>
+            <td>localStorage</td>
+            <td><span class="cat-necessary">Strictly Necessary</span></td>
+            <td>Records that you have seen and acknowledged this cookie notice.</td>
+            <td>1 year</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>3. Third-Party Storage</h2>
+      <p>Google Fonts is loaded from Google's CDN. Google may set cookies related to font loading; these are outside our control. You can prevent Google Fonts loading by blocking <code>fonts.googleapis.com</code> in your browser or using a content blocker.</p>
+      <p>No other third-party cookies, analytics scripts (e.g. Google Analytics), or advertising networks are used on this site.</p>
+
+      <h2>4. Your Choices</h2>
+      <ul>
+        <li><strong>Clear localStorage:</strong> In your browser, go to DevTools → Application → Local Storage → select our domain → delete all keys.</li>
+        <li><strong>Block cookies:</strong> Most browsers allow you to block cookies; note this may prevent login from working.</li>
+        <li><strong>Opt out of Google Fonts:</strong> Use a browser extension that blocks Google CDN requests.</li>
+      </ul>
+      <p>Since we only use strictly necessary and functional storage (no analytics or advertising cookies), a consent banner is not legally required under ePrivacy Directive Article 5(3) for these categories. However, we show a notice for transparency.</p>
+
+      <h2>5. Cookie Banner</h2>
+      <p>On your first visit you will see a brief notice at the bottom of the page. Clicking "Accept" or continuing to browse records your acknowledgement in localStorage under the key <code>cookie_consent</code>. No consent is required for strictly necessary storage.</p>
+
+      <h2>6. Changes</h2>
+      <p>We may update this policy. The "Last updated" date at the top will change. Continued use of the site constitutes acceptance.</p>
+
+      <h2>7. Contact</h2>
+      <p>Questions about cookies: <a href="contact.html">contact us</a>.</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025 <strong>LSD Software</strong> — Milan, Italy &nbsp;|&nbsp;
+    <a href="privacy.html" style="color:gold;text-decoration:none;">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="index.html" style="color:gold;text-decoration:none;">Home</a></p>
+  </footer>
+  <script src="js/script.js"></script>
+</body>
+</html>

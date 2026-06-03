@@ -64,6 +64,17 @@
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
         "url": "https://lsd-software.github.io/pescaWeb/pesca.html",
         "image": "https://lsd-software.github.io/img/logoPesca.png"
+      }      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "LSD Console",
+        "description": "6 games in one browser app: LSD Attack Force UE (fighting, online multiplayer), Target Shooting, Nation Builder, Attack of Zombies, Ball, Artist Maker.",
+        "applicationCategory": "GameApplication",
+        "genre": ["Fighting", "Strategy", "Arcade", "Multiplayer"],
+        "gamePlatform": "Web Browser",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "url": "https://lsd-software.github.io/lsdConsole/index.html"
       }
     ]
   }
@@ -117,12 +128,12 @@
           </a>
         </div>
 
-        <div class="pj coming-soon">
-          <a href="#" aria-disabled="true" tabindex="-1">
-            <div class="pj-placeholder" aria-label="LSD Console — coming soon"></div>
-            <h3>LSD Console</h3>
-            <p>Multiple immersive minigames</p>
-            <span class="badge">COMING SOON</span>
+        <div class="pj" itemscope itemtype="https://schema.org/SoftwareApplication" id="lsd-console-card">
+          <a href="lsdConsole/index.html" aria-label="Play LSD Console — 6 games in one browser app" onclick="openConsole(event)">
+            <div class="pj-placeholder" aria-label="LSD Console" style="background:linear-gradient(135deg,rgba(128,0,0,0.3),rgba(0,0,0,0.5));border:1px solid rgba(186,167,1,0.4);font-size:3rem;display:flex;align-items:center;justify-content:center;">🎮</div>
+            <h3 itemprop="name">LSD Console</h3>
+            <p itemprop="description">6 Games — Fight, Build, Shoot, Draw</p>
+            <span class="badge" style="background:#a10000;color:#baa701;border-color:#baa701;">PLAY NOW</span>
           </a>
         </div>
 
@@ -149,12 +160,22 @@
   </main>
 
   <footer>
-    <p>© 2024 <strong>LSD Software</strong> — Milan, Italy &nbsp;|&nbsp;
+    <p>© 2025 <strong>LSD Software</strong> — Milan, Italy &nbsp;|&nbsp;
     <a href="index.html" style="color:gold;text-decoration:none;">Home</a> &nbsp;·&nbsp;
     <a href="about.html" style="color:gold;text-decoration:none;">About</a> &nbsp;·&nbsp;
-    <a href="contact.html" style="color:gold;text-decoration:none;">Contact</a></p>
+    <a href="contact.html" style="color:gold;text-decoration:none;">Contact</a> &nbsp;·&nbsp;
+    <a href="privacy.html" style="color:gold;text-decoration:none;">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="cookies.html" style="color:gold;text-decoration:none;">Cookie Policy</a></p>
   </footer>
 
   <script src="js/script.js"></script>
+  <script src="js/cookie-banner.js"></script>
+  <script>
+  function openConsole(e) {
+    e.preventDefault();
+    // Open LSD Console in same window
+    window.location.href = 'lsdConsole/index.html';
+  }
+  </script>
 </body>
 </html>

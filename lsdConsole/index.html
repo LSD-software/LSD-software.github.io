@@ -185,11 +185,17 @@ requestAnimationFrame(animLoadBar);
 setTimeout(() => {
   if (document.getElementById("fsPrompt").style.display !== "none") enterFullscreen();
 }, 8000);
-
+const DPR = Math.min(window.devicePixelRatio || 1, 3);
 function resizeCanvas() {
   W = window.innerWidth; H = window.innerHeight;
-  canvas.width = W; canvas.height = H;
+  canvas.width  = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  canvas.style.width  = W + "px";
+  canvas.style.height = H + "px";
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   scale = Math.min(W / BASE_W, H / BASE_H);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
@@ -784,8 +790,8 @@ class LSDConsole {
 //  GAME 1 — LSD ATTACK FORCE ULTIMATE EDITION
 // ============================================================
 const CHAR_DESC = {
-  grax: "GRAX — Combattente brutale.\n[W] Pugno  [S] Calcio  [Q] Attacco ranged  [E] Speciale/Heal  [C] Para\nSuper combo: W→S→E→Q → ULTRA (sferra colpo finale!)",
-  yuke: "YUKE — Tattico a distanza.\n[W] Pugno  [S] Calcio  [Q] Proiettile  [E] Meteora  [C] Para\nSuper combo: W→S→E→Q → ULTRA (attacco orbitale!)"
+  grax: "GRAX — Combattente brutale.\n[W] Pugno  [S] Calcio  [Q] Attacco ranged  [E] Speciale/Heal  [C] Para",
+  yuke: "YUKE — Tattico a distanza.\n[W] Pugno  [S] Calcio  [Q] Proiettile  [E] Meteora  [C] Para"
 };
 const ULTRA_COMBOS = {
   p1: ["w","s","e","q"],   // P1
@@ -890,7 +896,7 @@ class LSDAttackForceUE {
       strokeRoundRect(BASE_W/2-500,150,1000,130,"#555",1,12);
       fillText("P1: A/D muovi  |  W pugno  |  S calcio  |  Q ranged  |  E speciale  |  C para",BASE_W/2,190,"#888",18);
       fillText("P2: J/L muovi  |  I pugno  |  K calcio  |  U ranged  |  O speciale  |  ' para",BASE_W/2,225,"#888",18);
-      fillText("ULTRA COMBO → P1: W+S+E+Q   P2: I+K+O+U",BASE_W/2,262,"#baa701",18);
+      fillText("Scopri le mosse segrete giocando... 🔐",BASE_W/2,262,"#555",18);
 
       drawButton("⚔  LOCALE (2 Giocatori)",BASE_W/2,370,400,85);
       drawButton("🤖  VS CPU",             BASE_W/2,490,400,85);
@@ -979,7 +985,6 @@ class LSDAttackForceUE {
       // Show controls reminder
       fillText("P1: A/D • W Pugno • S Calcio • Q Ranged • E Speciale • C Para",BASE_W/2,BASE_H/2-20,"#888",18);
       if(this.mode==="local") fillText("P2: J/L • I Pugno • K Calcio • U Ranged • O Speciale • ' Para",BASE_W/2,BASE_H/2+10,"#888",18);
-      fillText("ULTRA COMBO: esegui W→S→E→Q (P1) oppure I→K→O→U (P2) per la mossa finale!",BASE_W/2,BASE_H/2+44,"#baa701",18);
       drawButton("▶ COMBATTI!",BASE_W/2,BASE_H/2+130,240,100);
       if(isButtonPressed(BASE_W/2,BASE_H/2+130,240,100)){
         this._buildFighters(); this.menuPhase="fight";
@@ -1054,15 +1059,20 @@ class LSDAttackForceUE {
 
     // Online: apply opponent input to fighter2
     if(this.mode==="online"&&this.socket){
+      // Invia sempre il proprio input al server (ogni frame)
       const inp = this._getP1Input();
       this.socket.emit("input", inp);
-      if(Object.keys(this.opponentInput).length>0 && this.fighter2){
+      // Applica sempre l'input ricevuto dall'avversario (anche se vuoto = fermo)
+      if(this.fighter2){
         this.fighter2.applyNetworkInput(this.opponentInput);
       }
     }
 
-    this.fighter1.update(this.fighter2);
-    this.fighter2.update(this.fighter1);
+    // Blocca il combattimento durante la riproduzione dell'ultra
+    if(!window._ultraPlaying){
+      this.fighter1.update(this.fighter2);
+      this.fighter2.update(this.fighter1);
+    }
     this.fighter1.drawChar(1);
     this.fighter2.drawChar(2);
     this._drawHUD();
@@ -1159,11 +1169,23 @@ class LSDAttackForceUE {
       const lbl=["U","I","K","O"][j];
       fillText(lbl,ix,BASE_H-24,"#fff",16);
     });
-    // Ultra combo hint (always visible)
-    fillRoundRect(BASE_W/2-260,BASE_H-42,520,36,"#000",0.4,6);
-    fillText("ULTRA P1: W→S→E→Q  |  P2: I→K→O→U",BASE_W/2,BASE_H-24,"#444",16);
+    // (ultra combo è segreta — non mostrata in HUD)
   }
-  _getP1Input() { return { a:keys["a"],d:keys["d"],w:keys["w"],s:keys["s"],q:keys["q"],e:keys["e"],c:keys["c"] }; }
+  _getP1Input() {
+    // Invia anche la posizione X e il facing, così l'avversario può
+    // posizionare correttamente il proprio sprite e guardare nella direzione giusta
+    return {
+      a: !!(keys["a"]||keys["A"]),
+      d: !!(keys["d"]||keys["D"]),
+      w: !!(keys["w"]||keys["W"]),
+      s: !!(keys["s"]||keys["S"]),
+      q: !!(keys["q"]||keys["Q"]),
+      e: !!(keys["e"]||keys["E"]),
+      c: !!(keys["c"]||keys["C"]),
+      x: this.fighter1 ? this.fighter1.x : null,
+      hp: this.fighter1 ? this.fighter1.hp : null
+    };
+  }
 }
 
 // ============================================================
@@ -1211,39 +1233,72 @@ class Fighter {
   }
 
   _triggerUltra() {
-    if(millis()-this.cd4 < 12000) return; // global cooldown for ultra
+    if(millis()-this.cd4 < 12000) return;
+    if(window._ultraPlaying) return; // altra ultra già in corso
     this.ultActive=true; this.ultIdx=0; this.ultIdxAlt=0;
-    this.cd4=millis(); // reset ultra bar on use
-    // Play video overlay
-    const videoEl = document.getElementById("ultimateVideo");
+    this.cd4=millis();
+    window._ultraPlaying = true; // blocca il gioco
     const src = this.name==="grax"
       ? "https://drive.google.com/file/d/1GYqXF27B4AzGFswmmGiBqJnFt2c-YqP_/preview"
       : "https://drive.google.com/file/d/195yjrgxtN_OdGZSKU3Wo3HtE4wCoE4Bb/preview";
-    // Use iframe embed approach for Google Drive
     this._showUltimateVideo(src);
     if(game) game.trophies[12]=true;
   }
 
   _showUltimateVideo(src) {
     const overlay = document.getElementById("videoOverlay");
-    // For Drive, use an iframe
-    let iframe = overlay.querySelector("iframe");
-    if(!iframe){ iframe=document.createElement("iframe"); iframe.style.cssText="width:100%;height:100%;border:none;"; overlay.innerHTML=""; overlay.appendChild(iframe); }
+    overlay.innerHTML = "";
+    // Bottone skip in alto a destra
+    const skip = document.createElement("button");
+    skip.textContent = "SKIP ▶";
+    skip.style.cssText = "position:absolute;top:18px;right:22px;z-index:10;background:rgba(0,0,0,0.7);color:#baa701;border:2px solid #baa701;padding:10px 22px;font-size:1rem;font-family:monospace;letter-spacing:2px;cursor:pointer;border-radius:6px;";
+    overlay.appendChild(skip);
+    // iframe Drive
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "width:100%;height:100%;border:none;";
+    iframe.allow = "autoplay";
     iframe.src = src;
+    overlay.appendChild(iframe);
     overlay.classList.add("show");
-    // Auto-close after 6s
-    clearTimeout(this._vidTimer);
-    this._vidTimer = setTimeout(() => {
+
+    const closeUltra = () => {
+      clearTimeout(this._vidTimer);
       overlay.classList.remove("show");
-      overlay.innerHTML="";
-      this.ultKill=true; this.ultActive=false;
-    }, 6000);
-    // Click to close
-    overlay.onclick = () => { clearTimeout(this._vidTimer); overlay.classList.remove("show"); overlay.innerHTML=""; this.ultKill=true; this.ultActive=false; };
+      overlay.innerHTML = "";
+      window._ultraPlaying = false;
+      this.ultKill = true;
+      this.ultActive = false;
+    };
+
+    // Skip button chiude subito
+    skip.addEventListener("click", e => { e.stopPropagation(); closeUltra(); });
+
+    // Auto-close dopo 8s (video ~6s + margine)
+    // Usa setTimeout con guardia: NON chiudere se onclick scatta subito
+    this._vidTimer = setTimeout(closeUltra, 8000);
+
+    // Click sull'overlay (non sul bottone) chiude dopo almeno 1s
+    // per evitare che il click che ha attivato la ultra chiuda subito
+    const _openedAt = Date.now();
+    overlay.addEventListener("click", function _oc(e) {
+      if(e.target === skip) return;
+      if(Date.now() - _openedAt < 800) return; // ignora click immediati
+      overlay.removeEventListener("click", _oc);
+      closeUltra();
+    });
   }
 
   applyNetworkInput(inp) {
+    if(!inp) { this._netKeys = {}; return; }
     this._netKeys = inp;
+    // Sincronizza la posizione X reale dell'avversario (evita divergenza)
+    if(inp.x !== null && inp.x !== undefined){
+      this.x = inp.x;
+    }
+    // Sincronizza HP (autorità dell'avversario sul proprio HP)
+    if(inp.hp !== null && inp.hp !== undefined){
+      this.hp = Math.max(0, inp.hp);
+    }
   }
   syncState(state){ if(state.x!==undefined) this.x=state.x; if(state.hp!==undefined) this.hp=state.hp; }
 
@@ -1252,7 +1307,11 @@ class Fighter {
     const now=millis(), t=frameCount%30;
 
     // ALWAYS face enemy
-    this.facing = (enemy.x > this.x) ? 1 : -1;
+    // In online, nei primissimi frame, enemy.x potrebbe non essere ancora corretto:
+    // usa il facing iniziale finché enemy ha una posizione credibile
+    if(!(this.mode==="online" && !this._initialized)){
+      this.facing = (enemy.x > this.x) ? 1 : -1;
+    }
 
     if(this.mode==="cpu"&&this.playerNum===2){ this._cpuUpdate(enemy, now, t); return; }
 
@@ -1288,15 +1347,39 @@ class Fighter {
     if(this.graxCubeActive) this._updateGraxCube(enemy, now);
 
     const isP1 = this.playerNum===1;
-    // Use network keys if online P2
-    const getKey = k => this.mode==="online"&&this.playerNum===2 ? (this._netKeys[k]||false) : (keys[k]||keys[k.toUpperCase()]||false);
-    const leftKey  = isP1 ? getKey("a") : getKey("j");
-    const rightKey = isP1 ? getKey("d") : getKey("l");
-    const blockKey = isP1 ? getKey("c") : getKey("'");
-    const punchKey = isP1 ? getKey("w") : getKey("i");
-    const kickKey  = isP1 ? getKey("s") : getKey("k");
-    const rangedKey= isP1 ? getKey("q") : getKey("u");
-    const specKey  = isP1 ? getKey("e") : getKey("o");
+    // Online P2 legge i _netKeys (tasti inviati dall'avversario remoto, stesse chiavi a/d/w/s/q/e/c)
+    // Online P1 e modalità locale/cpu leggono la tastiera fisica
+    // In modalità locale, P2 usa j/l/i/k/u/o/'
+    const isOnlineP2 = this.mode==="online" && this.playerNum===2;
+    const isLocalP2  = this.mode!=="online" && this.mode!=="cpu" && this.playerNum===2;
+    let leftKey, rightKey, blockKey, punchKey, kickKey, rangedKey, specKey;
+    if(isOnlineP2){
+      // L'avversario manda i suoi tasti P1 (a/d/w/s/q/e/c)
+      leftKey   = this._netKeys["a"]  || false;
+      rightKey  = this._netKeys["d"]  || false;
+      blockKey  = this._netKeys["c"]  || false;
+      punchKey  = this._netKeys["w"]  || false;
+      kickKey   = this._netKeys["s"]  || false;
+      rangedKey = this._netKeys["q"]  || false;
+      specKey   = this._netKeys["e"]  || false;
+    } else if(isLocalP2){
+      leftKey   = keys["j"]||keys["J"]||false;
+      rightKey  = keys["l"]||keys["L"]||false;
+      blockKey  = keys["'"]||keys[";"]||false;
+      punchKey  = keys["i"]||keys["I"]||false;
+      kickKey   = keys["k"]||keys["K"]||false;
+      rangedKey = keys["u"]||keys["U"]||false;
+      specKey   = keys["o"]||keys["O"]||false;
+    } else {
+      // P1 (locale, online, cpu)
+      leftKey   = keys["a"]||keys["A"]||false;
+      rightKey  = keys["d"]||keys["D"]||false;
+      blockKey  = keys["c"]||keys["C"]||false;
+      punchKey  = keys["w"]||keys["W"]||false;
+      kickKey   = keys["s"]||keys["S"]||false;
+      rangedKey = keys["q"]||keys["Q"]||false;
+      specKey   = keys["e"]||keys["E"]||false;
+    }
 
     // Movement (slower, more deliberate)
     if(!this.anim){
@@ -1698,6 +1781,9 @@ function loop() {
   frameCount++;
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
+  // Mantieni smoothing ad ogni frame (setTransform può resettarlo)
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   game.draw();
 }
 function startGame() {

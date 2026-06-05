@@ -1112,7 +1112,7 @@ class LSDAttackForceUE {
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(80),sy(50),ss(300),ss(44)); ctx.restore();
 
     // P1 ultra bar (red under HP)
-    const ult1pct = Math.min(1, (now - f1.cd4) / 12000);
+    const ult1pct = Math.min(1, (now - f1.cd5) / 12000);
     fillRoundRect(80,100,300,14,"#222",1,3);
     fillRoundRect(80,100,300*ult1pct,14,ult1pct>=1?"#ff0000":"#880000",1,3);
     if(ult1pct>=1) fillText("ULTRA PRONTA!",230,107,"#ff0000",13);
@@ -1125,7 +1125,7 @@ class LSDAttackForceUE {
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(BASE_W-380),sy(50),ss(300),ss(44)); ctx.restore();
 
     // P2 ultra bar
-    const ult2pct = Math.min(1, (now - f2.cd4) / 12000);
+    const ult2pct = Math.min(1, (now - f2.cd5) / 12000);
     fillRoundRect(BASE_W-380,100,300,14,"#222",1,3);
     fillRoundRect(BASE_W-380+(300*(1-ult2pct)),100,300*ult2pct,14,ult2pct>=1?"#ff0000":"#880000",1,3);
     if(ult2pct>=1) fillText("ULTRA PRONTA!",BASE_W-230,107,"#ff0000",13);
@@ -1200,7 +1200,7 @@ class Fighter {
     this.frame = 0;
     this.facing = playerNum===1 ? 1 : -1;
     this.blocking = false;
-    this.cd1=0;this.cd2=0;this.cd3=0;this.cd4=0;
+    this.cd1=0;this.cd2=0;this.cd3=0;this.cd4=0;this.cd5=0; // cd5=ultra cooldown separato da cd4(special)
     this.anim = null;
     this.projX=x; this.projActive=false; this.proj2Active=false;
     // Grax cube particle data
@@ -1220,23 +1220,35 @@ class Fighter {
 
   keyPress(k) {
     const ku = k.toLowerCase();
+    // Tasti che fanno parte di qualche combo — non resettare il tracker
+    const comboKeys = new Set([...this.ultSeq, ...this.ultSeqAlt]);
+
     // Ultra sequence check (main combo)
     if(ku===this.ultSeq[this.ultIdx]){
       this.ultIdx++;
-      if(this.ultIdx>=this.ultSeq.length){ this._triggerUltra(); }
-    } else { this.ultIdx=0; if(ku===this.ultSeq[0]) this.ultIdx=1; }
+      if(this.ultIdx>=this.ultSeq.length){ this._triggerUltra(); this.ultIdx=0; }
+    } else if(!comboKeys.has(ku)){
+      // Tasto estraneo alla combo: resetta
+      this.ultIdx=0;
+    } else if(ku===this.ultSeq[0]){
+      this.ultIdx=1;
+    }
     // Alt combo
     if(ku===this.ultSeqAlt[this.ultIdxAlt]){
       this.ultIdxAlt++;
-      if(this.ultIdxAlt>=this.ultSeqAlt.length){ this._triggerUltra(); }
-    } else { this.ultIdxAlt=0; if(ku===this.ultSeqAlt[0]) this.ultIdxAlt=1; }
+      if(this.ultIdxAlt>=this.ultSeqAlt.length){ this._triggerUltra(); this.ultIdxAlt=0; }
+    } else if(!comboKeys.has(ku)){
+      this.ultIdxAlt=0;
+    } else if(ku===this.ultSeqAlt[0]){
+      this.ultIdxAlt=1;
+    }
   }
 
   _triggerUltra() {
-    if(millis()-this.cd4 < 12000) return;
+    if(millis()-this.cd5 < 12000) return; // cd5 dedicato all'ultra
     if(window._ultraPlaying) return; // altra ultra già in corso
     this.ultActive=true; this.ultIdx=0; this.ultIdxAlt=0;
-    this.cd4=millis();
+    this.cd5=millis();
     window._ultraPlaying = true; // blocca il gioco
     const src = this.name==="grax"
       ? "https://drive.google.com/file/d/1GYqXF27B4AzGFswmmGiBqJnFt2c-YqP_/preview"
@@ -1303,7 +1315,7 @@ class Fighter {
   syncState(state){ if(state.x!==undefined) this.x=state.x; if(state.hp!==undefined) this.hp=state.hp; }
 
   update(enemy) {
-    if(!this._initialized){ this.cd1=this.cd2=this.cd3=this.cd4=millis()-(14000); this._initialized=true; }
+    if(!this._initialized){ this.cd1=this.cd2=this.cd3=this.cd4=this.cd5=millis()-(14000); this._initialized=true; }
     const now=millis(), t=frameCount%30;
 
     // ALWAYS face enemy
@@ -1521,7 +1533,7 @@ class Fighter {
     if(dist<180&&now-this.cd1>1800&&Math.random()<0.5){ this.anim={type:"punch",start:frameCount,dur:32}; this.cd1=now; this._dealDmg(enemy,5,1,false); this._knockback(enemy,50); }
     else if(dist<160&&now-this.cd2>3500&&Math.random()<0.6){ this.anim={type:"kick",start:frameCount,dur:32}; this.cd2=now; this._dealDmg(enemy,10,2.5,false); this._knockback(enemy,120); }
     else if(now-this.cd3>8000&&diff!=="easy"&&Math.random()<0.5){ this.anim={type:"ranged",start:frameCount,dur:34}; this.cd3=now; }
-    else if(now-this.cd4>12000&&(diff==="hard"||diff==="medium")&&Math.random()<0.6){
+    else if(now-this.cd5>12000&&(diff==="hard"||diff==="medium")&&Math.random()<0.6){
       // CPU ultra — trigger via _triggerUltra
       this._triggerUltra();
     }

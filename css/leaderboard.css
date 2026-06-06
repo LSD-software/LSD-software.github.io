@@ -404,3 +404,61 @@
   #consoleGameTabs { gap: 6px; }
   .console-game-btn { padding: 6px 10px; font-size: 0.68rem; }
 }
+
+/* ============================================================
+   CONSOLE AFUE — colonne aggiuntive
+   ============================================================ */
+.col-wins-afue    { text-align:right!important; color:#4EC600; font-weight:700; font-family:'Courier Prime',monospace; }
+.col-losses-afue  { text-align:right!important; color:#ff6666; font-weight:700; font-family:'Courier Prime',monospace; }
+.col-ratio-afue   { text-align:right!important; color:#aaa;    font-family:'Courier Prime',monospace; font-size:0.85em; }
+.col-bestscore-afue { text-align:right!important; color:gold; font-weight:700; font-family:'Courier Prime',monospace; }
+
+/* ── PODIO migliorato ─────────────────────────────────────── */
+.podium-container {
+  display: none;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 28px auto 24px;
+  max-width: 680px;
+  flex-wrap: nowrap;
+}
+.podium-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
+  max-width: 200px;
+  border: 2px solid gold;
+  border-radius: 12px 12px 0 0;
+  padding: 14px 10px 10px;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  transition: transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.podium-block::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+.podium-block:hover { transform: translateY(-4px); }
+
+.podium-medal     { font-size: clamp(1.8rem,4vw,2.4rem); margin-bottom:4px; line-height:1; }
+.podium-rank-num  { font-family:'Cinzel',serif; font-size:clamp(0.75rem,2vw,0.9rem); font-weight:900; letter-spacing:2px; margin-bottom:6px; }
+.podium-name      { font-family:'Cinzel',serif; color:#fff; font-size:clamp(0.7rem,1.8vw,0.88rem); text-align:center; word-break:break-word; margin-bottom:6px; font-weight:700; }
+.podium-val       { font-family:'Courier Prime',monospace; font-size:clamp(0.78rem,1.8vw,0.95rem); font-weight:700; text-align:center; line-height:1.4; }
+
+@media (max-width: 600px) {
+  .podium-container { gap: 6px; margin: 16px auto 16px; }
+  .podium-block     { padding: 8px 6px 8px; border-radius:8px 8px 0 0; }
+  .podium-medal     { font-size: 1.4rem; }
+  .podium-name      { font-size: 0.65rem; }
+  .podium-val       { font-size: 0.7rem; }
+  .col-ratio-afue   { display: none; } /* nasconde W/L% su schermi piccoli */
+}

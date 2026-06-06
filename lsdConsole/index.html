@@ -26,20 +26,51 @@ html,body{overflow:hidden;position:fixed;width:100%;height:100%;touch-action:non
 @keyframes pulse{0%,100%{text-shadow:0 0 20px #a10000aa;}50%{text-shadow:0 0 40px #ff0000cc;}}
 
 /* ── Auth overlay ── */
-#authOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:8000;padding:16px;}
+#authOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:8000;padding:16px;backdrop-filter:blur(8px);}
 #authOverlay.show{display:flex;}
-#authBox{background:#0d0d0d;border:2px solid #baa701;border-radius:12px;padding:clamp(20px,4vw,36px) clamp(20px,4vw,40px);width:min(440px,96vw);display:flex;flex-direction:column;gap:12px;max-height:96vh;overflow-y:auto;}
-#authBox h2{color:#a10000;font-size:clamp(1.1rem,4vw,1.5rem);letter-spacing:3px;text-align:center;}
-#authBox input{background:#1a1a1a;border:1px solid #444;border-radius:6px;padding:clamp(8px,2vw,12px) 14px;color:#fff;font-family:inherit;font-size:clamp(0.9rem,3vw,1rem);width:100%;}
-#authBox input:focus{outline:none;border-color:#baa701;}
-.auth-btn{background:#a10000;color:#baa701;border:none;padding:clamp(9px,2vw,12px);border-radius:6px;cursor:pointer;font-family:inherit;font-size:clamp(0.85rem,2.5vw,1rem);letter-spacing:1px;width:100%;transition:filter 0.2s;}
-.auth-btn:hover{filter:brightness(1.2);}
-.auth-btn.secondary{background:#1a1a1a;border:1px solid #555;color:#aaa;}
+#authBox{
+  background:linear-gradient(160deg,#0d0d0d,#110000);
+  border:2px solid #baa701;border-radius:16px;
+  padding:clamp(24px,5vw,40px) clamp(20px,5vw,40px);
+  width:min(460px,96vw);display:flex;flex-direction:column;gap:14px;
+  max-height:94vh;overflow-y:auto;
+  box-shadow:0 0 60px rgba(161,0,0,0.3), 0 0 120px rgba(0,0,0,0.8);
+  animation:authIn 0.25s ease-out;
+}
+@keyframes authIn{from{opacity:0;transform:scale(0.93) translateY(12px);}to{opacity:1;transform:scale(1) translateY(0);}}
+#authBox .auth-logo{text-align:center;padding-bottom:4px;}
+#authBox .auth-logo h2{color:#a10000;font-size:clamp(1.3rem,4vw,1.8rem);letter-spacing:5px;text-align:center;margin:0;text-shadow:0 0 20px rgba(161,0,0,0.5);}
+#authBox .auth-logo p{color:#baa701;font-size:0.72rem;letter-spacing:3px;margin:4px 0 0;opacity:0.7;}
+#authBox .auth-divider{border:none;border-top:1px solid rgba(186,167,1,0.15);margin:2px 0;}
+.auth-field-label{color:rgba(255,255,255,0.4);font-size:clamp(0.65rem,2vw,0.72rem);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;display:block;}
+#authBox input{
+  background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:8px;
+  padding:clamp(10px,2.5vw,13px) 14px;color:#fff;font-family:inherit;
+  font-size:clamp(0.88rem,3vw,1rem);width:100%;box-sizing:border-box;
+  transition:border-color 0.2s;
+}
+#authBox input:focus{outline:none;border-color:#baa701;background:#1e1e1e;}
+.auth-btn{
+  background:linear-gradient(135deg,#a10000,#7a0000);
+  color:#baa701;border:1.5px solid #baa701;padding:clamp(11px,2.5vw,14px);
+  border-radius:8px;cursor:pointer;font-family:inherit;
+  font-size:clamp(0.85rem,2.5vw,1rem);letter-spacing:2px;width:100%;
+  transition:all 0.2s;font-weight:700;
+}
+.auth-btn:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.auth-btn.secondary{background:#111;border:1.5px solid #333;color:#555;letter-spacing:1px;font-size:clamp(0.78rem,2vw,0.88rem);}
+.auth-btn.secondary:hover{border-color:#666;color:#888;transform:none;}
 .auth-tabs{display:flex;gap:6px;}
-.auth-tab{flex:1;padding:clamp(6px,1.5vw,10px);background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#888;cursor:pointer;font-family:inherit;font-size:clamp(0.75rem,2.5vw,0.9rem);letter-spacing:1px;transition:all 0.2s;}
-.auth-tab.active{border-color:#baa701;color:#baa701;background:#111;}
-#authMsg{color:#ff6666;font-size:clamp(0.75rem,2.5vw,0.9rem);text-align:center;min-height:18px;}
-#authUserInfo{color:#baa701;font-size:clamp(0.75rem,2.5vw,0.85rem);text-align:center;}
+.auth-tab{flex:1;padding:clamp(7px,1.5vw,11px);background:#111;border:1.5px solid #2a2a2a;border-radius:8px;color:#555;cursor:pointer;font-family:inherit;font-size:clamp(0.7rem,2.5vw,0.82rem);letter-spacing:1.5px;transition:all 0.2s;text-transform:uppercase;font-weight:700;}
+.auth-tab.active{border-color:#baa701;color:#baa701;background:#1a1100;box-shadow:0 0 8px rgba(186,167,1,0.1);}
+.auth-tab:hover:not(.active){border-color:#444;color:#888;}
+#authMsg{font-size:clamp(0.75rem,2.5vw,0.88rem);text-align:center;min-height:18px;padding:6px;border-radius:6px;transition:all 0.2s;}
+#authMsg.error{color:#ff6666;background:rgba(255,0,0,0.06);}
+#authMsg.success{color:#4EC600;background:rgba(78,198,0,0.06);}
+#authUserInfo{color:#baa701;font-size:clamp(0.75rem,2.5vw,0.85rem);text-align:center;opacity:0.7;}
+.auth-forgot-link{color:rgba(186,167,1,0.4);font-size:0.78rem;text-align:right;cursor:pointer;transition:color 0.2s;}
+.auth-forgot-link:hover{color:#baa701;}
 
 /* ── Video overlay (ultimate) ── */
 #videoOverlay{display:none;position:fixed;inset:0;background:#000;z-index:7000;align-items:center;justify-content:center;}
@@ -99,15 +130,20 @@ html,body{overflow:hidden;position:fixed;width:100%;height:100%;touch-action:non
 <!-- Auth overlay -->
 <div id="authOverlay">
   <div id="authBox">
-    <h2>LSD Console</h2>
+    <div class="auth-logo">
+      <h2>⚡ LSD CONSOLE</h2>
+      <p>PLAYER ACCOUNT</p>
+    </div>
     <p id="authUserInfo"></p>
+    <hr class="auth-divider">
     <div class="auth-tabs">
       <div class="auth-tab active" onclick="setAuthTab('login')">LOGIN</div>
       <div class="auth-tab" onclick="setAuthTab('register')">REGISTER</div>
       <div class="auth-tab" onclick="setAuthTab('guest')">GUEST</div>
     </div>
     <div id="authFields"></div>
-    <div id="authMsg"></div>
+    <div id="authMsg" class="auth-msg"></div>
+    <hr class="auth-divider">
     <button class="auth-btn secondary" onclick="closeAuth()">✕ CLOSE</button>
   </div>
 </div>
@@ -461,7 +497,7 @@ async function doAuth() {
       const pw = document.getElementById("ai_pw")?.value;
       const d  = await Auth.request("/auth/login","POST",{identifier:id,password:pw});
       Auth.save(d.token, d.user);
-      msg.style.color="#4EC600"; msg.textContent = `Welcome back, ${d.user.username}!`;
+      msg.className="auth-msg success"; msg.textContent = `Welcome back, ${d.user.username}!`;
       // Merge trofei DB con locali
       if (game) await game.mergeTrophiesFromDB();
       setTimeout(closeAuth, 1200);
@@ -471,19 +507,20 @@ async function doAuth() {
       const pw = document.getElementById("ai_pw")?.value;
       const d  = await Auth.request("/auth/register","POST",{username:un,email:em,password:pw});
       Auth.save(d.token, d.user);
-      msg.style.color="#4EC600"; msg.textContent = `Account created! Welcome, ${d.user.username}!`;
+      msg.className="auth-msg success"; msg.textContent = `Account created! Welcome, ${d.user.username}!`;
       setTimeout(closeAuth, 1200);
     } else {
       const nick = document.getElementById("ai_guest")?.value.trim() || "Guest";
       const d    = await Auth.request("/auth/guest","POST");
       d.user.username = nick;
       Auth.save(d.token, d.user);
-      msg.style.color="#baa701"; msg.textContent = `Playing as guest: ${nick}`;
+      msg.className="auth-msg success"; msg.textContent = `Playing as guest: ${nick}`;
       setTimeout(closeAuth, 900);
     }
   } catch(e) {
-    msg.style.color="#ff6666"; msg.textContent = e.message || "Errore";
+    msg.className="auth-msg error"; msg.textContent = e.message || "Error";
   }
+  if(btn) btn.disabled=false;
 }
 
 // ── Storage (trofei locali) ──────────────────────────────────
@@ -1166,20 +1203,26 @@ class LSDAttackForceUE {
     if(!this.victory && !window._ultraPlaying){
       if(this.fighter1.hp<=0){
         this.victory=true; this.winner=this.fighter2.name.toUpperCase();
-        this.victorIsP1=(false); // P2 wins
+        this.victorIsP1=false; // P2 wins = local player (P1) loses
         this.victoryTime=millis();
         if(this.mode==="online"&&this.socket){
-          this.socket.emit("round_result",{winner:this.fighter2.name,loser:this.fighter1.name});
-          if(!Auth.isGuest()) Auth.submitAFUEResult(0,1);
+          // SOLO playerIndex===0 emette round_result per evitare doppio conteggio
+          if(this.playerIndex===0){
+            this.socket.emit("round_result",{winner:this.fighter2.name,loser:this.fighter1.name});
+          }
+          // submitAFUEResult solo per playerIndex===0: il server gestisce entrambi via broadcast
+          // non chiamare submitAFUEResult lato client — ci pensa il backend in round_result
         }
       }
       if(this.fighter2.hp<=0){
         this.victory=true; this.winner=this.fighter1.name.toUpperCase();
-        this.victorIsP1=(true); // P1 wins
+        this.victorIsP1=true; // P1 wins = local player wins
         this.victoryTime=millis();
         if(this.mode==="online"&&this.socket){
-          this.socket.emit("round_result",{winner:this.fighter1.name,loser:this.fighter2.name});
-          if(!Auth.isGuest()) Auth.submitAFUEResult(1,0);
+          // SOLO playerIndex===0 emette round_result
+          if(this.playerIndex===0){
+            this.socket.emit("round_result",{winner:this.fighter1.name,loser:this.fighter2.name});
+          }
         }
         if(game) game.trophies[13]=true;
       }
@@ -1194,9 +1237,12 @@ class LSDAttackForceUE {
       // Personalized message for online
       let topLine, topCol, subLine;
       if(this.mode==="online"){
-        const iWin = this.victorIsP1; // P1 is always the local player in online
-        topLine = iWin ? "🏆  YOU WIN!" : "💀  YOU LOSE";
-        topCol  = iWin ? "#FFD700" : "#FF3333";
+        // playerIndex 0 → il locale è fighter1 → victorIsP1=true = locale vince
+        // playerIndex 1 → il locale è fighter2 → victorIsP1=false = locale vince (P2 ha vinto)
+        const localWins = (this.playerIndex===0 && this.victorIsP1) ||
+                          (this.playerIndex===1 && !this.victorIsP1);
+        topLine = localWins ? "🏆  YOU WIN!" : "💀  YOU LOSE";
+        topCol  = localWins ? "#FFD700" : "#FF3333";
         subLine = `${this.winner} wins the round`;
       } else {
         topLine = `🏆  ${this.winner}  WINS!`;

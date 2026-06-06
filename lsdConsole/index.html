@@ -164,7 +164,7 @@ const BASE_W = 1920, BASE_H = 1080;
 function enterFullscreen() {
   document.getElementById("fsPrompt").style.display = "none";
   const el  = document.documentElement;
-  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
   if (req) req.call(el).catch(() => {});
   resizeCanvas();
   startGame();
@@ -175,17 +175,25 @@ document.addEventListener("keydown", function onFirst() {
     document.removeEventListener("keydown", onFirst);
   }
 });
-// Animate loading bar, then auto-start after 8s
+// Mobile: force fullscreen immediately on first touch, no waiting
+if(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){
+  document.addEventListener("touchstart", function _autoFS(){
+    document.removeEventListener("touchstart", _autoFS);
+    if(document.getElementById("fsPrompt").style.display !== "none") enterFullscreen();
+  }, {once:true});
+}
+// Animate loading bar
 let _loadStart = Date.now();
 function animLoadBar() {
-  const pct = Math.min(1, (Date.now()-_loadStart)/7000);
+  const pct = Math.min(1, (Date.now()-_loadStart)/5000);
   document.getElementById("loadBarFill").style.width = (pct*100)+"%";
   if (pct < 1) requestAnimationFrame(animLoadBar);
 }
 requestAnimationFrame(animLoadBar);
+// Auto-start after 5s regardless
 setTimeout(() => {
   if (document.getElementById("fsPrompt").style.display !== "none") enterFullscreen();
-}, 8000);
+}, 5000);
 // ── Mobile detection (MUST be before resizeCanvas) ──────────
 const isMobile = /Mobi|Android|iPhone|iPad|Touch/i.test(navigator.userAgent) || ('ontouchstart' in window) || window.innerWidth < 900;
 
@@ -319,7 +327,12 @@ let padActive = false;
 function showGamePad(show) {
   padActive = show;
   document.getElementById("gamepad").classList.toggle("active", show && isMobile);
-  document.getElementById("mobileMenu").classList.toggle("show", show && isMobile);
+  // mobileMenu (hamburger) visible in ALL games on mobile, not just AFUE
+  // shown whenever screen != 0 — managed by showMobileMenu()
+}
+function showMobileMenu(show) {
+  if(!isMobile) return;
+  document.getElementById("mobileMenu").classList.toggle("show", show);
 }
 function setupMobilePad() {
   if (!isMobile) return;
@@ -797,7 +810,7 @@ class LSDConsole {
     drawButton("EXIT",    250,BASE_H/2+200,220,90);
     if(isButtonPressed(250,BASE_H/2-200,220,90)){
       const prev=this.screen; this.screen=0; this.sidePanelOpen=false;
-      showGamePad(false);
+      showGamePad(false); showMobileMenu(false);
       this.lsdafue.reset(); this.nation.lsdnation=false;
       this.zombies.reset(); this.ball.reset(); this.target.reset();
       if(prev===6) this.artist.initialized=false;
@@ -805,7 +818,7 @@ class LSDConsole {
     if(isButtonPressed(250,BASE_H/2,220,90)) this.sidePanelOpen=false;
     if(isButtonPressed(250,BASE_H/2+200,220,90)){
       this.saveTrophies(); this.sidePanelOpen=false; this.screen=0;
-      showGamePad(false);
+      showGamePad(false); showMobileMenu(false);
       window.location.href=SITE_URL+"/project.html";
     }
   }
@@ -883,9 +896,8 @@ class LSDAttackForceUE {
     this.socket.on("opponent_ultra", d => {
       if(window._ultraPlaying) return;
       window._ultraPlaying = true;
-      const src = d.char==="grax"
-        ? "https://drive.google.com/file/d/1GYqXF27B4AzGFswmmGiBqJnFt2c-YqP_/preview"
-        : "https://drive.google.com/file/d/195yjrgxtN_OdGZSKU3Wo3HtE4wCoE4Bb/preview";
+      const ytId = d.char==="grax" ? "PIWatPZndfc" : "o8cJGZX2Pyg";
+      const src  = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&fs=0&disablekb=1&iv_load_policy=3`;
       if(this.fighter2) this.fighter2._showUltimateVideo(src, null);
     });
     this.socket.on("opponent_ultra_done", () => {
@@ -914,14 +926,17 @@ class LSDAttackForceUE {
     const f2frames = n => Array.from({length:n},(_,i)=>({ r:images[`${p2}_r_${i}`], l:images[`${p2}_l_${i}`] }));
     const nFrames = ch => ch==="grax"?14:13;
     // Online: P1 starts left (200), P2 starts right (BASE_W-200) — far apart
-    const p1startX = this.mode==="online" ? 200  : 400;
-    const p2startX = this.mode==="online" ? BASE_W-200 : BASE_W-400;
+    // Online: partenza ai bordi opposti; locale/CPU: più centrati
+    const p1startX = this.mode==="online" ? 180  : 380;
+    const p2startX = this.mode==="online" ? BASE_W-180 : BASE_W-380;
     this.fighter1 = new Fighter(f1frames(nFrames(p1)), p1startX, 800, p1, 1, this.mode);
     this.fighter2 = new Fighter(f2frames(nFrames(p2)), p2startX, 800, p2, 2, this.mode==="cpu"?"cpu":this.mode==="online"?"online":this.mode);
     if (this.mode==="cpu") this.fighter2.cpuDiff=this.cpuDiff;
     // Give fighters a back-reference to the AFUE instance (for socket events)
     this.fighter1._ownerAfue = this;
     this.fighter2._ownerAfue = this;
+    this.fighter1._usedUltraThisRound = false;
+    this.fighter2._usedUltraThisRound = false;
     this._onlineResult = null;
   }
 
@@ -1367,9 +1382,9 @@ class Fighter {
     this.ultActive=true; this.ultIdx=0; this.ultIdxAlt=0;
     this.cd5=millis();
     window._ultraPlaying = true;
-    const src = this.name==="grax"
-      ? "https://drive.google.com/file/d/1GYqXF27B4AzGFswmmGiBqJnFt2c-YqP_/preview"
-      : "https://drive.google.com/file/d/195yjrgxtN_OdGZSKU3Wo3HtE4wCoE4Bb/preview";
+    // YouTube embed con autoplay — molto più affidabile di Drive
+    const ytId = this.name==="grax" ? "PIWatPZndfc" : "o8cJGZX2Pyg";
+    const src  = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&fs=0&disablekb=1&iv_load_policy=3`;
     this._showUltimateVideo(src, onDone);
     if(game) game.trophies[12]=true;
     // Notify opponent via socket to show the same video
@@ -1403,9 +1418,12 @@ class Fighter {
 
     // iframe for Drive video — show after 600ms (after flash)
     const iframe = document.createElement("iframe");
-    iframe.style.cssText = "width:100%;height:100%;border:none;position:absolute;inset:0;opacity:0;transition:opacity 0.4s;";
-    iframe.allow = "autoplay; fullscreen";
-    iframe.allowFullscreen = true;
+    iframe.style.cssText = "width:100%;height:100%;border:none;position:absolute;inset:0;";
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+    iframe.allowFullscreen = false;
+    iframe.setAttribute("allowfullscreen","");
+    // Set src immediately so YouTube starts loading
+    iframe.src = src;
     overlay.appendChild(iframe);
 
     let _closed = false;
@@ -1420,26 +1438,20 @@ class Fighter {
       this.ultKill = true;
       this.ultActive = false;
       if(onDone) onDone();
-      // Online: notify opponent that ultra finished
       if(this._ownerAfue && this._ownerAfue.socket){
         this._ownerAfue.socket.emit("ultra_done", {});
       }
     };
 
-    setTimeout(() => {
-      iframe.src = src;
-      iframe.style.opacity = "1";
-    }, 600);
-
     skip.addEventListener("click", e => { e.stopPropagation(); closeUltra(); }, {once:true});
-    // Auto-close dopo 9s
-    this._vidTimer = setTimeout(closeUltra, 9000);
+    // YouTube videos ~30s but we let them play for 12s then auto-close
+    this._vidTimer = setTimeout(closeUltra, 12000);
 
-    // Click overlay after 1.2s
+    // Click overlay to close (after 2s guard)
     const _openedAt = Date.now();
     overlay.addEventListener("click", function _oc(e){
       if(e.target===skip) return;
-      if(Date.now()-_openedAt < 1200) return;
+      if(Date.now()-_openedAt < 2000) return;
       overlay.removeEventListener("click",_oc);
       closeUltra();
     });
@@ -1541,7 +1553,7 @@ class Fighter {
     } else if(isLocalP2){
       leftKey   = keys["j"]||keys["J"]||false;
       rightKey  = keys["l"]||keys["L"]||false;
-      blockKey  = keys["'"]||keys[";"]||false;
+      blockKey  = keys["."]||keys[">"]||keys["'"]||keys[";"]||false; // "." è il tasto para P2
       punchKey  = keys["i"]||keys["I"]||false;
       kickKey   = keys["k"]||keys["K"]||false;
       rangedKey = keys["u"]||keys["U"]||false;
@@ -1733,8 +1745,14 @@ class Fighter {
     if(dist<180&&now-this.cd1>1800&&Math.random()<0.5){ this.anim={type:"punch",start:frameCount,dur:32}; this.cd1=now; this._dealDmg(enemy,5,1,false); this._knockback(enemy,50); }
     else if(dist<160&&now-this.cd2>3500&&Math.random()<0.6){ this.anim={type:"kick",start:frameCount,dur:32}; this.cd2=now; this._dealDmg(enemy,10,2.5,false); this._knockback(enemy,120); }
     else if(now-this.cd3>8000&&diff!=="easy"&&Math.random()<0.5){ this.anim={type:"ranged",start:frameCount,dur:34}; this.cd3=now; }
-    else if(now-this.cd5>12000&&(diff==="hard"||diff==="medium")&&Math.random()<0.6){
-      // CPU ultra — trigger via _triggerUltra
+    else if(
+      now-this.cd5>12000 &&
+      (diff==="hard"||diff==="medium") &&
+      Math.random()<0.15 &&                       // solo 15% di probabilità
+      !this._usedUltraThisRound &&                // max 1 volta per round
+      enemy.hp < 20                               // solo quando avversario quasi morto
+    ){
+      this._usedUltraThisRound = true;
       this._triggerUltra();
     }
   }

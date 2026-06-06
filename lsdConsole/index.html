@@ -187,6 +187,8 @@ setTimeout(() => {
   if (document.getElementById("fsPrompt").style.display !== "none") enterFullscreen();
 }, 8000);
 const DPR = Math.min(window.devicePixelRatio || 1, 3);
+let _offX = 0, _offY = 0; // canvas offset for centering/cropping
+
 function resizeCanvas() {
   W = window.innerWidth; H = window.innerHeight;
   canvas.width  = Math.round(W * DPR);
@@ -197,22 +199,32 @@ function resizeCanvas() {
   canvas.style.top = "0";
   canvas.style.left = "0";
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  // On mobile: zoom to fill screen (like cardgame — no black borders)
+
+  const scaleX = W / BASE_W;
+  const scaleY = H / BASE_H;
+
   if(isMobile){
-    const scaleX = W / BASE_W;
-    const scaleY = H / BASE_H;
-    scale = Math.max(scaleX, scaleY); // fill, not fit
+    // Fill screen: zoom so no black borders (may crop edges slightly)
+    scale = Math.max(scaleX, scaleY);
+    // Center the cropped axis
+    _offX = (W - BASE_W * scale) / 2;
+    _offY = (H - BASE_H * scale) / 2;
   } else {
-    scale = Math.min(W / BASE_W, H / BASE_H); // letterbox on desktop
+    // Letterbox on desktop: fit entirely inside screen
+    scale = Math.min(scaleX, scaleY);
+    _offX = (W - BASE_W * scale) / 2;
+    _offY = (H - BASE_H * scale) / 2;
   }
+
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-function sx(x) { return x * scale + (W - BASE_W * scale) / 2; }
-function sy(y) { return y * scale + (H - BASE_H * scale) / 2; }
+// sx/sy always use _offX/_offY — works correctly for both fill and fit modes
+function sx(x) { return x * scale + _offX; }
+function sy(y) { return y * scale + _offY; }
 function ss(s) { return s * scale; }
 
 // ── Asset Loading ───────────────────────────────────────────
@@ -264,25 +276,27 @@ let mouseX = 0, mouseY = 0, mousePressed = false, _clickConsumed = false;
 function consumeClick() { _clickConsumed = true; }
 function clickAvailable() { return mousePressed && !_clickConsumed; }
 
+function _toGameX(clientX) { return (clientX - _offX) / scale; }
+function _toGameY(clientY) { return (clientY - _offY) / scale; }
+
 canvas.addEventListener("mousemove", e => {
-  const r = canvas.getBoundingClientRect();
-  mouseX = ((e.clientX - r.left) - (W - BASE_W*scale)/2) / scale;
-  mouseY = ((e.clientY - r.top)  - (H - BASE_H*scale)/2) / scale;
+  mouseX = _toGameX(e.clientX);
+  mouseY = _toGameY(e.clientY);
 });
 canvas.addEventListener("mousedown", () => { mousePressed = true;  _clickConsumed = false; });
 canvas.addEventListener("mouseup",   () => { mousePressed = false; _clickConsumed = false; });
 canvas.addEventListener("touchstart", e => {
   e.preventDefault();
-  const t = e.touches[0], r = canvas.getBoundingClientRect();
-  mouseX = ((t.clientX - r.left) - (W - BASE_W*scale)/2) / scale;
-  mouseY = ((t.clientY - r.top)  - (H - BASE_H*scale)/2) / scale;
+  const t = e.touches[0];
+  mouseX = _toGameX(t.clientX);
+  mouseY = _toGameY(t.clientY);
   mousePressed = true; _clickConsumed = false;
 }, { passive: false });
 canvas.addEventListener("touchmove", e => {
   e.preventDefault();
-  const t = e.touches[0], r = canvas.getBoundingClientRect();
-  mouseX = ((t.clientX - r.left) - (W - BASE_W*scale)/2) / scale;
-  mouseY = ((t.clientY - r.top)  - (H - BASE_H*scale)/2) / scale;
+  const t = e.touches[0];
+  mouseX = _toGameX(t.clientX);
+  mouseY = _toGameY(t.clientY);
 }, { passive: false });
 canvas.addEventListener("touchend", () => { mousePressed = false; _clickConsumed = false; }, { passive: false });
 canvas.addEventListener("contextmenu", e => e.preventDefault());

@@ -82,6 +82,186 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/project.css">
+  <style>
+  /* ── AUTH PANEL in navbar ───────────────────────── */
+  #authNavBtn {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 18px;
+    border: 1.5px solid rgba(186,167,1,0.5);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.5);
+    color: #baa701;
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.72rem, 1.8vw, 0.88rem);
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    position: relative;
+    z-index: 200;
+  }
+  #authNavBtn:hover { border-color: #baa701; background: rgba(161,0,0,0.3); }
+  #authNavBtn .auth-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg,#a10000,#600000);
+    border: 1.5px solid #baa701;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: #baa701; font-weight: 900;
+  }
+
+  /* ── AUTH MODAL ─────────────────────────────────── */
+  #authModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(6px);
+  }
+  #authModal.open { display: flex; }
+
+  #authModalBox {
+    background: #0d0d0d;
+    border: 2px solid #baa701;
+    border-radius: 16px;
+    width: min(460px, 96vw);
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: clamp(24px,5vw,40px) clamp(20px,5vw,40px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    animation: modalIn 0.25s ease-out;
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform:scale(0.93) translateY(10px); }
+    to   { opacity:1; transform:scale(1)    translateY(0); }
+  }
+
+  #authModalBox .modal-close {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; color: #555; font-size: 1.4rem;
+    cursor: pointer; line-height: 1; transition: color 0.2s;
+  }
+  #authModalBox .modal-close:hover { color: #fff; }
+
+  #authModalBox .modal-logo {
+    text-align: center; margin-bottom: 4px;
+  }
+  #authModalBox .modal-logo h2 {
+    color: #a10000; font-family: 'Cinzel',serif;
+    font-size: clamp(1.2rem,4vw,1.6rem);
+    letter-spacing: 4px; margin: 0;
+    text-shadow: 0 0 20px rgba(161,0,0,0.5);
+  }
+  #authModalBox .modal-logo p {
+    color: #baa701; font-size: 0.72rem; letter-spacing: 3px;
+    font-family: 'Courier New',monospace; margin: 4px 0 0;
+  }
+
+  .auth-tabs-row {
+    display: flex; gap: 6px;
+  }
+  .auth-tab-btn {
+    flex: 1; padding: 10px 6px;
+    background: #111; border: 1.5px solid #333;
+    border-radius: 8px; color: #666;
+    font-family: 'Cinzel',serif; font-size: clamp(0.68rem,2vw,0.82rem);
+    font-weight: 700; letter-spacing: 1.5px; cursor: pointer;
+    transition: all 0.2s; text-transform: uppercase;
+  }
+  .auth-tab-btn.active {
+    border-color: #baa701; color: #baa701; background: #1a1100;
+    box-shadow: 0 0 10px rgba(186,167,1,0.15);
+  }
+
+  .auth-field {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .auth-field label {
+    color: rgba(255,255,255,0.45); font-size: 0.72rem;
+    letter-spacing: 2px; font-family: 'Cinzel',serif; text-transform: uppercase;
+  }
+  .auth-field input {
+    background: #1a1a1a; border: 1.5px solid #333; border-radius: 8px;
+    padding: 12px 14px; color: #fff;
+    font-family: 'Courier New',monospace; font-size: 0.95rem;
+    transition: border-color 0.2s; outline: none; width: 100%;
+    box-sizing: border-box;
+  }
+  .auth-field input:focus { border-color: #baa701; }
+
+  .auth-submit-btn {
+    background: linear-gradient(135deg,#a10000,#7a0000);
+    color: #baa701; border: 1.5px solid #baa701;
+    border-radius: 8px; padding: 14px;
+    font-family: 'Cinzel',serif; font-size: clamp(0.82rem,2.5vw,0.95rem);
+    font-weight: 700; letter-spacing: 2px;
+    cursor: pointer; transition: all 0.2s; width: 100%;
+  }
+  .auth-submit-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+  .auth-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .auth-msg {
+    min-height: 18px; text-align: center;
+    font-family: 'Courier New',monospace; font-size: 0.85rem; border-radius: 6px;
+    padding: 6px; transition: all 0.2s;
+  }
+  .auth-msg.error   { color: #ff6666; background: rgba(255,0,0,0.07); }
+  .auth-msg.success { color: #4EC600; background: rgba(78,198,0,0.07); }
+
+  .auth-divider {
+    border: none; border-top: 1px solid rgba(186,167,1,0.15); margin: 4px 0;
+  }
+  .auth-forgot {
+    text-align: right; font-size: 0.78rem;
+    color: rgba(186,167,1,0.5); cursor: pointer; font-family: 'Courier New',monospace;
+    transition: color 0.2s;
+  }
+  .auth-forgot:hover { color: #baa701; }
+
+  /* Logged-in state panel */
+  #authLoggedPanel {
+    display: flex; flex-direction: column; gap: 16px; align-items: center;
+  }
+  #authLoggedPanel .user-avatar-big {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg,#a10000,#600000);
+    border: 3px solid #baa701;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; color: #baa701; font-weight: 900;
+    box-shadow: 0 0 20px rgba(161,0,0,0.4);
+  }
+  #authLoggedPanel .welcome-text {
+    color: #fff; font-family: 'Cinzel',serif;
+    font-size: clamp(1rem,3vw,1.2rem); text-align: center; letter-spacing: 2px;
+  }
+  #authLoggedPanel .welcome-text span { color: #baa701; }
+  #authLoggedPanel .user-email {
+    color: rgba(255,255,255,0.3); font-size: 0.8rem;
+    font-family: 'Courier New',monospace; text-align: center;
+  }
+  .auth-logout-btn {
+    background: #111; border: 1.5px solid #444;
+    color: #888; border-radius: 8px; padding: 12px 28px;
+    font-family: 'Cinzel',serif; font-size: 0.82rem;
+    letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
+    width: 100%;
+  }
+  .auth-logout-btn:hover { border-color: #ff4444; color: #ff4444; }
+
+  @media (max-width:600px) {
+    #authNavBtn { padding: 6px 12px; font-size: 0.72rem; }
+  }
+  </style>
 </head>
 <body>
   <header>
@@ -100,8 +280,42 @@
         <a href="leaderboard.html">LEADERBOARD</a>
         <a href="contact.html">CONTACTS</a>
       </nav>
+      <!-- Auth button in navbar -->
+      <div id="authNavBtn" onclick="openAuthModal()">
+        <div class="auth-avatar" id="authAvatar">?</div>
+        <span id="authNavLabel">SIGN IN</span>
+      </div>
     </div>
   </header>
+
+  <!-- ── AUTH MODAL ──────────────────────────────────────── -->
+  <div id="authModal" role="dialog" aria-modal="true" aria-label="Sign in or register">
+    <div id="authModalBox">
+      <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
+
+      <!-- Logo -->
+      <div class="modal-logo">
+        <h2>⚡ LSD SOFTWARE</h2>
+        <p>PLAYER ACCOUNT</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs-row" id="authTabsRow">
+        <button class="auth-tab-btn active" onclick="setAuthModalTab('login')">LOGIN</button>
+        <button class="auth-tab-btn"        onclick="setAuthModalTab('register')">REGISTER</button>
+        <button class="auth-tab-btn"        onclick="setAuthModalTab('forgot')">FORGOT PW</button>
+      </div>
+
+      <!-- Form fields (dynamic) -->
+      <div id="authModalFields"></div>
+
+      <!-- Message -->
+      <div class="auth-msg" id="authModalMsg"></div>
+
+      <!-- Logged-in view -->
+      <div id="authLoggedPanel" style="display:none"></div>
+    </div>
+  </div>
 
   <main>
     <div id="container">
@@ -168,12 +382,13 @@
     <a href="cookies.html" style="color:gold;text-decoration:none;">Cookie Policy</a></p>
   </footer>
 
+  <script src="cardGameWeb/js_cg/api.js"></script>
   <script src="js/script.js"></script>
   <script src="js/cookie-banner.js"></script>
+  <script src="js/auth-project.js"></script>
   <script>
   function openConsole(e) {
     e.preventDefault();
-    // Open LSD Console in same window
     window.location.href = 'lsdConsole/index.html';
   }
   </script>

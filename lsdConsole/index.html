@@ -186,6 +186,9 @@ requestAnimationFrame(animLoadBar);
 setTimeout(() => {
   if (document.getElementById("fsPrompt").style.display !== "none") enterFullscreen();
 }, 8000);
+// ── Mobile detection (MUST be before resizeCanvas) ──────────
+const isMobile = /Mobi|Android|iPhone|iPad|Touch/i.test(navigator.userAgent) || ('ontouchstart' in window) || window.innerWidth < 900;
+
 const DPR = Math.min(window.devicePixelRatio || 1, 3);
 let _offX = 0, _offY = 0; // canvas offset for centering/cropping
 
@@ -310,9 +313,6 @@ document.addEventListener("keyup", e => {
   keys[e.key.toLowerCase()] = false; keys[e.key] = false;
   if (game) game.handleKeyRelease(e.key);
 });
-
-// ── Mobile detection ─────────────────────────────────────────
-const isMobile = /Mobi|Android|iPhone|iPad|Touch/i.test(navigator.userAgent) || ('ontouchstart' in window) || window.innerWidth < 900;
 
 // ── Mobile pad — shown ONLY during AFUE fight ───────────────
 let padActive = false;

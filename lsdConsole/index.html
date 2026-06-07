@@ -1170,8 +1170,10 @@ class LSDAttackForceUE {
       const src  = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&fs=0&disablekb=1&iv_load_policy=3`;
       if(this.fighter2) this.fighter2._showUltimateVideo(src, null);
     });
+    // opponent_ultra_done: il client locale gestisce già il proprio _ultraPlaying
+    // via closeUltra(). Non forziamo false qui per non tagliare il video.
     this.socket.on("opponent_ultra_done", () => {
-      window._ultraPlaying = false;
+      // noop — gestito da closeUltra() localmente
     });
     // Round result for online: show YOU WIN / YOU LOSE
     this.socket.on("round_result_broadcast", d => {
@@ -1196,10 +1198,11 @@ class LSDAttackForceUE {
     const f2frames = n => Array.from({length:n},(_,i)=>({ r:images[`${p2}_r_${i}`], l:images[`${p2}_l_${i}`] }));
     const nFrames = ch => ch==="grax"?14:13;
     // Online: P1 starts left (200), P2 starts right (BASE_W-200) — far apart
-    // P1 always starts LEFT, P2 always starts RIGHT
-    // Online: far apart at screen edges; local/CPU: moderate distance
-    const p1startX = this.mode==="online" ? 160  : 360;
-    const p2startX = this.mode==="online" ? BASE_W-160 : BASE_W-360;
+    // fighter1 sempre a SINISTRA, fighter2 sempre a DESTRA
+    // Online: ai bordi opposti dello schermo, lontani
+    // Locale/CPU: distanza moderata
+    const p1startX = this.mode==="online" ? 200  : 380;
+    const p2startX = this.mode==="online" ? BASE_W-200 : BASE_W-380;
     this.fighter1 = new Fighter(f1frames(nFrames(p1)), p1startX, 800, p1, 1, this.mode);
     this.fighter2 = new Fighter(f2frames(nFrames(p2)), p2startX, 800, p2, 2, this.mode==="cpu"?"cpu":this.mode==="online"?"online":this.mode);
     if (this.mode==="cpu") this.fighter2.cpuDiff=this.cpuDiff;
@@ -1209,6 +1212,12 @@ class LSDAttackForceUE {
     this.fighter1._usedUltraThisRound = false;
     this.fighter2._usedUltraThisRound = false;
     this._onlineResult = null;
+    // Mark which fighter is controlled by network input on this client
+    // playerIndex=0: I am fighter1 (local), fighter2 is opponent (netKeys)
+    // playerIndex=1: I am fighter2 (local), fighter1 is opponent (netKeys)  
+    // local/cpu: no network fighters
+    this.fighter1._isNetworkFighter = (this.mode==="online" && this.playerIndex===1);
+    this.fighter2._isNetworkFighter = (this.mode==="online" && this.playerIndex===0);
   }
 
   draw() {
@@ -1442,14 +1451,16 @@ class LSDAttackForceUE {
     drawImg(images.bg_fight,BASE_W/2,BASE_H/2);
     if(!this.fighter1||!this.fighter2) return;
 
-    // Online: apply opponent input to fighter2
+    // Online: invia input locale, applica input avversario al fighter corretto
     if(this.mode==="online"&&this.socket){
-      // Invia sempre il proprio input al server (ogni frame)
       const inp = this._getP1Input();
       this.socket.emit("input", inp);
-      // Applica sempre l'input ricevuto dall'avversario (anche se vuoto = fermo)
-      if(this.fighter2){
+      // playerIndex=0: fighter2 è l'avversario
+      // playerIndex=1: fighter1 è l'avversario
+      if(this.playerIndex===0 && this.fighter2){
         this.fighter2.applyNetworkInput(this.opponentInput);
+      } else if(this.playerIndex===1 && this.fighter1){
+        this.fighter1.applyNetworkInput(this.opponentInput);
       }
     }
 
@@ -1463,56 +1474,59 @@ class LSDAttackForceUE {
     this._drawYouLabel();
     this._drawHUD();
 
-    // Check victory only when ultra is not playing
-    if(!this.victory && !window._ultraPlaying){
-      // fighter1.hp <= 0 → fighter2 wins
-      if(this.fighter1.hp<=0 && !this._victoryRegistered){
+    // ── VICTORY CHECK ─────────────────────────────────────
+    // Registra la vittoria appena un fighter muore
+    // Ma mostra la schermata solo DOPO che il video ultra è finito
+    if(!this._victoryRegistered){
+      const f1Dead = this.fighter1.hp<=0;
+      const f2Dead = this.fighter2.hp<=0;
+      if(f1Dead || f2Dead){
         this._victoryRegistered=true;
-        this.victory=true;
-        this.winner=this.fighter2.name.toUpperCase();
-        this.victorIsP1=false; // fighter2 won
-        this.victoryTime=null; // shown only after video
-        if(this.mode==="online"&&this.socket&&this.playerIndex===0){
-          this.socket.emit("round_result",{winner:this.fighter2.name,loser:this.fighter1.name});
+        if(f2Dead){
+          // fighter2 morto → fighter1 vince
+          this.victory=true;
+          this.winner=this.fighter1.name.toUpperCase();
+          this.victorIsP1=true;
+          if(game) game.trophies[13]=true;
+        } else {
+          // fighter1 morto → fighter2 vince
+          this.victory=true;
+          this.winner=this.fighter2.name.toUpperCase();
+          this.victorIsP1=false;
         }
-        if(game) { if(this.victorIsP1===false) game.trophies[13]=false; }
-      }
-      // fighter2.hp <= 0 → fighter1 wins
-      if(this.fighter2.hp<=0 && !this._victoryRegistered){
-        this._victoryRegistered=true;
-        this.victory=true;
-        this.winner=this.fighter1.name.toUpperCase();
-        this.victorIsP1=true; // fighter1 won
-        this.victoryTime=null;
+        // Solo playerIndex=0 invia il risultato al server (anti-duplicati)
         if(this.mode==="online"&&this.socket&&this.playerIndex===0){
-          this.socket.emit("round_result",{winner:this.fighter1.name,loser:this.fighter2.name});
+          const w = this.victorIsP1 ? this.fighter1.name : this.fighter2.name;
+          const l = this.victorIsP1 ? this.fighter2.name : this.fighter1.name;
+          this.socket.emit("round_result",{winner:w,loser:l});
         }
-        if(game) game.trophies[13]=true;
       }
     }
 
-    // Victory display — only after ultra video is done
+    // ── VICTORY DISPLAY ───────────────────────────────────
+    // Mostra schermata SOLO quando: vittoria registrata E video non in corso
     if(this.victory && !window._ultraPlaying){
       if(!this.victoryTime) this.victoryTime=millis();
 
-      ctx.save(); ctx.fillStyle="rgba(0,0,0,0.75)"; ctx.fillRect(0,0,W,H); ctx.restore();
+      ctx.save(); ctx.fillStyle="rgba(0,0,0,0.82)"; ctx.fillRect(0,0,W,H); ctx.restore();
 
-      // victorIsP1=true  → fighter1 won
-      // playerIndex=0    → local player IS fighter1
-      // playerIndex=1    → local player IS fighter2
+      // Determina chi ha vinto dal punto di vista del giocatore locale
+      // victorIsP1=true → fighter1 ha vinto
+      // Online playerIndex=0 → io sono fighter1 → victorIsP1=true = ho vinto
+      // Online playerIndex=1 → io sono fighter2 → victorIsP1=false = ho vinto
       let topLine, topCol, subLine;
       if(this.mode==="online"){
-        const localWins = (this.playerIndex===0 &&  this.victorIsP1) ||
-                          (this.playerIndex===1 && !this.victorIsP1);
-        topLine = localWins ? "🏆  YOU WIN!"  : "💀  YOU LOSE";
-        topCol  = localWins ? "#FFD700"        : "#FF3333";
+        const iWon = (this.playerIndex===0 &&  this.victorIsP1) ||
+                     (this.playerIndex===1 && !this.victorIsP1);
+        topLine = iWon ? "🏆  YOU WIN!"  : "💀  YOU LOSE";
+        topCol  = iWon ? "#FFD700"       : "#FF3333";
         subLine = `${this.winner} wins the round`;
       } else {
-        // Local/CPU: fighter1=P1, fighter2=P2 or CPU
-        // victorIsP1=true → P1 won; false → P2/CPU won
         topLine = `🏆  ${this.winner}  WINS!`;
         topCol  = "#FFD700";
-        subLine = this.mode==="cpu" ? (this.victorIsP1 ? "You beat the CPU!" : "CPU wins this round!") : "";
+        subLine = this.mode==="cpu"
+          ? (this.victorIsP1 ? "You beat the CPU!" : "CPU wins this round!")
+          : "";
       }
 
       setFont(78); ctx.fillStyle=topCol;
@@ -1617,8 +1631,7 @@ class LSDAttackForceUE {
     // (ultra combo è segreta — non mostrata in HUD)
   }
   _getP1Input() {
-    // Invia anche la posizione X e il facing, così l'avversario può
-    // posizionare correttamente il proprio sprite e guardare nella direzione giusta
+    // Invia solo i tasti — ogni client gestisce la propria posizione
     return {
       a: !!(keys["a"]||keys["A"]),
       d: !!(keys["d"]||keys["D"]),
@@ -1626,9 +1639,7 @@ class LSDAttackForceUE {
       s: !!(keys["s"]||keys["S"]),
       q: !!(keys["q"]||keys["Q"]),
       e: !!(keys["e"]||keys["E"]),
-      c: !!(keys["c"]||keys["C"]),
-      x: this.fighter1 ? this.fighter1.x : null,
-      hp: this.fighter1 ? this.fighter1.hp : null
+      c: !!(keys["c"]||keys["C"])
     };
   }
 }
@@ -1763,8 +1774,11 @@ class Fighter {
 
     skip.addEventListener("click", e => { e.stopPropagation(); closeUltra(true); }, {once:true});
 
-    // Auto-close dopo 14s (video ~12s + margini)
-    this._vidTimer = setTimeout(() => closeUltra(), 14000);
+    // Durata esatta dei video + 2s margine:
+    // Grax: 1:06 = 66s + 2 = 68s
+    // Yuke: 1:29 = 89s + 2 = 91s
+    const videoDuration = (this.name === "grax") ? 68000 : 91000;
+    this._vidTimer = setTimeout(() => closeUltra(), videoDuration);
 
     // Click overlay chiude dopo 3s guard (evita click accidentale all'apertura)
     overlay.addEventListener("click", function _oc(e){
@@ -1776,16 +1790,9 @@ class Fighter {
   }
 
   applyNetworkInput(inp) {
-    if(!inp) { this._netKeys = {}; return; }
-    this._netKeys = inp;
-    // Sincronizza la posizione X reale dell'avversario (evita divergenza)
-    if(inp.x !== null && inp.x !== undefined){
-      this.x = inp.x;
-    }
-    // Sincronizza HP (autorità dell'avversario sul proprio HP)
-    if(inp.hp !== null && inp.hp !== undefined){
-      this.hp = Math.max(0, inp.hp);
-    }
+    // Salva i tasti ricevuti dalla rete — NON sovrascrivere posizione locale
+    // Ogni client è l'autorità sulla posizione del proprio fighter
+    this._netKeys = inp || {};
   }
   syncState(state){ if(state.x!==undefined) this.x=state.x; if(state.hp!==undefined) this.hp=state.hp; }
 
@@ -1793,12 +1800,8 @@ class Fighter {
     if(!this._initialized){ this.cd1=this.cd2=this.cd3=this.cd4=this.cd5=millis()-(14000); this._initialized=true; }
     const now=millis(), t=frameCount%30;
 
-    // ALWAYS face enemy
-    // In online, nei primissimi frame, enemy.x potrebbe non essere ancora corretto:
-    // usa il facing iniziale finché enemy ha una posizione credibile
-    if(!(this.mode==="online" && !this._initialized)){
-      this.facing = (enemy.x > this.x) ? 1 : -1;
-    }
+    // Aggiorna sempre il facing verso il nemico
+    this.facing = (enemy.x > this.x) ? 1 : -1;
 
     if(this.mode==="cpu"&&this.playerNum===2){ this._cpuUpdate(enemy, now, t); return; }
 
@@ -1852,39 +1855,40 @@ class Fighter {
     // Update grax cube particles
     if(this.graxCubeActive) this._updateGraxCube(enemy, now);
 
-    const isP1 = this.playerNum===1;
-    // Online P2 legge i _netKeys (tasti inviati dall'avversario remoto, stesse chiavi a/d/w/s/q/e/c)
-    // Online P1 e modalità locale/cpu leggono la tastiera fisica
-    // In modalità locale, P2 usa j/l/i/k/u/o/'
-    const isOnlineP2 = this.mode==="online" && this.playerNum===2;
-    const isLocalP2  = this.mode!=="online" && this.mode!=="cpu" && this.playerNum===2;
+    // Determine input source:
+    // _isNetworkFighter=true → questo fighter è controllato dall'avversario remoto via netKeys
+    // isLocalP2 → P2 in locale usa tasti j/l/i/k/u/o/.
+    // default → P1 locale usa a/d/w/s/q/e/c
+    const isNetFighter = this._isNetworkFighter === true;
+    const isLocalP2    = !isNetFighter && this.mode!=="online" && this.mode!=="cpu" && this.playerNum===2;
     let leftKey, rightKey, blockKey, punchKey, kickKey, rangedKey, specKey;
-    if(isOnlineP2){
-      // L'avversario manda i suoi tasti P1 (a/d/w/s/q/e/c)
-      leftKey   = this._netKeys["a"]  || false;
-      rightKey  = this._netKeys["d"]  || false;
-      blockKey  = this._netKeys["c"]  || false;
-      punchKey  = this._netKeys["w"]  || false;
-      kickKey   = this._netKeys["s"]  || false;
-      rangedKey = this._netKeys["q"]  || false;
-      specKey   = this._netKeys["e"]  || false;
+    if(isNetFighter){
+      // Usa i tasti ricevuti dalla rete (stesse chiavi a/d/w/s/q/e/c del P1 avversario)
+      leftKey   = !!this._netKeys["a"];
+      rightKey  = !!this._netKeys["d"];
+      blockKey  = !!this._netKeys["c"];
+      punchKey  = !!this._netKeys["w"];
+      kickKey   = !!this._netKeys["s"];
+      rangedKey = !!this._netKeys["q"];
+      specKey   = !!this._netKeys["e"];
     } else if(isLocalP2){
-      leftKey   = keys["j"]||keys["J"]||false;
-      rightKey  = keys["l"]||keys["L"]||false;
-      blockKey  = keys["."]||keys[">"]||keys["'"]||keys[";"]||false; // "." è il tasto para P2
-      punchKey  = keys["i"]||keys["I"]||false;
-      kickKey   = keys["k"]||keys["K"]||false;
-      rangedKey = keys["u"]||keys["U"]||false;
-      specKey   = keys["o"]||keys["O"]||false;
+      // P2 locale: tasti j/l/i/k/u/o/.
+      leftKey   = !!(keys["j"]||keys["J"]);
+      rightKey  = !!(keys["l"]||keys["L"]);
+      blockKey  = !!(keys["."]||keys[">"]||keys["'"]||keys[";"]);
+      punchKey  = !!(keys["i"]||keys["I"]);
+      kickKey   = !!(keys["k"]||keys["K"]);
+      rangedKey = !!(keys["u"]||keys["U"]);
+      specKey   = !!(keys["o"]||keys["O"]);
     } else {
-      // P1 (locale, online, cpu)
-      leftKey   = keys["a"]||keys["A"]||false;
-      rightKey  = keys["d"]||keys["D"]||false;
-      blockKey  = keys["c"]||keys["C"]||false;
-      punchKey  = keys["w"]||keys["W"]||false;
-      kickKey   = keys["s"]||keys["S"]||false;
-      rangedKey = keys["q"]||keys["Q"]||false;
-      specKey   = keys["e"]||keys["E"]||false;
+      // P1 locale (o fighter locale online): a/d/w/s/q/e/c
+      leftKey   = !!(keys["a"]||keys["A"]);
+      rightKey  = !!(keys["d"]||keys["D"]);
+      blockKey  = !!(keys["c"]||keys["C"]);
+      punchKey  = !!(keys["w"]||keys["W"]);
+      kickKey   = !!(keys["s"]||keys["S"]);
+      rangedKey = !!(keys["q"]||keys["Q"]);
+      specKey   = !!(keys["e"]||keys["E"]);
     }
 
     // Movement (slower, more deliberate)
@@ -1924,7 +1928,11 @@ class Fighter {
       if(this.name==="grax") { this.hp=Math.min(100,this.hp+20); this._dealDmg(enemy,18,6,true); this._knockback(enemy,200); }
       else { this._dealDmg(enemy,12,5,true); /* meteora launched in anim */ }
     }
-    if(this.ultKill){ enemy.hp=Math.max(0,enemy.hp-60); this.ultKill=false; }
+    // Ultra kill: applica 60 di danno all'avversario dopo il video
+    if(this.ultKill && !window._ultraPlaying){
+      enemy.hp=Math.max(0,enemy.hp-60);
+      this.ultKill=false;
+    }
   }
 
   _launchGraxCube(enemy) {

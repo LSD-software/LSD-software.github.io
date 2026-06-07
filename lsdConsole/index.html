@@ -2373,13 +2373,11 @@ class AttackOfZombies {
           const elapsed = frameCount - anim.start;
           const dt     = Math.abs(z.x - this.fighter.x);
           const dmgMap = {punch:8, kick:14, ranged:18, special:15};
-          const reach  = {punch:220, kick:200, ranged:900, special:260};
-          // Hit window: frame in cui la mossa può colpire (non solo il primo frame)
-          // punch: frame 5-18, kick: frame 5-20, special: frame 4-20
-          const hitWindow = {punch:[5,18], kick:[5,20], ranged:[1,999], special:[4,20]};
-          const [hStart, hEnd] = hitWindow[type] || [0,999];
-          const inWindow = elapsed >= hStart && elapsed <= hEnd;
-          // Ogni zombie può essere colpito solo una volta per animazione
+          const reach  = {punch:280, kick:260, ranged:900, special:300};
+          // Hit window: dal frame 0 per tutta la durata dell'animazione
+          // punch dur=32 → colpisce frame 0-32, kick uguale, special uguale
+          const inWindow = elapsed >= 0 && elapsed <= anim.dur;
+          // Ogni zombie colpito UNA SOLA VOLTA per animazione (usa anim.start come ID)
           if(!z._hitByAnim) z._hitByAnim = -1;
           const alreadyHit = (z._hitByAnim === anim.start);
           if(inWindow && dt < reach[type] && !alreadyHit){

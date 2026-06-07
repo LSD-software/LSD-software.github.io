@@ -2268,28 +2268,261 @@ class NationBuilder {
 }
 
 // ============================================================
-//  GAME 4 — ATTACK OF ZOMBIES (unchanged)
+//  GAME 4 — ATTACK OF ZOMBIES  (v2 — fixed facing, speed, HUD, G-pad)
 // ============================================================
 class AttackOfZombies {
-  constructor(){this.reset();}
-  reset(){this.avviato=false;this.playerChar=null;this.round=1;this.zombieList=[];this.fighter=null;this.victory=false;this.winner="";this.victoryTime=0;this._clickCd=0;}
-  keyPress(k){if(this.fighter)this.fighter.keyPress(k);}
-  startRound(r){this.round=r;const right=Math.random()>0.5;this.zombieList=[new ZombieFighter(right?BASE_W+100:-100,right)];}
-  setupFight(){const n=this.playerChar==="grax"?14:13;const frames=Array.from({length:n},(_,i)=>({r:images[`${this.playerChar}_r_${i}`],l:images[`${this.playerChar}_l_${i}`]}));this.fighter=new Fighter(frames,400,800,this.playerChar,1,"local");this.startRound(1);}
-  draw(){
-    if(!this.avviato){this.drawMenu();return;}
-    drawImg(images.bg_zombies,BASE_W/2,BASE_H/2);
-    fillText(`Round ${this.round}`,BASE_W/2,80,"#a10000",64);
-    if(this.fighter){const zx=this.zombieList[0]?.x??BASE_W;this.fighter.update({x:zx,hp:100,blocking:false,name:"zombie",facing:1,cd4:0});this.fighter.drawChar(1);}
-    for(let i=this.zombieList.length-1;i>=0;i--){const z=this.zombieList[i];z.draw();if(this.fighter){z.move(this.fighter);if(this.fighter.anim&&["punch","kick","ranged","special"].includes(this.fighter.anim.type)){const dt=Math.abs(z.x-this.fighter.x);const dmg={punch:5,kick:10,ranged:15,special:12};const reach={punch:200,kick:180,ranged:700,special:200};if(dt<reach[this.fighter.anim.type]&&this.fighter.anim.start===frameCount){z.hp-=dmg[this.fighter.anim.type];if(game)game.trophies[4]=true;}}}if(z.hp<=0){this.zombieList.splice(i,1);if(this.round<10)this.startRound(this.round+1);else{this.victory=true;this.winner=this.playerChar;this.victoryTime=millis();if(game)game.trophies[11]=true;}}if(this.fighter&&this.fighter.hp<=0){this.victory=true;this.winner="Zombie";this.victoryTime=millis();}}
-    if(this.victory){fillText(`Vittoria: ${this.winner.toUpperCase()}`,BASE_W/2,BASE_H/2,"#ff0000",50);if(millis()-this.victoryTime>=3000){this.reset();if(game)game.screen=0;}}
+  constructor(){ this.reset(); }
+
+  reset() {
+    this.avviato    = false;
+    this.playerChar = null;
+    this.round      = 1;
+    this.zombieList = [];
+    this.fighter    = null;
+    this.victory    = false;
+    this.winner     = "";
+    this.victoryTime= 0;
+    this._clickCd   = 0;
   }
-  drawMenu(){drawImg(images.bg_fight_menu,BASE_W/2,BASE_H/2);fillText("Select Character",BASE_W/2,55,"#a10000",42);const chars=[{key:"grax",x:610,y:230},{key:"yuke",x:1260,y:230}];chars.forEach(c=>{drawImg(images[`icon_${c.key}`],c.x,c.y);if(isHover(c.x,c.y,150,150)){strokeRoundRect(c.x-80,c.y-80,160,160,"#baa701",2,8);fillText(c.key.charAt(0).toUpperCase()+c.key.slice(1),c.x,95,"#a10000",28);if(clickAvailable()&&millis()-this._clickCd>400){consumeClick();this._clickCd=millis();this.playerChar=c.key;}}});if(this.playerChar){drawImg(images[`icon_${this.playerChar}`],200,BASE_H/2);fillText(this.playerChar.toUpperCase(),200,250,"#a10000",38);drawButton("START",BASE_W/2,BASE_H-100,150,80);if(isButtonPressed(BASE_W/2,BASE_H-100,150,80)){this.setupFight();this.avviato=true;}}}
+
+  keyPress(k){ if(this.fighter) this.fighter.keyPress(k); }
+
+  // Numero zombie per round: round 1-3 = 1, round 4-6 = 2, round 7-9 = 3, round 10 = 4
+  _zombieCount(r){ return r<=3?1 : r<=6?2 : r<=9?3 : 4; }
+
+  // Velocità zombie per round: parte lenta, cresce gradualmente
+  _zombieSpeed(r){ return 0.8 + (r-1)*0.25; } // round 1=0.8, round 10=3.05
+
+  startRound(r) {
+    this.round = r;
+    this.zombieList = [];
+    const count = this._zombieCount(r);
+    const speed = this._zombieSpeed(r);
+    for(let i=0; i<count; i++){
+      // Alterna da destra e sinistra, aggiungi offset per non sovrapporli
+      const fromRight = (i % 2 === 0);
+      const startX    = fromRight ? BASE_W + 100 + i*120 : -100 - i*120;
+      this.zombieList.push(new ZombieFighter(startX, fromRight, speed, r));
+    }
+  }
+
+  setupFight() {
+    const n = this.playerChar==="grax" ? 14 : 13;
+    const frames = Array.from({length:n}, (_,i) => ({
+      r: images[`${this.playerChar}_r_${i}`],
+      l: images[`${this.playerChar}_l_${i}`]
+    }));
+    this.fighter = new Fighter(frames, BASE_W/2, 800, this.playerChar, 1, "local");
+    this.fighter.hp = 100;
+    this.startRound(1);
+    showGamePad(isMobile);
+  }
+
+  draw() {
+    if(!this.avviato){ this.drawMenu(); return; }
+
+    drawImg(images.bg_zombies, BASE_W/2, BASE_H/2);
+
+    // ── HUD — vita giocatore (stile AFUE) ─────────────────────
+    this._drawHUD();
+
+    // Round label
+    fillText(`Round ${this.round} / 10`, BASE_W/2, 80, "#a10000", 48);
+    // Zombie count
+    fillText(`Zombies: ${this.zombieList.length}`, BASE_W/2, 128, "#baa701", 24);
+
+    // ── Aggiorna e disegna fighter ─────────────────────────────
+    if(this.fighter){
+      const nearestZ = this.zombieList.reduce((best,z)=>{
+        return (!best||Math.abs(z.x-this.fighter.x)<Math.abs(best.x-this.fighter.x))?z:best;
+      }, null);
+      const fakeEnemy = nearestZ
+        ? {x:nearestZ.x, hp:nearestZ.hp, blocking:false, name:"zombie", facing:nearestZ.facing, cd4:0, cd5:0}
+        : {x:this.fighter.x+300, hp:100, blocking:false, name:"zombie", facing:1, cd4:0, cd5:0};
+      this.fighter.update(fakeEnemy);
+      this.fighter.drawChar(1);
+    }
+
+    // ── Aggiorna e disegna zombie ──────────────────────────────
+    for(let i=this.zombieList.length-1; i>=0; i--){
+      const z = this.zombieList[i];
+      z.draw();
+      if(this.fighter){
+        z.move(this.fighter);
+        // Hit detection: quando il fighter attacca
+        if(this.fighter.anim && ["punch","kick","ranged","special"].includes(this.fighter.anim.type)){
+          const dt    = Math.abs(z.x - this.fighter.x);
+          const dmgMap= {punch:8, kick:14, ranged:18, special:15};
+          const reach = {punch:200, kick:180, ranged:800, special:220};
+          if(dt < reach[this.fighter.anim.type] && this.fighter.anim.start===frameCount){
+            z.hp -= dmgMap[this.fighter.anim.type];
+            if(game) game.trophies[4]=true;
+          }
+        }
+      }
+      if(z.hp<=0){
+        this.zombieList.splice(i,1);
+        // Se non ci sono più zombie, avanza al round successivo
+        if(this.zombieList.length===0){
+          if(this.round>=10){
+            this.victory=true; this.winner=this.playerChar;
+            this.victoryTime=millis();
+            if(game) game.trophies[11]=true;
+          } else {
+            this.startRound(this.round+1);
+          }
+        }
+      }
+    }
+
+    // Giocatore morto
+    if(this.fighter && this.fighter.hp<=0 && !this.victory){
+      this.victory=true; this.winner="Zombies"; this.victoryTime=millis();
+    }
+
+    // ── Schermata vittoria ─────────────────────────────────────
+    if(this.victory){
+      ctx.save(); ctx.fillStyle="rgba(0,0,0,0.75)"; ctx.fillRect(0,0,W,H); ctx.restore();
+      const won = this.winner!=="Zombies";
+      setFont(72); ctx.fillStyle=won?"#FFD700":"#FF3333";
+      ctx.shadowColor=won?"#FFD700":"#FF3333"; ctx.shadowBlur=ss(20);
+      ctx.fillText(won?"🏆  YOU SURVIVED!":"💀  GAME OVER", sx(BASE_W/2), sy(BASE_H/2-40));
+      ctx.shadowBlur=0;
+      setFont(30); ctx.fillStyle="#fff";
+      ctx.fillText(`Reached Round ${this.round}`, sx(BASE_W/2), sy(BASE_H/2+40));
+      if(millis()-this.victoryTime>=3500){
+        showGamePad(false); this.reset(); if(game) game.screen=0;
+      }
+    }
+
+    // ── Tasti a schermo (desktop) ──────────────────────────────
+    if(!isMobile) this._drawKeyHints();
+  }
+
+  _drawHUD() {
+    if(!this.fighter) return;
+    const hp = this.fighter.hp;
+    // Barra vita stile AFUE
+    fillRoundRect(60, 50, 320, 44, "#333", 1, 4);
+    fillRoundRect(60, 50, Math.max(0,hp/100*320), 44, hp>50?"#4EC600":hp>25?"#FFD700":"#FF3333", 1, 4);
+    ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2);
+    ctx.strokeRect(sx(60),sy(50),ss(320),ss(44)); ctx.restore();
+    setFont(28,"left"); ctx.fillStyle="#fff";
+    ctx.fillText(this.playerChar?.toUpperCase()||"", sx(80), sy(22));
+    setFont(20,"left"); ctx.fillStyle="rgba(255,255,255,0.5)";
+    ctx.fillText(`HP: ${Math.max(0,Math.round(hp))}`, sx(240), sy(22));
+  }
+
+  _drawKeyHints() {
+    // Box tasti in basso al centro
+    const bx=BASE_W/2, by=BASE_H-55;
+    fillRoundRect(bx-350,by-28,700,52,"#000",0.6,10);
+    const keys=[
+      {k:"A",l:"Move L"},{k:"D",l:"Move R"},{k:"W",l:"Punch"},
+      {k:"S",l:"Kick"},{k:"Q",l:"Ranged"},{k:"E",l:"Special"},{k:"C",l:"Block"}
+    ];
+    keys.forEach((kt,i)=>{
+      const kx=bx-300+i*100;
+      fillCircle(kx,by,22,"#a10000",0.8);
+      setFont(18); ctx.fillStyle="#baa701"; ctx.fillText(kt.k,sx(kx),sy(by));
+      setFont(14); ctx.fillStyle="#888"; ctx.fillText(kt.l,sx(kx),sy(by+32));
+    });
+  }
+
+  drawMenu() {
+    drawImg(images.bg_fight_menu, BASE_W/2, BASE_H/2);
+    fillText("⚠  ATTACK OF ZOMBIES", BASE_W/2, 55, "#a10000", 42);
+    fillText("Survive 10 rounds — zombies get faster and more numerous each round", BASE_W/2, 100, "#888", 20);
+
+    const chars=[{key:"grax",x:610,y:320},{key:"yuke",x:1260,y:320}];
+    chars.forEach(ch=>{
+      drawImg(images[`icon_${ch.key}`], ch.x, ch.y);
+      if(isHover(ch.x,ch.y,150,150)){
+        strokeRoundRect(ch.x-80,ch.y-80,160,160,"#baa701",2,8);
+        fillText(ch.key.charAt(0).toUpperCase()+ch.key.slice(1), ch.x, 190, "#baa701", 28);
+        if(clickAvailable()&&millis()-this._clickCd>400){
+          consumeClick(); this._clickCd=millis(); this.playerChar=ch.key;
+        }
+      }
+    });
+    if(this.playerChar){
+      drawImg(images[`icon_${this.playerChar}`], 200, BASE_H/2);
+      fillText(this.playerChar.toUpperCase(), 200, BASE_H/2+130, "#a10000", 32);
+      drawButton("▶ START", BASE_W/2, BASE_H-100, 200, 80);
+      if(isButtonPressed(BASE_W/2, BASE_H-100, 200, 80)){
+        this.setupFight(); this.avviato=true;
+      }
+    }
+    // Round preview
+    fillRoundRect(BASE_W/2-300,BASE_H-220,600,80,"#000",0.5,10);
+    fillText("Round 1-3: 1 zombie  |  4-6: 2 zombies  |  7-9: 3 zombies  |  10: 4 zombies", BASE_W/2, BASE_H-180, "#666", 18);
+  }
 }
+
 class ZombieFighter {
-  constructor(sx2,fromRight=true){this.x=sx2;this.y=800;this.hp=20;this.frame=0;this._lastAtk=0;this.facing=fromRight?-1:1;}
-  draw(){if(this.hp>0){const fk=`zombie_r_${Math.min(this.frame,5)}`;const img=images[fk];if(img&&img.complete&&img.naturalWidth){if(this.facing>0)drawImg(img,this.x,this.y);else{ctx.save();ctx.translate(sx(this.x),sy(this.y));ctx.scale(-1,1);ctx.drawImage(img,-img.naturalWidth*scale/2,-img.naturalHeight*scale/2,img.naturalWidth*scale,img.naturalHeight*scale);ctx.restore();}}}const bw=Math.max(0,this.hp*6);fillRoundRect(BASE_W/2-bw/2,155,bw,14,"#a10000");}
-  move(fighter){const t=frameCount%30;this.facing=fighter.x>this.x?1:-1;if(Math.abs(this.x-fighter.x)>65){this.x+=2*this.facing;this.frame=Math.floor(t/10)%3;}else{if(millis()-this._lastAtk>=2000){this.frame=5;fighter.hp-=5;this._lastAtk=millis();}else this.frame=3+Math.floor(t/10)%3;}}
+  constructor(startX, fromRight=true, speed=1, round=1){
+    this.x       = startX;
+    this.y       = 800;
+    this.hp      = 20 + round * 4; // più vita nei round avanzati
+    this.maxHp   = this.hp;
+    this.frame   = 0;
+    this._lastAtk= 0;
+    this.speed   = speed;
+    this.round   = round;
+    // facing: lo zombie deve guardare VERSO il giocatore
+    // fromRight=true → zombie entra da destra → deve guardare a SINISTRA (facing=-1)
+    // fromRight=false → zombie entra da sinistra → deve guardare a DESTRA (facing=+1)
+    this.facing  = fromRight ? -1 : 1;
+  }
+
+  draw() {
+    if(this.hp<=0) return;
+    const fk  = `zombie_r_${Math.min(this.frame, 5)}`;
+    const img = images[fk];
+    if(img && img.complete && img.naturalWidth){
+      if(this.facing > 0){
+        // Zombie guarda a destra — immagine normale
+        drawImg(img, this.x, this.y);
+      } else {
+        // Zombie guarda a sinistra — specchia orizzontalmente
+        ctx.save();
+        ctx.translate(sx(this.x), sy(this.y));
+        ctx.scale(-1, 1);
+        ctx.drawImage(img,
+          -img.naturalWidth*scale/2, -img.naturalHeight*scale/2,
+           img.naturalWidth*scale,    img.naturalHeight*scale);
+        ctx.restore();
+      }
+    }
+    // Barra vita sopra lo zombie
+    const bw = Math.max(0, (this.hp/this.maxHp)*80);
+    fillRoundRect(this.x-40, this.y-220, 80, 10, "#333", 1, 3);
+    fillRoundRect(this.x-40, this.y-220, bw, 10, "#a10000", 1, 3);
+  }
+
+  move(fighter) {
+    const t   = frameCount % 30;
+    const dist= Math.abs(this.x - fighter.x);
+
+    // Aggiorna facing verso il giocatore
+    this.facing = fighter.x > this.x ? 1 : -1;
+
+    if(dist > 70){
+      // Avanza verso il giocatore alla velocità del round
+      this.x += this.speed * this.facing;
+      this.frame = Math.floor(t/10) % 3; // frame di camminata 0-1-2
+    } else {
+      // Attacca
+      const atkCooldown = Math.max(800, 2000 - this.round*100);
+      if(millis()-this._lastAtk >= atkCooldown){
+        this.frame = 5;
+        fighter.hp = Math.max(0, fighter.hp - (4 + Math.floor(this.round/3)));
+        this._lastAtk = millis();
+      } else {
+        this.frame = 3 + Math.floor(t/15)%2;
+      }
+    }
+  }
 }
 
 // ============================================================

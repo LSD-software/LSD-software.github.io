@@ -2550,7 +2550,7 @@ class AttackOfZombies {
       fillRoundRect(barX, barY, barW, barH, "#222", 1, 4);
       fillRoundRect(barX, barY, barW*ultraPct, barH, ultraPct>=1?"#ff0000":"#880000", 1, 4);
       setFont(15); ctx.fillStyle = ultraPct>=1?"#ff0000":"#555";
-      ctx.fillText(ultraPct>=1?"⚡ ULTRA READY! (W→S→E→Q)":"⚡ ULTRA charging...", sx(barX + barW/2), sy(barY - 16));
+      ctx.fillText(ultraPct>=1?"⚡ ULTRA READY!":"⚡ ULTRA charging...", sx(barX + barW/2), sy(barY - 16));
     }
 
     // Tasti movimento — sempre visibili a sinistra

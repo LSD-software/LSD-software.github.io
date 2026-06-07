@@ -1703,6 +1703,7 @@ class Fighter {
   _triggerUltra(onDone) {
     if(millis()-this.cd5 < 12000) return;
     if(window._ultraPlaying) return;
+    if(this._zombieUltraLocked) return; // bloccata nei round 1-9 zombie mode
     this.ultActive=true; this.ultIdx=0; this.ultIdxAlt=0;
     this.cd5=millis();
     window._ultraPlaying = true;
@@ -2299,10 +2300,20 @@ class AttackOfZombies {
     const count = this._zombieCount(r);
     const speed = this._zombieSpeed(r);
     for(let i=0; i<count; i++){
-      // Alterna da destra e sinistra, aggiungi offset per non sovrapporli
-      const fromRight = (i % 2 === 0);
-      const startX    = fromRight ? BASE_W + 100 + i*120 : -100 - i*120;
-      this.zombieList.push(new ZombieFighter(startX, fromRight, speed, r));
+      // Tutti entrano dallo stesso lato per sembrare "a squadra"
+      // ma con offset X e temporale per non sovrapporsi
+      const fromRight = Math.random() > 0.5;
+      const extraDist = i * 160;
+      const startX    = fromRight
+        ? BASE_W + 100 + extraDist
+        : -100 - extraDist;
+      const z = new ZombieFighter(startX, fromRight, speed, r);
+      z.y = 800 + (i % 2 === 0 ? 0 : 30);
+      this.zombieList.push(z);
+    }
+    // Ultra sbloccata solo all'ultimo round (round 10)
+    if(this.fighter) {
+      this.fighter._zombieUltraLocked = (r < 10);
     }
   }
 
@@ -2314,6 +2325,7 @@ class AttackOfZombies {
     }));
     this.fighter = new Fighter(frames, BASE_W/2, 800, this.playerChar, 1, "local");
     this.fighter.hp = 100;
+    this.fighter._zombieMode = true; // ultra bloccata fino all'ultimo round
     this.startRound(1);
     showGamePad(isMobile);
   }
@@ -2328,8 +2340,13 @@ class AttackOfZombies {
 
     // Round label
     fillText(`Round ${this.round} / 10`, BASE_W/2, 80, "#a10000", 48);
-    // Zombie count
-    fillText(`Zombies: ${this.zombieList.length}`, BASE_W/2, 128, "#baa701", 24);
+    fillText(`Zombies: ${this.zombieList.length}`, BASE_W/2, 128, "#baa701", 22);
+    // Ultra: sbloccata solo al round 10
+    if(this.fighter && this.fighter._zombieUltraLocked){
+      fillText("⚡ ULTRA unlocks at Round 10", BASE_W/2, 158, "#555", 18);
+    } else if(this.fighter && !this.fighter._zombieUltraLocked){
+      fillText("⚡ ULTRA UNLOCKED!", BASE_W/2, 158, "#ff4400", 20);
+    }
 
     // ── Aggiorna e disegna fighter ─────────────────────────────
     if(this.fighter){
@@ -2355,8 +2372,25 @@ class AttackOfZombies {
           const dmgMap= {punch:8, kick:14, ranged:18, special:15};
           const reach = {punch:200, kick:180, ranged:800, special:220};
           if(dt < reach[this.fighter.anim.type] && this.fighter.anim.start===frameCount){
-            z.hp -= dmgMap[this.fighter.anim.type];
+            const dmg = dmgMap[this.fighter.anim.type];
+            z.hp -= dmg;
             if(game) game.trophies[4]=true;
+            // Particelle di danno sullo zombie colpito
+            if(!z.hitParticles) z.hitParticles=[];
+            const cols={punch:["#FF8800","#FFAA00","#fff"],kick:["#FF4400","#FF2200","#FF8800"],
+                        ranged:["#FF6600","#FFD700","#fff"],special:["#FF0000","#FF8800","#FFD700","#fff"]};
+            const pcols=cols[this.fighter.anim.type]||cols.punch;
+            for(let pi=0;pi<12;pi++){
+              const ang=Math.random()*Math.PI*2, spd=Math.random()*4+2;
+              z.hitParticles.push({
+                x:z.x+(Math.random()-0.5)*40, y:z.y-150+(Math.random()-0.5)*40,
+                vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-3,
+                r:Math.random()*6+3, alpha:1,
+                col:pcols[Math.floor(Math.random()*pcols.length)],
+                life:0, maxLife:20
+              });
+            }
+            z._hitFlash=5;
           }
         }
       }
@@ -2460,18 +2494,23 @@ class AttackOfZombies {
 }
 
 class ZombieFighter {
+  // Le immagini zombie guardano a SINISTRA di default (facing=-1 = immagine diretta)
+  // Se facing=+1 (zombie guarda a destra) → specchia l'immagine
+
   constructor(startX, fromRight=true, speed=1, round=1){
     this.x       = startX;
     this.y       = 800;
-    this.hp      = 20 + round * 4; // più vita nei round avanzati
+    this.hp      = 20 + round * 4;
     this.maxHp   = this.hp;
     this.frame   = 0;
     this._lastAtk= 0;
     this.speed   = speed;
     this.round   = round;
-    // facing: lo zombie deve guardare VERSO il giocatore
-    // fromRight=true → zombie entra da destra → deve guardare a SINISTRA (facing=-1)
-    // fromRight=false → zombie entra da sinistra → deve guardare a DESTRA (facing=+1)
+    // Offset per non sovrapporre zombie della stessa ondata
+    this.xOffset = 0;
+    // facing: zombie deve guardare VERSO il giocatore
+    // fromRight=true → entra da destra → deve guardare a SINISTRA → facing=-1 → immagine diretta ✓
+    // fromRight=false → entra da sinistra → deve guardare a DESTRA → facing=+1 → immagine specchiata
     this.facing  = fromRight ? -1 : 1;
   }
 
@@ -2480,11 +2519,11 @@ class ZombieFighter {
     const fk  = `zombie_r_${Math.min(this.frame, 5)}`;
     const img = images[fk];
     if(img && img.complete && img.naturalWidth){
-      if(this.facing > 0){
-        // Zombie guarda a destra — immagine normale
+      if(this.facing < 0){
+        // facing=-1 → guarda a SINISTRA → immagine originale (già orientata a sinistra)
         drawImg(img, this.x, this.y);
       } else {
-        // Zombie guarda a sinistra — specchia orizzontalmente
+        // facing=+1 → guarda a DESTRA → specchia l'immagine
         ctx.save();
         ctx.translate(sx(this.x), sy(this.y));
         ctx.scale(-1, 1);
@@ -2495,29 +2534,67 @@ class ZombieFighter {
       }
     }
     // Barra vita sopra lo zombie
-    const bw = Math.max(0, (this.hp/this.maxHp)*80);
-    fillRoundRect(this.x-40, this.y-220, 80, 10, "#333", 1, 3);
-    fillRoundRect(this.x-40, this.y-220, bw, 10, "#a10000", 1, 3);
+    const bwFull = 80;
+    const bw = Math.max(0, (this.hp/this.maxHp)*bwFull);
+    fillRoundRect(this.x-bwFull/2, this.y-230, bwFull, 10, "#333", 1, 3);
+    fillRoundRect(this.x-bwFull/2, this.y-230, bw,     10, "#a10000", 1, 3);
+
+    // Hit flash
+    if(this._hitFlash>0){
+      ctx.save(); ctx.globalAlpha=this._hitFlash/5*0.5; ctx.fillStyle="#fff";
+      ctx.beginPath(); ctx.arc(sx(this.x),sy(this.y-150),ss(50),0,Math.PI*2); ctx.fill();
+      ctx.restore(); this._hitFlash--;
+    }
+    // Hit particles sullo zombie
+    if(this.hitParticles&&this.hitParticles.length>0){
+      this.hitParticles=this.hitParticles.filter(p=>{
+        p.x+=p.vx; p.y+=p.vy; p.vy+=0.3; p.life++;
+        p.alpha=1-p.life/p.maxLife;
+        if(p.alpha<=0) return false;
+        ctx.save(); ctx.globalAlpha=p.alpha; ctx.fillStyle=p.col;
+        ctx.shadowColor=p.col; ctx.shadowBlur=ss(5);
+        ctx.beginPath(); ctx.arc(sx(p.x),sy(p.y),ss(p.r),0,Math.PI*2); ctx.fill();
+        ctx.restore(); return true;
+      });
+    }
   }
 
   move(fighter) {
-    const t   = frameCount % 30;
-    const dist= Math.abs(this.x - fighter.x);
+    const t    = frameCount % 30;
+    const dist = Math.abs(this.x - fighter.x);
+    // Aggiorna sempre il facing verso il giocatore
+    const newFacing = fighter.x > this.x ? 1 : -1;
+    this.facing = newFacing;
 
-    // Aggiorna facing verso il giocatore
-    this.facing = fighter.x > this.x ? 1 : -1;
+    const STOP_DIST = 90; // distanza a cui si ferma e attacca — NON spinge il giocatore
 
-    if(dist > 70){
-      // Avanza verso il giocatore alla velocità del round
+    if(dist > STOP_DIST){
+      // Cammina verso il giocatore
       this.x += this.speed * this.facing;
-      this.frame = Math.floor(t/10) % 3; // frame di camminata 0-1-2
+      this.frame = Math.floor(t/10) % 3;
     } else {
-      // Attacca
-      const atkCooldown = Math.max(800, 2000 - this.round*100);
-      if(millis()-this._lastAtk >= atkCooldown){
+      // È vicino — si FERMA e attacca (nessun push)
+      // Non aggiorna this.x → non spinge il fighter
+      const atkCooldown = Math.max(900, 2200 - this.round * 100);
+      if(millis() - this._lastAtk >= atkCooldown){
         this.frame = 5;
-        fighter.hp = Math.max(0, fighter.hp - (4 + Math.floor(this.round/3)));
+        const dmg = 4 + Math.floor(this.round / 3);
+        fighter.hp = Math.max(0, fighter.hp - dmg);
         this._lastAtk = millis();
+        // Particelle di danno sul fighter
+        if(!fighter.hitParticles) fighter.hitParticles=[];
+        for(let i=0;i<10;i++){
+          const ang=Math.random()*Math.PI*2;
+          const spd=Math.random()*3+1;
+          fighter.hitParticles.push({
+            x:fighter.x+(Math.random()-0.5)*40, y:fighter.y-140+(Math.random()-0.5)*40,
+            vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-2,
+            r:Math.random()*5+3, alpha:1,
+            col:["#ff0000","#ff4400","#ff8800"][Math.floor(Math.random()*3)],
+            life:0, maxLife:16
+          });
+        }
+        fighter._hitFlash=6;
       } else {
         this.frame = 3 + Math.floor(t/15)%2;
       }

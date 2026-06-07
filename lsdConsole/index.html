@@ -2429,8 +2429,8 @@ class AttackOfZombies {
       }
     }
 
-    // ── Tasti a schermo (desktop) ──────────────────────────────
-    if(!isMobile) this._drawKeyHints();
+    // ── HUD tasti e cooldown — sempre visibile (mobile e desktop) ───
+    this._drawKeyHints();
   }
 
   _drawHUD() {
@@ -2448,18 +2448,99 @@ class AttackOfZombies {
   }
 
   _drawKeyHints() {
-    // Box tasti in basso al centro
-    const bx=BASE_W/2, by=BASE_H-55;
-    fillRoundRect(bx-350,by-28,700,52,"#000",0.6,10);
-    const keys=[
-      {k:"A",l:"Move L"},{k:"D",l:"Move R"},{k:"W",l:"Punch"},
-      {k:"S",l:"Kick"},{k:"Q",l:"Ranged"},{k:"E",l:"Special"},{k:"C",l:"Block"}
-    ];
-    keys.forEach((kt,i)=>{
-      const kx=bx-300+i*100;
-      fillCircle(kx,by,22,"#a10000",0.8);
-      setFont(18); ctx.fillStyle="#baa701"; ctx.fillText(kt.k,sx(kx),sy(by));
-      setFont(14); ctx.fillStyle="#888"; ctx.fillText(kt.l,sx(kx),sy(by+32));
+    if(!this.fighter) return;
+    const f   = this.fighter;
+    const now = millis();
+    // Stessa struttura HUD di AFUE: icone + contatore cooldown
+    const icons   = [images.move_punch, images.move_kick, images.move_ranged, images.move_special];
+    const cds     = [f.cd1, f.cd2, f.cd3, f.cd4];
+    const cdDur   = [1800,  3500,  8000,  12000];
+    const labels  = ["W
+Punch","S
+Kick","Q
+Ranged","E
+Special"];
+    const ultraPct = Math.min(1, (now - f.cd5) / 12000);
+
+    // Sfondo barra bassa
+    fillRoundRect(0, BASE_H-100, BASE_W, 100, "#000", 0.55);
+
+    // Icone mosse con cooldown
+    const startX = BASE_W/2 - 240;
+    [0,1,2,3].forEach((j)=>{
+      const ix = startX + j*160;
+      const iy = BASE_H - 52;
+      const rem = cdDur[j] - (now - cds[j]);
+      const ready = rem <= 0;
+
+      // Cerchio icona
+      fillCircle(ix, iy, 36, ready ? "#1a1a1a" : "#0d0d0d", 0.9);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(sx(ix),sy(iy),ss(36),0,Math.PI*2);
+      ctx.strokeStyle = ready ? "#baa701" : "#333";
+      ctx.lineWidth = ss(ready ? 2.5 : 1.5);
+      ctx.stroke();
+      ctx.restore();
+
+      // Icona mossa
+      if(icons[j]) drawImg(icons[j], ix, iy);
+
+      // Overlay cooldown (arco grigio + timer)
+      if(!ready){
+        const pct = Math.max(0, rem / cdDur[j]);
+        ctx.save();
+        ctx.globalAlpha = 0.65;
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(sx(ix),sy(iy),ss(36),0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        // Arco ricarica
+        ctx.save();
+        ctx.strokeStyle = "#a10000";
+        ctx.lineWidth = ss(4);
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.arc(sx(ix),sy(iy),ss(30), -Math.PI/2, -Math.PI/2 + (1-pct)*Math.PI*2);
+        ctx.stroke();
+        ctx.restore();
+        // Timer secondi
+        setFont(20);
+        ctx.fillStyle="#888";
+        ctx.fillText(`${Math.ceil(rem/1000)}`, sx(ix), sy(iy));
+      }
+
+      // Label tasto + nome
+      const lines = labels[j].split("
+");
+      setFont(16); ctx.fillStyle = ready?"#baa701":"#555";
+      ctx.fillText(lines[0], sx(ix), sy(iy+46));
+      setFont(13); ctx.fillStyle="#666";
+      ctx.fillText(lines[1], sx(ix), sy(iy+63));
+    });
+
+    // Barra ULTRA (come in AFUE) — solo se non bloccata zombie
+    if(!f._zombieUltraLocked){
+      const barX = BASE_W/2 + 340, barY = BASE_H-80, barW = 220, barH = 18;
+      fillRoundRect(barX, barY, barW, barH, "#222", 1, 4);
+      fillRoundRect(barX, barY, barW*ultraPct, barH, ultraPct>=1?"#ff0000":"#880000", 1, 4);
+      setFont(15); ctx.fillStyle = ultraPct>=1?"#ff0000":"#555";
+      ctx.fillText(ultraPct>=1?"⚡ ULTRA READY! (W→S→E→Q)":"⚡ ULTRA charging...", sx(barX + barW/2), sy(barY - 16));
+    }
+
+    // Tasti movimento — sempre visibili a sinistra
+    const mx = BASE_W/2 - 420;
+    [
+      {k:"A",l:"Left",  x:mx-50, y:BASE_H-52},
+      {k:"D",l:"Right", x:mx+50, y:BASE_H-52},
+      {k:"C",l:"Block", x:mx,    y:BASE_H-52},
+    ].forEach(({k,l,x,y})=>{
+      fillCircle(x,y,26,"#1a1a1a",0.9);
+      ctx.save(); ctx.strokeStyle="#333"; ctx.lineWidth=ss(1.5);
+      ctx.beginPath(); ctx.arc(sx(x),sy(y),ss(26),0,Math.PI*2); ctx.stroke(); ctx.restore();
+      setFont(18); ctx.fillStyle="#baa701"; ctx.fillText(k,sx(x),sy(y));
+      setFont(13); ctx.fillStyle="#666"; ctx.fillText(l,sx(x),sy(y+40));
     });
   }
 
@@ -2562,30 +2643,29 @@ class ZombieFighter {
   move(fighter) {
     const t    = frameCount % 30;
     const dist = Math.abs(this.x - fighter.x);
-    // Aggiorna sempre il facing verso il giocatore
-    const newFacing = fighter.x > this.x ? 1 : -1;
-    this.facing = newFacing;
+    // Facing sempre verso il giocatore
+    this.facing = fighter.x > this.x ? 1 : -1;
 
-    const STOP_DIST = 90; // distanza a cui si ferma e attacca — NON spinge il giocatore
+    // STOP_DIST: distanza di attacco — lo zombie si ANCORA qui e non va oltre
+    const STOP_DIST = 100;
 
     if(dist > STOP_DIST){
-      // Cammina verso il giocatore
-      this.x += this.speed * this.facing;
-      this.frame = Math.floor(t/10) % 3;
+      // Avanza ma senza mai superare STOP_DIST
+      const step = Math.min(this.speed, dist - STOP_DIST);
+      this.x += step * this.facing;
+      this.frame = Math.floor(t/10) % 3; // frame camminata
     } else {
-      // È vicino — si FERMA e attacca (nessun push)
-      // Non aggiorna this.x → non spinge il fighter
+      // FERMATO — non tocca this.x, attacca
       const atkCooldown = Math.max(900, 2200 - this.round * 100);
       if(millis() - this._lastAtk >= atkCooldown){
-        this.frame = 5;
+        this.frame = 5; // frame attacco
         const dmg = 4 + Math.floor(this.round / 3);
         fighter.hp = Math.max(0, fighter.hp - dmg);
         this._lastAtk = millis();
-        // Particelle di danno sul fighter
+        // Particelle danno sul fighter
         if(!fighter.hitParticles) fighter.hitParticles=[];
         for(let i=0;i<10;i++){
-          const ang=Math.random()*Math.PI*2;
-          const spd=Math.random()*3+1;
+          const ang=Math.random()*Math.PI*2, spd=Math.random()*3+1;
           fighter.hitParticles.push({
             x:fighter.x+(Math.random()-0.5)*40, y:fighter.y-140+(Math.random()-0.5)*40,
             vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-2,
@@ -2596,7 +2676,7 @@ class ZombieFighter {
         }
         fighter._hitFlash=6;
       } else {
-        this.frame = 3 + Math.floor(t/15)%2;
+        this.frame = 3 + Math.floor(t/15)%2; // frame idle attacco
       }
     }
   }

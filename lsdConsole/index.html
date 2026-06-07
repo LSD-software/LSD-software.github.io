@@ -1766,19 +1766,19 @@ class Fighter {
       if(onDone) setTimeout(onDone, 100);
     };
 
-    // Load iframe after flash
+    // Durata esatta dei video + 2s margine:
+    // Grax: 1:06 = 66s + 2 = 68s  |  Yuke: 1:29 = 89s + 2 = 91s
+    const videoDuration = (this.name === "grax") ? 68000 : 91000;
+
+    // Carica iframe dopo il flash — il timer parte DA QUI (quando il video inizia)
     this._vidLoadTimer = setTimeout(() => {
       iframe.src = src;
       iframe.style.opacity = "1";
+      // Timer parte esattamente quando il video comincia a caricare
+      this._vidTimer = setTimeout(() => closeUltra(), videoDuration);
     }, 800);
 
     skip.addEventListener("click", e => { e.stopPropagation(); closeUltra(true); }, {once:true});
-
-    // Durata esatta dei video + 2s margine:
-    // Grax: 1:06 = 66s + 2 = 68s
-    // Yuke: 1:29 = 89s + 2 = 91s
-    const videoDuration = (this.name === "grax") ? 68000 : 91000;
-    this._vidTimer = setTimeout(() => closeUltra(), videoDuration);
 
     // Click overlay chiude dopo 3s guard (evita click accidentale all'apertura)
     overlay.addEventListener("click", function _oc(e){

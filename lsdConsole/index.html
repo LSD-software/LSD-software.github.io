@@ -2292,7 +2292,7 @@ class AttackOfZombies {
   _zombieCount(r){ return r<=3?1 : r<=6?2 : r<=9?3 : 4; }
 
   // Velocità zombie per round: parte lenta, cresce gradualmente
-  _zombieSpeed(r){ return 0.8 + (r-1)*0.25; } // round 1=0.8, round 10=3.05
+  _zombieSpeed(r){ return 0.5 + (r-1)*0.18; } // round 1=0.5, round 5=1.2, round 10=2.1
 
   startRound(r) {
     this.round = r;
@@ -2368,29 +2368,60 @@ class AttackOfZombies {
         z.move(this.fighter);
         // Hit detection: quando il fighter attacca
         if(this.fighter.anim && ["punch","kick","ranged","special"].includes(this.fighter.anim.type)){
-          const dt    = Math.abs(z.x - this.fighter.x);
-          const dmgMap= {punch:8, kick:14, ranged:18, special:15};
-          const reach = {punch:200, kick:180, ranged:800, special:220};
-          if(dt < reach[this.fighter.anim.type] && this.fighter.anim.start===frameCount){
-            const dmg = dmgMap[this.fighter.anim.type];
+          const anim   = this.fighter.anim;
+          const type   = anim.type;
+          const elapsed = frameCount - anim.start;
+          const dt     = Math.abs(z.x - this.fighter.x);
+          const dmgMap = {punch:8, kick:14, ranged:18, special:15};
+          const reach  = {punch:220, kick:200, ranged:900, special:260};
+          // Hit window: frame in cui la mossa può colpire (non solo il primo frame)
+          // punch: frame 5-18, kick: frame 5-20, special: frame 4-20
+          const hitWindow = {punch:[5,18], kick:[5,20], ranged:[1,999], special:[4,20]};
+          const [hStart, hEnd] = hitWindow[type] || [0,999];
+          const inWindow = elapsed >= hStart && elapsed <= hEnd;
+          // Ogni zombie può essere colpito solo una volta per animazione
+          if(!z._hitByAnim) z._hitByAnim = -1;
+          const alreadyHit = (z._hitByAnim === anim.start);
+          if(inWindow && dt < reach[type] && !alreadyHit){
+            z._hitByAnim = anim.start; // segna come colpito da questa animazione
+            const dmg = dmgMap[type];
             z.hp -= dmg;
             if(game) game.trophies[4]=true;
-            // Particelle di danno sullo zombie colpito
             if(!z.hitParticles) z.hitParticles=[];
-            const cols={punch:["#FF8800","#FFAA00","#fff"],kick:["#FF4400","#FF2200","#FF8800"],
-                        ranged:["#FF6600","#FFD700","#fff"],special:["#FF0000","#FF8800","#FFD700","#fff"]};
-            const pcols=cols[this.fighter.anim.type]||cols.punch;
-            for(let pi=0;pi<12;pi++){
-              const ang=Math.random()*Math.PI*2, spd=Math.random()*4+2;
+            const cols={
+              punch:  ["#FF8800","#FFAA00","#fff"],
+              kick:   ["#FF4400","#FF2200","#FF8800"],
+              ranged: ["#FF6600","#FFD700","#fff"],
+              special:["#FF0000","#FF8800","#FFD700","#fff"]
+            };
+            const pcols = cols[type]||cols.punch;
+            // Particelle impatto colorate per tipo di mossa
+            for(let pi=0;pi<18;pi++){
+              const ang=Math.random()*Math.PI*2, spd=Math.random()*5+2;
               z.hitParticles.push({
-                x:z.x+(Math.random()-0.5)*40, y:z.y-150+(Math.random()-0.5)*40,
-                vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-3,
-                r:Math.random()*6+3, alpha:1,
+                x:z.x+(Math.random()-0.5)*60, y:z.y-150+(Math.random()-0.5)*80,
+                vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-4,
+                r:Math.random()*7+3, alpha:1,
                 col:pcols[Math.floor(Math.random()*pcols.length)],
-                life:0, maxLife:20
+                life:0, maxLife:24
               });
             }
-            z._hitFlash=5;
+            // Particelle "sangue verde" zombie extra
+            for(let pi=0;pi<8;pi++){
+              const ang= -Math.PI/2 + (Math.random()-0.5)*Math.PI;
+              const spd=Math.random()*3+2;
+              z.hitParticles.push({
+                x:z.x+(Math.random()-0.5)*30, y:z.y-130,
+                vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-5,
+                r:Math.random()*5+2, alpha:1,
+                col:["#00aa00","#006600","#44ff44","#003300"][Math.floor(Math.random()*4)],
+                life:0, maxLife:30
+              });
+            }
+            // Testo danno che sale
+            if(!z.dmgTexts) z.dmgTexts=[];
+            z.dmgTexts.push({val:dmg, x:z.x+(Math.random()-0.5)*60, y:z.y-200, life:0, maxLife:40});
+            z._hitFlash=8;
           }
         }
       }
@@ -2617,9 +2648,29 @@ class ZombieFighter {
 
     // Hit flash
     if(this._hitFlash>0){
-      ctx.save(); ctx.globalAlpha=this._hitFlash/5*0.5; ctx.fillStyle="#fff";
-      ctx.beginPath(); ctx.arc(sx(this.x),sy(this.y-150),ss(50),0,Math.PI*2); ctx.fill();
+      ctx.save();
+      ctx.globalAlpha = this._hitFlash/8 * 0.55;
+      ctx.fillStyle="#fff";
+      ctx.beginPath(); ctx.arc(sx(this.x),sy(this.y-150),ss(60),0,Math.PI*2); ctx.fill();
       ctx.restore(); this._hitFlash--;
+    }
+    // Numeri danno che salgono
+    if(this.dmgTexts&&this.dmgTexts.length>0){
+      this.dmgTexts=this.dmgTexts.filter(d=>{
+        d.life++; d.y-=1.2;
+        const a=1-d.life/d.maxLife;
+        if(a<=0) return false;
+        ctx.save();
+        ctx.globalAlpha=a;
+        ctx.font=`bold ${ss(28)}px monospace`;
+        ctx.textAlign="center"; ctx.textBaseline="middle";
+        ctx.fillStyle="#FFD700";
+        ctx.strokeStyle="#000"; ctx.lineWidth=ss(3);
+        ctx.strokeText(`-${d.val}`,sx(d.x),sy(d.y));
+        ctx.fillText(`-${d.val}`,sx(d.x),sy(d.y));
+        ctx.restore();
+        return true;
+      });
     }
     // Hit particles sullo zombie
     if(this.hitParticles&&this.hitParticles.length>0){
@@ -2651,25 +2702,26 @@ class ZombieFighter {
       this.frame = Math.floor(t/10) % 3; // frame camminata
     } else {
       // FERMATO — non tocca this.x, attacca
-      const atkCooldown = Math.max(900, 2200 - this.round * 100);
+      // Cooldown attacco: round 1=3000ms, round 5=2000ms, round 10=1200ms
+      const atkCooldown = Math.max(1200, 3000 - (this.round-1) * 200);
       if(millis() - this._lastAtk >= atkCooldown){
-        this.frame = 5; // frame attacco
-        const dmg = 4 + Math.floor(this.round / 3);
+        this.frame = 5;
+        const dmg = 3 + Math.floor(this.round / 4); // danno sale piano: r1=3, r8=5
         fighter.hp = Math.max(0, fighter.hp - dmg);
         this._lastAtk = millis();
-        // Particelle danno sul fighter
+        // Particelle danno sul fighter (rosse, grosse)
         if(!fighter.hitParticles) fighter.hitParticles=[];
-        for(let i=0;i<10;i++){
-          const ang=Math.random()*Math.PI*2, spd=Math.random()*3+1;
+        for(let i=0;i<14;i++){
+          const ang=Math.random()*Math.PI*2, spd=Math.random()*4+2;
           fighter.hitParticles.push({
-            x:fighter.x+(Math.random()-0.5)*40, y:fighter.y-140+(Math.random()-0.5)*40,
+            x:fighter.x+(Math.random()-0.5)*50, y:fighter.y-140+(Math.random()-0.5)*50,
             vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-2,
-            r:Math.random()*5+3, alpha:1,
-            col:["#ff0000","#ff4400","#ff8800"][Math.floor(Math.random()*3)],
-            life:0, maxLife:16
+            r:Math.random()*7+4, alpha:1,
+            col:["#cc0000","#ff2200","#ff6600","#ff9900"][Math.floor(Math.random()*4)],
+            life:0, maxLife:20
           });
         }
-        fighter._hitFlash=6;
+        fighter._hitFlash=8;
       } else {
         this.frame = 3 + Math.floor(t/15)%2; // frame idle attacco
       }

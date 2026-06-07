@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -11,9 +11,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;font-family:'Courier New',monospace;}
-#canvas{display:block;position:fixed;top:0;left:0;width:100%!important;height:100%!important;}
-html,body{overflow:hidden;position:fixed;width:100%;height:100%;touch-action:none;}
+html{width:100%;height:100%;background:#000;overflow:hidden;}
+body{
+  width:100%;height:100%;
+  background:#000;
+  overflow:hidden;
+  touch-action:none;
+  user-select:none;-webkit-user-select:none;
+  font-family:'Courier New',monospace;
+  position:fixed;
+  /* Prevent iOS bounce */
+  overscroll-behavior:none;
+}
+#canvas{
+  display:block;
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  background:#000;
+  /* Canvas size set by JS — CSS just centers it */
+  image-rendering:auto;
+}
 
 /* ── Fullscreen prompt ── */
 #fsPrompt{position:fixed;inset:0;background:radial-gradient(ellipse at center,#1a0000 0%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:clamp(12px,3vw,24px);}
@@ -197,81 +215,100 @@ const ctx    = canvas.getContext("2d");
 let W = 0, H = 0, scale = 1;
 const BASE_W = 1920, BASE_H = 1080;
 
-function enterFullscreen() {
-  document.getElementById("fsPrompt").style.display = "none";
+function _requestFS() {
   const el  = document.documentElement;
   const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-  if (req) req.call(el).catch(() => {});
+  if (req) {
+    req.call(el).then(() => {
+      // After FS granted, recalculate canvas size
+      setTimeout(resizeCanvas, 100);
+    }).catch(() => {
+      // iOS Safari doesn't support FS — just recalculate canvas
+      resizeCanvas();
+    });
+  } else {
+    resizeCanvas();
+  }
+}
+
+function enterFullscreen() {
+  document.getElementById("fsPrompt").style.display = "none";
+  _requestFS();
   resizeCanvas();
   startGame();
 }
-document.addEventListener("keydown", function onFirst() {
+
+// Keyboard shortcut F or any key
+document.addEventListener("keydown", function onFirst(e) {
   if (document.getElementById("fsPrompt").style.display !== "none") {
     enterFullscreen();
     document.removeEventListener("keydown", onFirst);
   }
 });
-// Mobile: force fullscreen immediately on first touch, no waiting
-if(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){
-  document.addEventListener("touchstart", function _autoFS(){
-    document.removeEventListener("touchstart", _autoFS);
-    if(document.getElementById("fsPrompt").style.display !== "none") enterFullscreen();
-  }, {once:true});
-}
+
+// Also re-request FS on any click/touch (re-entering after ESC)
+document.addEventListener("click", () => {
+  if (document.fullscreenEnabled && !document.fullscreenElement && document.getElementById("fsPrompt").style.display === "none") {
+    _requestFS();
+  }
+});
+
 // Animate loading bar
 let _loadStart = Date.now();
 function animLoadBar() {
-  const pct = Math.min(1, (Date.now()-_loadStart)/5000);
+  const pct = Math.min(1, (Date.now()-_loadStart)/4000);
   document.getElementById("loadBarFill").style.width = (pct*100)+"%";
   if (pct < 1) requestAnimationFrame(animLoadBar);
 }
 requestAnimationFrame(animLoadBar);
-// Auto-start after 5s regardless
+
+// Auto-start after 4s
 setTimeout(() => {
   if (document.getElementById("fsPrompt").style.display !== "none") enterFullscreen();
-}, 5000);
+}, 4000);
 // ── Mobile detection (MUST be before resizeCanvas) ──────────
 const isMobile = /Mobi|Android|iPhone|iPad|Touch/i.test(navigator.userAgent) || ('ontouchstart' in window) || window.innerWidth < 900;
 
 const DPR = Math.min(window.devicePixelRatio || 1, 3);
-let _offX = 0, _offY = 0; // canvas offset for centering/cropping
+// _offX/_offY always 0 because canvas is centered by CSS transform
+// Game coordinates always map 1:1 from (0,0) to (BASE_W, BASE_H)
+let _offX = 0, _offY = 0;
 
 function resizeCanvas() {
-  W = window.innerWidth; H = window.innerHeight;
-  canvas.width  = Math.round(W * DPR);
-  canvas.height = Math.round(H * DPR);
-  canvas.style.width  = "100%";
-  canvas.style.height = "100%";
-  canvas.style.position = "fixed";
-  canvas.style.top = "0";
-  canvas.style.left = "0";
+  W = window.innerWidth;
+  H = window.innerHeight;
+
+  // FIT: scale so entire game is visible with no cropping on any device
+  scale = Math.min(W / BASE_W, H / BASE_H);
+
+  // Physical canvas pixels = game size × DPR for sharp rendering
+  const cssW = Math.round(BASE_W * scale);
+  const cssH = Math.round(BASE_H * scale);
+
+  canvas.width  = Math.round(cssW * DPR);
+  canvas.height = Math.round(cssH * DPR);
+
+  // CSS size = logical pixels (centered by transform:translate(-50%,-50%) in CSS)
+  canvas.style.width  = cssW + "px";
+  canvas.style.height = cssH + "px";
+
+  // Scale context by DPR so everything drawn in game coords
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  const scaleX = W / BASE_W;
-  const scaleY = H / BASE_H;
-
-  if(isMobile){
-    // Fill screen: zoom so no black borders (may crop edges slightly)
-    scale = Math.max(scaleX, scaleY);
-    // Center the cropped axis
-    _offX = (W - BASE_W * scale) / 2;
-    _offY = (H - BASE_H * scale) / 2;
-  } else {
-    // Letterbox on desktop: fit entirely inside screen
-    scale = Math.min(scaleX, scaleY);
-    _offX = (W - BASE_W * scale) / 2;
-    _offY = (H - BASE_H * scale) / 2;
-  }
+  // Offsets are 0 — canvas is already positioned at (0,0) game origin
+  _offX = 0;
+  _offY = 0;
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 }
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener("resize", () => { resizeCanvas(); });
+// Also re-calc on orientation change (mobile)
+window.addEventListener("orientationchange", () => { setTimeout(resizeCanvas, 200); });
 resizeCanvas();
 
-// sx/sy always use _offX/_offY — works correctly for both fill and fit modes
-function sx(x) { return x * scale + _offX; }
-function sy(y) { return y * scale + _offY; }
+function sx(x) { return x * scale; }
+function sy(y) { return y * scale; }
 function ss(s) { return s * scale; }
 
 // ── Asset Loading ───────────────────────────────────────────
@@ -323,28 +360,42 @@ let mouseX = 0, mouseY = 0, mousePressed = false, _clickConsumed = false;
 function consumeClick() { _clickConsumed = true; }
 function clickAvailable() { return mousePressed && !_clickConsumed; }
 
-function _toGameX(clientX) { return (clientX - _offX) / scale; }
-function _toGameY(clientY) { return (clientY - _offY) / scale; }
+// Convert screen coords → game coords
+// Canvas is CSS-centered via transform:translate(-50%,-50%)
+// so we need to subtract the canvas CSS position
+function _toGameCoords(clientX, clientY) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: (clientX - r.left) / scale,
+    y: (clientY - r.top)  / scale
+  };
+}
 
 canvas.addEventListener("mousemove", e => {
-  mouseX = _toGameX(e.clientX);
-  mouseY = _toGameY(e.clientY);
+  const p = _toGameCoords(e.clientX, e.clientY);
+  mouseX = p.x; mouseY = p.y;
 });
-canvas.addEventListener("mousedown", () => { mousePressed = true;  _clickConsumed = false; });
-canvas.addEventListener("mouseup",   () => { mousePressed = false; _clickConsumed = false; });
+canvas.addEventListener("mousedown", e => {
+  const p = _toGameCoords(e.clientX, e.clientY);
+  mouseX = p.x; mouseY = p.y;
+  mousePressed = true; _clickConsumed = false;
+});
+canvas.addEventListener("mouseup", () => { mousePressed = false; _clickConsumed = false; });
+
 canvas.addEventListener("touchstart", e => {
   e.preventDefault();
   const t = e.touches[0];
-  mouseX = _toGameX(t.clientX);
-  mouseY = _toGameY(t.clientY);
+  const p = _toGameCoords(t.clientX, t.clientY);
+  mouseX = p.x; mouseY = p.y;
   mousePressed = true; _clickConsumed = false;
 }, { passive: false });
 canvas.addEventListener("touchmove", e => {
   e.preventDefault();
   const t = e.touches[0];
-  mouseX = _toGameX(t.clientX);
-  mouseY = _toGameY(t.clientY);
+  const p = _toGameCoords(t.clientX, t.clientY);
+  mouseX = p.x; mouseY = p.y;
 }, { passive: false });
+canvas.addEventListener("touchend", () => { mousePressed = false; _clickConsumed = false; }, { passive: false });
 canvas.addEventListener("touchend", () => { mousePressed = false; _clickConsumed = false; }, { passive: false });
 canvas.addEventListener("contextmenu", e => e.preventDefault());
 
@@ -2098,8 +2149,10 @@ function startGame() {
   requestAnimationFrame(loop);
   fetch(API_URL+"/health").catch(()=>{});
 }
-document.addEventListener("fullscreenchange", resizeCanvas);
-document.addEventListener("webkitfullscreenchange", resizeCanvas);
+document.addEventListener("fullscreenchange",       () => setTimeout(resizeCanvas, 80));
+document.addEventListener("webkitfullscreenchange", () => setTimeout(resizeCanvas, 80));
+document.addEventListener("mozfullscreenchange",    () => setTimeout(resizeCanvas, 80));
+document.addEventListener("MSFullscreenChange",     () => setTimeout(resizeCanvas, 80));
 </script>
 </body>
 </html>

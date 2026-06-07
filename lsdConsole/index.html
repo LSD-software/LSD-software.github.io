@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta id="metaViewport" name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.3, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -43,52 +43,142 @@ body{
 #loadBarFill{height:100%;background:#a10000;width:0;transition:width 0.1s;}
 @keyframes pulse{0%,100%{text-shadow:0 0 20px #a10000aa;}50%{text-shadow:0 0 40px #ff0000cc;}}
 
-/* ── Auth overlay ── */
-#authOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:8000;padding:16px;backdrop-filter:blur(8px);}
+/* ── Auth overlay — stile CardGame ── */
+#authOverlay{
+  position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,#1a0030 0%,rgba(0,0,0,0.95) 70%);
+  display:none;align-items:center;justify-content:center;
+  z-index:8000;
+  padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+  backdrop-filter:blur(8px);
+}
 #authOverlay.show{display:flex;}
+
 #authBox{
-  background:linear-gradient(160deg,#0d0d0d,#110000);
-  border:2px solid #baa701;border-radius:16px;
-  padding:clamp(24px,5vw,40px) clamp(20px,5vw,40px);
-  width:min(460px,96vw);display:flex;flex-direction:column;gap:14px;
-  max-height:94vh;overflow-y:auto;
-  box-shadow:0 0 60px rgba(161,0,0,0.3), 0 0 120px rgba(0,0,0,0.8);
+  background:linear-gradient(160deg,#0d001a,#1a0008);
+  border:2px solid rgba(255,215,0,0.4);
+  border-radius:16px;
+  padding:clamp(24px,5vw,48px) clamp(20px,6vw,52px);
+  width:min(440px,96vw);
+  max-height:92vh;overflow-y:auto;
+  display:flex;flex-direction:column;gap:0;
+  box-shadow:0 0 60px rgba(128,0,128,0.25),0 0 120px rgba(0,0,0,0.8);
   animation:authIn 0.25s ease-out;
+  font-family:'Cinzel',serif;
 }
-@keyframes authIn{from{opacity:0;transform:scale(0.93) translateY(12px);}to{opacity:1;transform:scale(1) translateY(0);}}
-#authBox .auth-logo{text-align:center;padding-bottom:4px;}
-#authBox .auth-logo h2{color:#a10000;font-size:clamp(1.3rem,4vw,1.8rem);letter-spacing:5px;text-align:center;margin:0;text-shadow:0 0 20px rgba(161,0,0,0.5);}
-#authBox .auth-logo p{color:#baa701;font-size:0.72rem;letter-spacing:3px;margin:4px 0 0;opacity:0.7;}
-#authBox .auth-divider{border:none;border-top:1px solid rgba(186,167,1,0.15);margin:2px 0;}
-.auth-field-label{color:rgba(255,255,255,0.4);font-size:clamp(0.65rem,2vw,0.72rem);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;display:block;}
+@keyframes authIn{from{opacity:0;transform:scale(0.93) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+/* Logo */
+#authBox .auth-logo{text-align:center;margin-bottom:20px;}
+#authBox .auth-logo h2{
+  font-size:clamp(1.1rem,4vw,1.5rem);font-weight:900;
+  color:gold;letter-spacing:4px;margin:0;
+  text-shadow:0 0 20px rgba(255,215,0,0.5);
+}
+#authBox .auth-logo p{color:rgba(255,255,255,0.35);font-size:0.72rem;letter-spacing:3px;margin:4px 0 0;}
+#authBox .auth-divider{border:none;border-top:1px solid rgba(255,215,0,0.12);margin:16px 0;}
+
+/* Tabs */
+.auth-tabs{
+  display:flex;gap:4px;margin-bottom:20px;
+  background:rgba(0,0,0,0.3);border-radius:8px;padding:4px;
+}
+.auth-tab{
+  flex:1;padding:clamp(8px,2vw,10px);
+  background:none;border:none;
+  color:rgba(255,255,255,0.4);
+  font-family:'Cinzel',serif;
+  font-size:clamp(0.68rem,2.2vw,0.82rem);
+  font-weight:700;letter-spacing:1.5px;
+  cursor:pointer;border-radius:6px;transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.auth-tab.active{
+  background:linear-gradient(145deg,#800000,#4a0000);
+  color:gold;box-shadow:0 0 12px rgba(128,0,0,0.4);
+}
+.auth-tab:not(.active):hover{color:rgba(255,255,255,0.7);}
+
+/* Field label */
+.auth-field-label{
+  font-size:clamp(0.68rem,1.8vw,0.8rem);
+  color:rgba(255,215,0,0.8);
+  letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:6px;display:block;margin-top:12px;
+}
+
+/* Inputs */
 #authBox input{
-  background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:8px;
-  padding:clamp(10px,2.5vw,13px) 14px;color:#fff;font-family:inherit;
-  font-size:clamp(0.88rem,3vw,1rem);width:100%;box-sizing:border-box;
-  transition:border-color 0.2s;
+  background:rgba(0,0,0,0.5);
+  border:1.5px solid rgba(255,255,255,0.15);
+  border-radius:8px;color:#fff;
+  font-family:'Cinzel',serif;
+  font-size:clamp(0.82rem,2.5vw,0.95rem);
+  padding:12px 14px;transition:border-color 0.2s;
+  width:100%;box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
 }
-#authBox input:focus{outline:none;border-color:#baa701;background:#1e1e1e;}
+#authBox input:focus{
+  outline:none;
+  border-color:rgba(255,215,0,0.6);
+  box-shadow:0 0 8px rgba(255,215,0,0.15);
+}
+#authBox input::placeholder{color:rgba(255,255,255,0.2);}
+
+/* Buttons */
 .auth-btn{
-  background:linear-gradient(135deg,#a10000,#7a0000);
-  color:#baa701;border:1.5px solid #baa701;padding:clamp(11px,2.5vw,14px);
-  border-radius:8px;cursor:pointer;font-family:inherit;
-  font-size:clamp(0.85rem,2.5vw,1rem);letter-spacing:2px;width:100%;
-  transition:all 0.2s;font-weight:700;
+  padding:14px;margin-top:16px;
+  background:linear-gradient(145deg,#800000,#4a0000);
+  color:gold;border:2px solid gold;
+  border-radius:8px;
+  font-family:'Cinzel',serif;
+  font-size:clamp(0.82rem,2.5vw,0.95rem);
+  font-weight:700;letter-spacing:2px;
+  cursor:pointer;text-transform:uppercase;
+  transition:all 0.2s;width:100%;
+  -webkit-tap-highlight-color:transparent;
 }
-.auth-btn:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.auth-btn:hover,.auth-btn:active{
+  background:gold;color:#800000;
+  box-shadow:0 0 18px rgba(255,215,0,0.4);
+  transform:scale(1.02);
+}
 .auth-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
-.auth-btn.secondary{background:#111;border:1.5px solid #333;color:#555;letter-spacing:1px;font-size:clamp(0.78rem,2vw,0.88rem);}
-.auth-btn.secondary:hover{border-color:#666;color:#888;transform:none;}
-.auth-tabs{display:flex;gap:6px;}
-.auth-tab{flex:1;padding:clamp(7px,1.5vw,11px);background:#111;border:1.5px solid #2a2a2a;border-radius:8px;color:#555;cursor:pointer;font-family:inherit;font-size:clamp(0.7rem,2.5vw,0.82rem);letter-spacing:1.5px;transition:all 0.2s;text-transform:uppercase;font-weight:700;}
-.auth-tab.active{border-color:#baa701;color:#baa701;background:#1a1100;box-shadow:0 0 8px rgba(186,167,1,0.1);}
-.auth-tab:hover:not(.active){border-color:#444;color:#888;}
-#authMsg{font-size:clamp(0.75rem,2.5vw,0.88rem);text-align:center;min-height:18px;padding:6px;border-radius:6px;transition:all 0.2s;}
-#authMsg.error{color:#ff6666;background:rgba(255,0,0,0.06);}
-#authMsg.success{color:#4EC600;background:rgba(78,198,0,0.06);}
-#authUserInfo{color:#baa701;font-size:clamp(0.75rem,2.5vw,0.85rem);text-align:center;opacity:0.7;}
-.auth-forgot-link{color:rgba(186,167,1,0.4);font-size:0.78rem;text-align:right;cursor:pointer;transition:color 0.2s;}
-.auth-forgot-link:hover{color:#baa701;}
+.auth-btn.secondary{
+  background:rgba(0,0,0,0.3);
+  border:1.5px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.45);
+  margin-top:8px;letter-spacing:1px;
+  font-size:clamp(0.72rem,2vw,0.82rem);
+}
+.auth-btn.secondary:hover{border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.05);transform:none;}
+
+/* Messages */
+#authMsg{
+  font-size:clamp(0.75rem,2vw,0.85rem);text-align:center;
+  padding:10px 14px;border-radius:6px;margin-top:8px;
+  min-height:0;transition:all 0.2s;letter-spacing:0.5px;
+}
+#authMsg.error{background:rgba(200,0,0,0.15);border:1px solid rgba(200,0,0,0.5);color:#ff6666;}
+#authMsg.success{background:rgba(0,180,0,0.15);border:1px solid rgba(0,180,0,0.4);color:#66ff88;}
+
+#authUserInfo{color:rgba(255,215,0,0.5);font-size:clamp(0.72rem,2vw,0.82rem);text-align:center;letter-spacing:1px;margin-bottom:4px;}
+
+.auth-forgot-link{
+  color:rgba(255,255,255,0.3);font-size:clamp(0.7rem,1.8vw,0.78rem);
+  text-align:right;cursor:pointer;transition:color 0.2s;
+  margin-top:4px;font-family:'Cinzel',serif;
+}
+.auth-forgot-link:hover{color:rgba(255,215,0,0.7);}
+
+/* Divider or/guest */
+.auth-divider-or{
+  display:flex;align-items:center;gap:12px;margin:16px 0;
+  color:rgba(255,255,255,0.2);font-size:0.8rem;
+}
+.auth-divider-or::before,.auth-divider-or::after{
+  content:'';flex:1;border-top:1px solid rgba(255,255,255,0.1);
+}
 
 /* ── Video overlay (ultimate) ── */
 #videoOverlay{display:none;position:fixed;inset:0;background:#000;z-index:7000;align-items:center;justify-content:center;}
@@ -130,8 +220,76 @@ body{
 .code-confirm-btn.cancel{background:#222;border:1px solid #555;color:#888;}
 
 /* ── Mobile menu btn ── */
-#mobileMenu{display:none;position:fixed;top:clamp(8px,2vw,12px);right:clamp(8px,2vw,12px);z-index:400;background:rgba(161,0,0,0.9);border:2px solid #baa701;color:#baa701;font-size:clamp(18px,5vw,24px);width:clamp(40px,10vw,50px);height:clamp(40px,10vw,50px);border-radius:8px;align-items:center;justify-content:center;cursor:pointer;pointer-events:all;}
+#mobileMenu{
+  display:none;position:fixed;
+  top:clamp(8px,2vw,14px);right:clamp(8px,2vw,14px);
+  z-index:400;
+  background:rgba(20,0,0,0.85);
+  border:2px solid #baa701;
+  color:#baa701;
+  font-size:clamp(20px,5vw,26px);
+  width:clamp(44px,11vw,54px);height:clamp(44px,11vw,54px);
+  border-radius:10px;
+  align-items:center;justify-content:center;
+  cursor:pointer;pointer-events:all;
+  backdrop-filter:blur(4px);
+  box-shadow:0 2px 12px rgba(0,0,0,0.5);
+  transition:background 0.2s;
+}
 #mobileMenu.show{display:flex;}
+#mobileMenu:active{background:rgba(161,0,0,0.9);}
+
+/* ── Game Drawer ── */
+#gameDrawer{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);
+  z-index:500;
+  backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;
+}
+#gameDrawer.open{display:flex;}
+#gameDrawerBox{
+  background:linear-gradient(160deg,#0d0000,#110000);
+  border:2px solid #baa701;
+  border-radius:16px;
+  padding:clamp(24px,5vw,36px) clamp(20px,5vw,40px);
+  width:min(340px,88vw);
+  display:flex;flex-direction:column;gap:14px;
+  box-shadow:0 0 60px rgba(161,0,0,0.3);
+  animation:drawerIn 0.2s ease-out;
+}
+@keyframes drawerIn{from{opacity:0;transform:scale(0.9);}to{opacity:1;transform:scale(1);}}
+#gameDrawerTitle{
+  color:#baa701;font-family:'Cinzel',serif;
+  font-size:clamp(1rem,4vw,1.3rem);
+  letter-spacing:4px;text-align:center;
+  margin-bottom:4px;
+  text-shadow:0 0 12px rgba(186,167,1,0.4);
+}
+.drawer-btn{
+  padding:clamp(13px,3vw,16px);
+  background:rgba(161,0,0,0.2);
+  border:1.5px solid rgba(186,167,1,0.4);
+  border-radius:10px;color:#fff;
+  font-family:'Courier New',monospace;
+  font-size:clamp(0.88rem,3vw,1rem);
+  letter-spacing:2px;cursor:pointer;
+  transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.drawer-btn:hover,.drawer-btn:active{
+  background:rgba(161,0,0,0.7);
+  border-color:#baa701;color:#baa701;
+}
+.drawer-btn-exit{
+  background:rgba(60,0,0,0.3);
+  border-color:rgba(255,60,60,0.3);
+  color:rgba(255,100,100,0.8);margin-top:6px;
+}
+.drawer-btn-exit:hover,.drawer-btn-exit:active{
+  background:rgba(180,0,0,0.5);
+  border-color:#ff4444;color:#ff8888;
+}
 </style>
 </head>
 <body>
@@ -153,15 +311,17 @@ body{
       <p>PLAYER ACCOUNT</p>
     </div>
     <p id="authUserInfo"></p>
-    <hr class="auth-divider">
     <div class="auth-tabs">
-      <div class="auth-tab active" onclick="setAuthTab('login')">LOGIN</div>
+      <div class="auth-tab active" onclick="setAuthTab('login')">SIGN IN</div>
       <div class="auth-tab" onclick="setAuthTab('register')">REGISTER</div>
-      <div class="auth-tab" onclick="setAuthTab('guest')">GUEST</div>
     </div>
     <div id="authFields"></div>
-    <div id="authMsg" class="auth-msg"></div>
-    <hr class="auth-divider">
+    <div id="authMsg"></div>
+    <div class="auth-divider-or"><span>or</span></div>
+    <button class="auth-btn" style="background:rgba(0,0,0,0.4);border:1.5px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);margin-top:0;" onclick="setAuthTab('guest');doAuth()">
+      🎲 PLAY AS GUEST
+      <span style="display:block;font-size:0.68rem;color:rgba(255,255,255,0.3);font-weight:400;letter-spacing:0.5px;margin-top:3px;">Progress not saved permanently</span>
+    </button>
     <button class="auth-btn secondary" onclick="closeAuth()">✕ CLOSE</button>
   </div>
 </div>
@@ -174,7 +334,17 @@ body{
 <canvas id="canvas"></canvas>
 
 <!-- Mobile controls (only shown during AFUE fight) -->
-<div id="mobileMenu">☰</div>
+<div id="mobileMenu" onclick="toggleDrawer()">☰</div>
+
+<!-- ── GAME DRAWER — visible in all games ── -->
+<div id="gameDrawer">
+  <div id="gameDrawerBox">
+    <div id="gameDrawerTitle">MENU</div>
+    <button class="drawer-btn" onclick="drawerAction('resume')">▶ RESUME</button>
+    <button class="drawer-btn" onclick="drawerAction('home')">🏠 HOME</button>
+    <button class="drawer-btn drawer-btn-exit" onclick="drawerAction('exit')">✕ EXIT CONSOLE</button>
+  </div>
+</div>
 <div id="gamepad">
   <div class="dpad">
     <div class="dpad-btn" id="dLeft">◀</div>
@@ -599,7 +769,19 @@ function drawImg(img, x, y, w, h) {
 }
 const fontFace = new FontFace("LSDFont","url(font/font.otf)");
 fontFace.load().then(f=>document.fonts.add(f)).catch(()=>{});
-function setFont(sz,align="center") { ctx.font=`${ss(sz)}px LSDFont,monospace`; ctx.textAlign=align; ctx.textBaseline="middle"; }
+// fontScale: boost text size on small screens so it stays readable
+function _getFontScale() {
+  const minDim = Math.min(W, H);
+  if(minDim < 400) return 1.6;
+  if(minDim < 600) return 1.3;
+  if(minDim < 800) return 1.1;
+  return 1.0;
+}
+function setFont(sz,align="center") {
+  const boosted = sz * _getFontScale();
+  ctx.font=`${ss(boosted)}px LSDFont,monospace`;
+  ctx.textAlign=align; ctx.textBaseline="middle";
+}
 function drawButton(text,x,y,w,h,col="#a10000") {
   const hov = isHover(x,y,w,h);
   const hw=hov?w*1.06:w, hh=hov?h*1.06:h;
@@ -941,7 +1123,7 @@ class LSDAttackForceUE {
     this.cpuDiff=null;
     this.p1Char=null; this.p2Char=null;
     this.selectingFor=1;
-    this.victory=false; this.winner=""; this.victoryTime=0;
+    this.victory=false; this.winner=""; this.victoryTime=0; this._victoryRegistered=false;
     this.fighter1=null; this.fighter2=null;
     this._cd=0;
     this.roomCode=null; this.playerIndex=null; this.waitingOpponent=false;
@@ -1014,9 +1196,10 @@ class LSDAttackForceUE {
     const f2frames = n => Array.from({length:n},(_,i)=>({ r:images[`${p2}_r_${i}`], l:images[`${p2}_l_${i}`] }));
     const nFrames = ch => ch==="grax"?14:13;
     // Online: P1 starts left (200), P2 starts right (BASE_W-200) — far apart
-    // Online: partenza ai bordi opposti; locale/CPU: più centrati
-    const p1startX = this.mode==="online" ? 180  : 380;
-    const p2startX = this.mode==="online" ? BASE_W-180 : BASE_W-380;
+    // P1 always starts LEFT, P2 always starts RIGHT
+    // Online: far apart at screen edges; local/CPU: moderate distance
+    const p1startX = this.mode==="online" ? 160  : 360;
+    const p2startX = this.mode==="online" ? BASE_W-160 : BASE_W-360;
     this.fighter1 = new Fighter(f1frames(nFrames(p1)), p1startX, 800, p1, 1, this.mode);
     this.fighter2 = new Fighter(f2frames(nFrames(p2)), p2startX, 800, p2, 2, this.mode==="cpu"?"cpu":this.mode==="online"?"online":this.mode);
     if (this.mode==="cpu") this.fighter2.cpuDiff=this.cpuDiff;
@@ -1031,6 +1214,35 @@ class LSDAttackForceUE {
   draw() {
     if (this.menuPhase!=="fight") { this.drawMenu(); return; }
     this._drawFight();
+  }
+
+  _drawYouLabel() {
+    if(!this.fighter1||!this.fighter2) return;
+    // Which fighter is "you"?
+    // online: playerIndex=0→fighter1, playerIndex=1→fighter2
+    // local/cpu: fighter1=P1 always (no "you" label needed in local, show both)
+    const drawLabel = (fighter, label, col) => {
+      const x=fighter.x, y=fighter.y-310;
+      // Badge
+      ctx.save();
+      ctx.fillStyle=col; ctx.globalAlpha=0.9;
+      const w=ss(90), h=ss(32), rx=sx(x)-w/2, ry=sy(y)-h/2;
+      ctx.beginPath(); ctx.roundRect(rx,ry,w,h,ss(6)); ctx.fill();
+      ctx.restore();
+      setFont(20); ctx.fillStyle="#000"; ctx.fillText(label,sx(x),sy(y));
+    };
+    if(this.mode==="online"){
+      if(this.playerIndex===0){
+        drawLabel(this.fighter1,"▼ YOU","#FFD700");
+        drawLabel(this.fighter2,"▼ OPP","#ff6666");
+      } else {
+        drawLabel(this.fighter1,"▼ OPP","#ff6666");
+        drawLabel(this.fighter2,"▼ YOU","#FFD700");
+      }
+    } else {
+      drawLabel(this.fighter1,"▼ P1","#4EC600");
+      drawLabel(this.fighter2, this.mode==="cpu"?"▼ CPU":"▼ P2","#ff8800");
+    }
   }
 
   drawMenu() {
@@ -1248,57 +1460,59 @@ class LSDAttackForceUE {
     }
     this.fighter1.drawChar(1);
     this.fighter2.drawChar(2);
+    this._drawYouLabel();
     this._drawHUD();
 
-    // Don't process victory if ultra video is playing — wait for it to finish
+    // Check victory only when ultra is not playing
     if(!this.victory && !window._ultraPlaying){
-      if(this.fighter1.hp<=0){
-        this.victory=true; this.winner=this.fighter2.name.toUpperCase();
-        this.victorIsP1=false; // P2 wins = local player (P1) loses
-        this.victoryTime=millis();
-        if(this.mode==="online"&&this.socket){
-          // SOLO playerIndex===0 emette round_result per evitare doppio conteggio
-          if(this.playerIndex===0){
-            this.socket.emit("round_result",{winner:this.fighter2.name,loser:this.fighter1.name});
-          }
-          // submitAFUEResult solo per playerIndex===0: il server gestisce entrambi via broadcast
-          // non chiamare submitAFUEResult lato client — ci pensa il backend in round_result
+      // fighter1.hp <= 0 → fighter2 wins
+      if(this.fighter1.hp<=0 && !this._victoryRegistered){
+        this._victoryRegistered=true;
+        this.victory=true;
+        this.winner=this.fighter2.name.toUpperCase();
+        this.victorIsP1=false; // fighter2 won
+        this.victoryTime=null; // shown only after video
+        if(this.mode==="online"&&this.socket&&this.playerIndex===0){
+          this.socket.emit("round_result",{winner:this.fighter2.name,loser:this.fighter1.name});
         }
+        if(game) { if(this.victorIsP1===false) game.trophies[13]=false; }
       }
-      if(this.fighter2.hp<=0){
-        this.victory=true; this.winner=this.fighter1.name.toUpperCase();
-        this.victorIsP1=true; // P1 wins = local player wins
-        this.victoryTime=millis();
-        if(this.mode==="online"&&this.socket){
-          // SOLO playerIndex===0 emette round_result
-          if(this.playerIndex===0){
-            this.socket.emit("round_result",{winner:this.fighter1.name,loser:this.fighter2.name});
-          }
+      // fighter2.hp <= 0 → fighter1 wins
+      if(this.fighter2.hp<=0 && !this._victoryRegistered){
+        this._victoryRegistered=true;
+        this.victory=true;
+        this.winner=this.fighter1.name.toUpperCase();
+        this.victorIsP1=true; // fighter1 won
+        this.victoryTime=null;
+        if(this.mode==="online"&&this.socket&&this.playerIndex===0){
+          this.socket.emit("round_result",{winner:this.fighter1.name,loser:this.fighter2.name});
         }
         if(game) game.trophies[13]=true;
       }
     }
-    if(this.victory && !window._ultraPlaying){
-      // Overlay
-      ctx.save();
-      ctx.fillStyle="rgba(0,0,0,0.72)";
-      ctx.fillRect(0,0,W,H);
-      ctx.restore();
 
-      // Personalized message for online
+    // Victory display — only after ultra video is done
+    if(this.victory && !window._ultraPlaying){
+      if(!this.victoryTime) this.victoryTime=millis();
+
+      ctx.save(); ctx.fillStyle="rgba(0,0,0,0.75)"; ctx.fillRect(0,0,W,H); ctx.restore();
+
+      // victorIsP1=true  → fighter1 won
+      // playerIndex=0    → local player IS fighter1
+      // playerIndex=1    → local player IS fighter2
       let topLine, topCol, subLine;
       if(this.mode==="online"){
-        // playerIndex 0 → il locale è fighter1 → victorIsP1=true = locale vince
-        // playerIndex 1 → il locale è fighter2 → victorIsP1=false = locale vince (P2 ha vinto)
-        const localWins = (this.playerIndex===0 && this.victorIsP1) ||
+        const localWins = (this.playerIndex===0 &&  this.victorIsP1) ||
                           (this.playerIndex===1 && !this.victorIsP1);
-        topLine = localWins ? "🏆  YOU WIN!" : "💀  YOU LOSE";
-        topCol  = localWins ? "#FFD700" : "#FF3333";
+        topLine = localWins ? "🏆  YOU WIN!"  : "💀  YOU LOSE";
+        topCol  = localWins ? "#FFD700"        : "#FF3333";
         subLine = `${this.winner} wins the round`;
       } else {
+        // Local/CPU: fighter1=P1, fighter2=P2 or CPU
+        // victorIsP1=true → P1 won; false → P2/CPU won
         topLine = `🏆  ${this.winner}  WINS!`;
         topCol  = "#FFD700";
-        subLine = "";
+        subLine = this.mode==="cpu" ? (this.victorIsP1 ? "You beat the CPU!" : "CPU wins this round!") : "";
       }
 
       setFont(78); ctx.fillStyle=topCol;
@@ -1309,7 +1523,9 @@ class LSDAttackForceUE {
       setFont(22); ctx.fillStyle="#888";
       ctx.fillText("Returning to menu...", sx(BASE_W/2), sy(BASE_H/2+90));
 
-      if(millis()-this.victoryTime>=4500){ showGamePad(false); this.reset(); if(game) game.screen=0; }
+      if(millis()-this.victoryTime>=4500){
+        showGamePad(false); this.reset(); if(game) game.screen=0;
+      }
     }
   }
 
@@ -1491,64 +1707,69 @@ class Fighter {
   }
 
   _showUltimateVideo(src, onDone) {
-    // onDone: callback chiamata quando il video finisce o viene skippato
     const overlay = document.getElementById("videoOverlay");
     overlay.innerHTML = "";
     overlay.style.cssText = "display:flex;position:fixed;inset:0;background:#000;z-index:7000;align-items:center;justify-content:center;flex-direction:column;";
 
-    // Skip button
-    const skip = document.createElement("button");
-    skip.textContent = "SKIP ▶";
-    skip.style.cssText = "position:absolute;top:18px;right:22px;z-index:10;background:rgba(0,0,0,0.8);color:#baa701;border:2px solid #baa701;padding:10px 24px;font-size:1rem;font-family:monospace;letter-spacing:2px;cursor:pointer;border-radius:6px;pointer-events:all;";
-    overlay.appendChild(skip);
-
-    // ULTRA title flash
+    // Flash title
     const title = document.createElement("div");
     title.textContent = "⚡ ULTRA ⚡";
-    title.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(3rem,8vw,6rem);color:#FF4400;font-family:monospace;letter-spacing:6px;text-shadow:0 0 40px #FF4400;animation:ultraFlash 0.5s ease-out forwards;pointer-events:none;z-index:5;";
+    title.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:clamp(2.5rem,8vw,5rem);color:#FF4400;font-family:monospace;letter-spacing:6px;text-shadow:0 0 40px #FF4400;animation:ultraFlash 0.8s ease-out forwards;pointer-events:none;z-index:5;";
     overlay.appendChild(title);
+    if(!document.getElementById("_ultraFlashStyle")){
+      const st=document.createElement("style"); st.id="_ultraFlashStyle";
+      st.textContent="@keyframes ultraFlash{0%{opacity:1;transform:translate(-50%,-50%) scale(2);}100%{opacity:0;transform:translate(-50%,-50%) scale(0.8);}}";
+      document.head.appendChild(st);
+    }
 
-    // Add flash animation
-    const styleEl = document.createElement("style");
-    styleEl.textContent = "@keyframes ultraFlash{0%{opacity:1;transform:translate(-50%,-50%) scale(2);}100%{opacity:0;transform:translate(-50%,-50%) scale(1);}}";
-    document.head.appendChild(styleEl);
+    // Skip button — visible after 1s
+    const skip = document.createElement("button");
+    skip.textContent = "SKIP ▶";
+    skip.style.cssText = "position:absolute;top:18px;right:22px;z-index:10;background:rgba(0,0,0,0.8);color:#baa701;border:2px solid #baa701;padding:10px 24px;font-size:1rem;font-family:monospace;letter-spacing:2px;cursor:pointer;border-radius:6px;pointer-events:all;opacity:0;transition:opacity 0.3s;";
+    overlay.appendChild(skip);
+    setTimeout(()=>{ skip.style.opacity="1"; }, 1000);
 
-    // iframe for Drive video — show after 600ms (after flash)
+    // iframe — load after flash (800ms)
     const iframe = document.createElement("iframe");
-    iframe.style.cssText = "width:100%;height:100%;border:none;position:absolute;inset:0;";
+    iframe.style.cssText = "width:100%;height:100%;border:none;position:absolute;inset:0;opacity:0;transition:opacity 0.5s;pointer-events:all;";
     iframe.allow = "autoplay; encrypted-media; picture-in-picture";
-    iframe.allowFullscreen = false;
-    iframe.setAttribute("allowfullscreen","");
-    // Set src immediately so YouTube starts loading
-    iframe.src = src;
     overlay.appendChild(iframe);
 
     let _closed = false;
-    const closeUltra = () => {
+    const _openedAt = Date.now();
+
+    const closeUltra = (fromSkip=false) => {
       if(_closed) return;
       _closed = true;
       clearTimeout(this._vidTimer);
-      overlay.classList.remove("show");
+      clearTimeout(this._vidLoadTimer);
       overlay.style.display = "none";
       overlay.innerHTML = "";
       window._ultraPlaying = false;
       this.ultKill = true;
       this.ultActive = false;
-      if(onDone) onDone();
       if(this._ownerAfue && this._ownerAfue.socket){
         this._ownerAfue.socket.emit("ultra_done", {});
       }
+      // onDone chiamato DOPO la chiusura: mostra vittoria/sconfitta
+      if(onDone) setTimeout(onDone, 100);
     };
 
-    skip.addEventListener("click", e => { e.stopPropagation(); closeUltra(); }, {once:true});
-    // YouTube videos ~30s but we let them play for 12s then auto-close
-    this._vidTimer = setTimeout(closeUltra, 12000);
+    // Load iframe after flash
+    this._vidLoadTimer = setTimeout(() => {
+      iframe.src = src;
+      iframe.style.opacity = "1";
+    }, 800);
 
-    // Click overlay to close (after 2s guard)
-    const _openedAt = Date.now();
+    skip.addEventListener("click", e => { e.stopPropagation(); closeUltra(true); }, {once:true});
+
+    // Auto-close dopo 14s (video ~12s + margini)
+    this._vidTimer = setTimeout(() => closeUltra(), 14000);
+
+    // Click overlay chiude dopo 3s guard (evita click accidentale all'apertura)
     overlay.addEventListener("click", function _oc(e){
       if(e.target===skip) return;
-      if(Date.now()-_openedAt < 2000) return;
+      if(Date.now()-_openedAt < 3000) return;
       overlay.removeEventListener("click",_oc);
       closeUltra();
     });
@@ -2131,6 +2352,39 @@ class ArtistMaker {
 // ============================================================
 //  MAIN LOOP
 // ============================================================
+// ── Game Drawer ──────────────────────────────────────────────
+function toggleDrawer() {
+  const d = document.getElementById("gameDrawer");
+  d.classList.toggle("open");
+}
+function drawerAction(action) {
+  document.getElementById("gameDrawer").classList.remove("open");
+  if (!game) return;
+  if (action === "resume") return;
+  if (action === "home") {
+    game.screen = 0;
+    game.sidePanelOpen = false;
+    game.lsdafue.reset();
+    game.nation.lsdnation = false;
+    game.zombies.reset();
+    game.ball.reset();
+    game.target.reset();
+    game.artist.initialized = false;
+    showGamePad(false);
+    showMobileMenu(false);
+  }
+  if (action === "exit") {
+    game.saveTrophies();
+    window.location.href = "https://lsd-software.github.io/project.html";
+  }
+}
+// Show drawer button on ALL screens except home (screen=0)
+function _updateDrawerBtn() {
+  if (!game) return;
+  const show = game.screen !== 0 && isMobile;
+  document.getElementById("mobileMenu").classList.toggle("show", show);
+}
+
 function loop() {
   requestAnimationFrame(loop);
   if (!game) return;
@@ -2141,11 +2395,15 @@ function loop() {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   game.draw();
+  _updateDrawerBtn();
 }
 function startGame() {
   loadAllAssets();
   game = new LSDConsole();
   setupMobilePad();
+  // Lock zoom during gameplay for precise touch control
+  document.getElementById("metaViewport").content =
+    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";
   requestAnimationFrame(loop);
   fetch(API_URL+"/health").catch(()=>{});
 }

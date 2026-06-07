@@ -2455,11 +2455,7 @@ class AttackOfZombies {
     const icons   = [images.move_punch, images.move_kick, images.move_ranged, images.move_special];
     const cds     = [f.cd1, f.cd2, f.cd3, f.cd4];
     const cdDur   = [1800,  3500,  8000,  12000];
-    const labels  = ["W
-Punch","S
-Kick","Q
-Ranged","E
-Special"];
+    const labels  = ["W|Punch","S|Kick","Q|Ranged","E|Special"];
     const ultraPct = Math.min(1, (now - f.cd5) / 12000);
 
     // Sfondo barra bassa
@@ -2512,8 +2508,7 @@ Special"];
       }
 
       // Label tasto + nome
-      const lines = labels[j].split("
-");
+      const lines = labels[j].split("|");
       setFont(16); ctx.fillStyle = ready?"#baa701":"#555";
       ctx.fillText(lines[0], sx(ix), sy(iy+46));
       setFont(13); ctx.fillStyle="#666";

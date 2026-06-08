@@ -1181,12 +1181,15 @@ class LSDAttackForceUE {
     });
   }
   setupOnlineFight(data) {
+    // fighter1 = sempre il giocatore LOCALE
+    // fighter2 = sempre l'AVVERSARIO
     const myChar = this.playerIndex===0 ? data.p0.char : data.p1.char;
     const opChar = this.playerIndex===0 ? data.p1.char : data.p0.char;
-    this.p1Char=myChar; this.p2Char=opChar;
+    this.p1Char = myChar; // fighter1 = locale
+    this.p2Char = opChar; // fighter2 = avversario
     this._buildFighters();
     this.menuPhase="fight";
-    if(myChar==="grax")this.voltaGrax++; else this.voltaYuke++;
+    if(myChar==="grax") this.voltaGrax++; else this.voltaYuke++;
     showGamePad(isMobile);
   }
   createRoom() { this.connectSocket(); this.socket.emit("create_room",{ char:this.p1Char }); }
@@ -1196,28 +1199,44 @@ class LSDAttackForceUE {
     const p1=this.p1Char, p2=this.p2Char;
     const f1frames = n => Array.from({length:n},(_,i)=>({ r:images[`${p1}_r_${i}`], l:images[`${p1}_l_${i}`] }));
     const f2frames = n => Array.from({length:n},(_,i)=>({ r:images[`${p2}_r_${i}`], l:images[`${p2}_l_${i}`] }));
-    const nFrames = ch => ch==="grax"?14:13;
-    // Online: P1 starts left (200), P2 starts right (BASE_W-200) — far apart
-    // fighter1 sempre a SINISTRA, fighter2 sempre a DESTRA
-    // Online: ai bordi opposti dello schermo, lontani
-    // Locale/CPU: distanza moderata
-    const p1startX = this.mode==="online" ? 200  : 380;
-    const p2startX = this.mode==="online" ? BASE_W-200 : BASE_W-380;
-    this.fighter1 = new Fighter(f1frames(nFrames(p1)), p1startX, 800, p1, 1, this.mode);
-    this.fighter2 = new Fighter(f2frames(nFrames(p2)), p2startX, 800, p2, 2, this.mode==="cpu"?"cpu":this.mode==="online"?"online":this.mode);
-    if (this.mode==="cpu") this.fighter2.cpuDiff=this.cpuDiff;
-    // Give fighters a back-reference to the AFUE instance (for socket events)
+    const nFrames  = ch => ch==="grax"?14:13;
+
+    // Posizioni di partenza:
+    // Online playerIndex=0 → locale (fighter1) parte a SINISTRA
+    // Online playerIndex=1 → locale (fighter1) parte a DESTRA (viene specchiato)
+    // Locale/CPU: fighter1 a sinistra, fighter2 a destra
+    let f1startX, f2startX;
+    if(this.mode==="online"){
+      if(this.playerIndex===0){
+        f1startX = 200;          // locale parte a sinistra
+        f2startX = BASE_W-200;   // avversario a destra
+      } else {
+        f1startX = BASE_W-200;   // locale parte a destra
+        f2startX = 200;          // avversario a sinistra
+      }
+    } else {
+      f1startX = 380;
+      f2startX = BASE_W-380;
+    }
+
+    this.fighter1 = new Fighter(f1frames(nFrames(p1)), f1startX, 800, p1, 1, this.mode);
+    this.fighter2 = new Fighter(f2frames(nFrames(p2)), f2startX, 800, p2, 2,
+      this.mode==="cpu"?"cpu": this.mode==="online"?"online": this.mode);
+
+    if(this.mode==="cpu") this.fighter2.cpuDiff=this.cpuDiff;
+
     this.fighter1._ownerAfue = this;
     this.fighter2._ownerAfue = this;
     this.fighter1._usedUltraThisRound = false;
     this.fighter2._usedUltraThisRound = false;
     this._onlineResult = null;
-    // Mark which fighter is controlled by network input on this client
-    // playerIndex=0: I am fighter1 (local), fighter2 is opponent (netKeys)
-    // playerIndex=1: I am fighter2 (local), fighter1 is opponent (netKeys)  
-    // local/cpu: no network fighters
-    this.fighter1._isNetworkFighter = (this.mode==="online" && this.playerIndex===1);
-    this.fighter2._isNetworkFighter = (this.mode==="online" && this.playerIndex===0);
+    this._victoryRegistered = false;
+
+    // fighter1 = LOCALE → usa sempre tastiera fisica
+    // fighter2 = AVVERSARIO → usa sempre _netKeys
+    // Questo è vero per ENTRAMBI i playerIndex
+    this.fighter1._isNetworkFighter = false;  // locale: mai network
+    this.fighter2._isNetworkFighter = (this.mode==="online"); // avversario: sempre network in online
   }
 
   draw() {
@@ -1227,12 +1246,8 @@ class LSDAttackForceUE {
 
   _drawYouLabel() {
     if(!this.fighter1||!this.fighter2) return;
-    // Which fighter is "you"?
-    // online: playerIndex=0→fighter1, playerIndex=1→fighter2
-    // local/cpu: fighter1=P1 always (no "you" label needed in local, show both)
     const drawLabel = (fighter, label, col) => {
       const x=fighter.x, y=fighter.y-310;
-      // Badge
       ctx.save();
       ctx.fillStyle=col; ctx.globalAlpha=0.9;
       const w=ss(90), h=ss(32), rx=sx(x)-w/2, ry=sy(y)-h/2;
@@ -1240,14 +1255,11 @@ class LSDAttackForceUE {
       ctx.restore();
       setFont(20); ctx.fillStyle="#000"; ctx.fillText(label,sx(x),sy(y));
     };
+    // fighter1 = sempre il giocatore locale → YOU
+    // fighter2 = sempre l'avversario       → OPP (o CPU/P2 in locale)
     if(this.mode==="online"){
-      if(this.playerIndex===0){
-        drawLabel(this.fighter1,"▼ YOU","#FFD700");
-        drawLabel(this.fighter2,"▼ OPP","#ff6666");
-      } else {
-        drawLabel(this.fighter1,"▼ OPP","#ff6666");
-        drawLabel(this.fighter2,"▼ YOU","#FFD700");
-      }
+      drawLabel(this.fighter1,"▼ YOU","#FFD700");
+      drawLabel(this.fighter2,"▼ OPP","#ff6666");
     } else {
       drawLabel(this.fighter1,"▼ P1","#4EC600");
       drawLabel(this.fighter2, this.mode==="cpu"?"▼ CPU":"▼ P2","#ff8800");
@@ -1451,17 +1463,12 @@ class LSDAttackForceUE {
     drawImg(images.bg_fight,BASE_W/2,BASE_H/2);
     if(!this.fighter1||!this.fighter2) return;
 
-    // Online: invia input locale, applica input avversario al fighter corretto
+    // Online: fighter1=locale (invia input), fighter2=avversario (riceve netKeys)
     if(this.mode==="online"&&this.socket){
-      const inp = this._getP1Input();
-      this.socket.emit("input", inp);
-      // playerIndex=0: fighter2 è l'avversario
-      // playerIndex=1: fighter1 è l'avversario
-      if(this.playerIndex===0 && this.fighter2){
-        this.fighter2.applyNetworkInput(this.opponentInput);
-      } else if(this.playerIndex===1 && this.fighter1){
-        this.fighter1.applyNetworkInput(this.opponentInput);
-      }
+      // Invia sempre i miei tasti (fighter1 = locale)
+      this.socket.emit("input", this._getP1Input());
+      // Applica input ricevuto a fighter2 (avversario)
+      this.fighter2.applyNetworkInput(this.opponentInput);
     }
 
     // Blocca il combattimento durante la riproduzione dell'ultra
@@ -1475,57 +1482,46 @@ class LSDAttackForceUE {
     this._drawHUD();
 
     // ── VICTORY CHECK ─────────────────────────────────────
-    // Registra la vittoria appena un fighter muore
-    // Ma mostra la schermata solo DOPO che il video ultra è finito
-    if(!this._victoryRegistered){
-      const f1Dead = this.fighter1.hp<=0;
-      const f2Dead = this.fighter2.hp<=0;
-      if(f1Dead || f2Dead){
-        this._victoryRegistered=true;
-        if(f2Dead){
-          // fighter2 morto → fighter1 vince
-          this.victory=true;
-          this.winner=this.fighter1.name.toUpperCase();
-          this.victorIsP1=true;
-          if(game) game.trophies[13]=true;
-        } else {
-          // fighter1 morto → fighter2 vince
-          this.victory=true;
-          this.winner=this.fighter2.name.toUpperCase();
-          this.victorIsP1=false;
-        }
-        // Solo playerIndex=0 invia il risultato al server (anti-duplicati)
-        if(this.mode==="online"&&this.socket&&this.playerIndex===0){
-          const w = this.victorIsP1 ? this.fighter1.name : this.fighter2.name;
-          const l = this.victorIsP1 ? this.fighter2.name : this.fighter1.name;
-          this.socket.emit("round_result",{winner:w,loser:l});
+    // fighter1 = LOCALE, fighter2 = AVVERSARIO (sempre)
+    // fighter1.hp<=0 → locale perde; fighter2.hp<=0 → locale vince
+    if(!this._victoryRegistered && !window._ultraPlaying){
+      const localDead = this.fighter1.hp<=0;
+      const oppDead   = this.fighter2.hp<=0;
+      if(localDead || oppDead){
+        this._victoryRegistered = true;
+        this.victory    = true;
+        this.localWon   = oppDead && !localDead; // true = locale ha vinto
+        this.winner     = this.localWon ? this.fighter1.name.toUpperCase()
+                                        : this.fighter2.name.toUpperCase();
+        if(this.localWon && game) game.trophies[13]=true;
+        // Solo playerIndex=0 emette round_result (anti-duplicati)
+        if(this.mode==="online" && this.socket && this.playerIndex===0){
+          // playerIndex=0: fighter1=locale, fighter2=avversario
+          // playerIndex=1: fighter1=locale, fighter2=avversario (stessa struttura!)
+          // Il server riceve winner/loser come nomi personaggi
+          const winnerName = this.localWon ? this.fighter1.name : this.fighter2.name;
+          const loserName  = this.localWon ? this.fighter2.name : this.fighter1.name;
+          this.socket.emit("round_result",{winner:winnerName, loser:loserName});
         }
       }
     }
 
     // ── VICTORY DISPLAY ───────────────────────────────────
-    // Mostra schermata SOLO quando: vittoria registrata E video non in corso
     if(this.victory && !window._ultraPlaying){
       if(!this.victoryTime) this.victoryTime=millis();
-
       ctx.save(); ctx.fillStyle="rgba(0,0,0,0.82)"; ctx.fillRect(0,0,W,H); ctx.restore();
 
-      // Determina chi ha vinto dal punto di vista del giocatore locale
-      // victorIsP1=true → fighter1 ha vinto
-      // Online playerIndex=0 → io sono fighter1 → victorIsP1=true = ho vinto
-      // Online playerIndex=1 → io sono fighter2 → victorIsP1=false = ho vinto
+      // Logica semplice: localWon=true → YOU WIN, false → YOU LOSE
       let topLine, topCol, subLine;
       if(this.mode==="online"){
-        const iWon = (this.playerIndex===0 &&  this.victorIsP1) ||
-                     (this.playerIndex===1 && !this.victorIsP1);
-        topLine = iWon ? "🏆  YOU WIN!"  : "💀  YOU LOSE";
-        topCol  = iWon ? "#FFD700"       : "#FF3333";
+        topLine = this.localWon ? "🏆  YOU WIN!"  : "💀  YOU LOSE";
+        topCol  = this.localWon ? "#FFD700"       : "#FF3333";
         subLine = `${this.winner} wins the round`;
       } else {
         topLine = `🏆  ${this.winner}  WINS!`;
         topCol  = "#FFD700";
         subLine = this.mode==="cpu"
-          ? (this.victorIsP1 ? "You beat the CPU!" : "CPU wins this round!")
+          ? (this.localWon ? "You beat the CPU!" : "CPU wins this round!")
           : "";
       }
 
@@ -1543,12 +1539,49 @@ class LSDAttackForceUE {
     }
   }
 
+  _spawnZombieHitFX(z, type, dmg) {
+    if(!z.hitParticles) z.hitParticles=[];
+    const cols={
+      punch:  ["#FF8800","#FFAA00","#fff"],
+      kick:   ["#FF4400","#FF2200","#FF8800"],
+      ranged: ["#FF6600","#FFD700","#fff"],
+      special:["#FF0000","#FF8800","#FFD700","#fff"]
+    };
+    const pcols = cols[type]||cols.punch;
+    for(let pi=0;pi<18;pi++){
+      const ang=Math.random()*Math.PI*2, spd=Math.random()*5+2;
+      z.hitParticles.push({
+        x:z.x+(Math.random()-0.5)*60, y:z.y-150+(Math.random()-0.5)*80,
+        vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-4,
+        r:Math.random()*7+3, alpha:1,
+        col:pcols[Math.floor(Math.random()*pcols.length)],
+        life:0, maxLife:24
+      });
+    }
+    for(let pi=0;pi<8;pi++){
+      const ang=-Math.PI/2+(Math.random()-0.5)*Math.PI, spd=Math.random()*3+2;
+      z.hitParticles.push({
+        x:z.x+(Math.random()-0.5)*30, y:z.y-130,
+        vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-5,
+        r:Math.random()*5+2, alpha:1,
+        col:["#00aa00","#006600","#44ff44","#003300"][Math.floor(Math.random()*4)],
+        life:0, maxLife:30
+      });
+    }
+    if(!z.dmgTexts) z.dmgTexts=[];
+    z.dmgTexts.push({val:dmg, x:z.x+(Math.random()-0.5)*60, y:z.y-200, life:0, maxLife:40});
+    z._hitFlash=8;
+  }
+
   _drawHUD() {
     const now=millis();
     const f1=this.fighter1, f2=this.fighter2;
 
     // ── P1 HP bar
-    setFont(40,"left"); ctx.fillStyle="#fff"; ctx.fillText(f1.name.toUpperCase(),sx(80),sy(22));
+    // fighter1=locale(YOU), fighter2=avversario(OPP) — in online mostra "YOU"/"OPP"
+    const p1label = this.mode==="online" ? "YOU" : f1.name.toUpperCase();
+    const p2label = this.mode==="online" ? "OPP" : f2.name.toUpperCase();
+    setFont(40,"left"); ctx.fillStyle=this.mode==="online"?"#FFD700":"#fff"; ctx.fillText(p1label,sx(80),sy(22));
     fillRoundRect(80,50,300,44,"#333",1,4);
     fillRoundRect(80,50,f1.hp*3,44,"#4EC600",1,4);
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(80),sy(50),ss(300),ss(44)); ctx.restore();
@@ -1560,7 +1593,7 @@ class LSDAttackForceUE {
     if(ult1pct>=1) fillText("ULTRA READY!",230,107,"#ff0000",13);
 
     // ── P2 HP bar
-    setFont(40,"right"); ctx.fillStyle="#fff"; ctx.fillText(f2.name.toUpperCase(),sx(BASE_W-80),sy(22));
+    setFont(40,"right"); ctx.fillStyle=this.mode==="online"?"#ff6666":"#fff"; ctx.fillText(p2label,sx(BASE_W-80),sy(22));
     fillRoundRect(BASE_W-380,50,300,44,"#333",1,4);
     const hp2w=f2.hp*3;
     fillRoundRect(BASE_W-380+(300-hp2w),50,hp2w,44,"#4EC600",1,4);
@@ -2309,11 +2342,18 @@ class AttackOfZombies {
         : -100 - extraDist;
       const z = new ZombieFighter(startX, fromRight, speed, r);
       z.y = 800 + (i % 2 === 0 ? 0 : 30);
+      z._hitByProj  = false;
+      z._hitByProj2 = false;
+      z._hitByGrax  = false;
       this.zombieList.push(z);
     }
     // Ultra sbloccata solo all'ultimo round (round 10)
     if(this.fighter) {
       this.fighter._zombieUltraLocked = (r < 10);
+      // Reset proiettili attivi tra i round
+      this.fighter.projActive  = false;
+      this.fighter.proj2Active = false;
+      this.fighter.graxCubeActive = false;
     }
   }
 
@@ -2353,9 +2393,13 @@ class AttackOfZombies {
       const nearestZ = this.zombieList.reduce((best,z)=>{
         return (!best||Math.abs(z.x-this.fighter.x)<Math.abs(best.x-this.fighter.x))?z:best;
       }, null);
+      // fakeEnemy: usiamo lo zombie più vicino come target del fighter
+      // x impostato lontano così i proiettili volano liberamente e colpiti dal loop sopra
       const fakeEnemy = nearestZ
-        ? {x:nearestZ.x, hp:nearestZ.hp, blocking:false, name:"zombie", facing:nearestZ.facing, cd4:0, cd5:0}
-        : {x:this.fighter.x+300, hp:100, blocking:false, name:"zombie", facing:1, cd4:0, cd5:0};
+        ? {x:nearestZ.x, hp:nearestZ.hp, blocking:false, name:"zombie",
+           facing:nearestZ.facing, cd4:0, cd5:0, hp:100}
+        : {x:this.fighter.facing>0 ? BASE_W+200 : -200,
+           hp:100, blocking:false, name:"zombie", facing:1, cd4:0, cd5:0};
       this.fighter.update(fakeEnemy);
       this.fighter.drawChar(1);
     }
@@ -2460,6 +2504,40 @@ class AttackOfZombies {
 
     // ── HUD tasti e cooldown — sempre visibile (mobile e desktop) ───
     this._drawKeyHints();
+  }
+
+  _spawnZombieHitFX(z, type, dmg) {
+    if(!z.hitParticles) z.hitParticles=[];
+    const cols={
+      punch:  ["#FF8800","#FFAA00","#fff"],
+      kick:   ["#FF4400","#FF2200","#FF8800"],
+      ranged: ["#FF6600","#FFD700","#fff"],
+      special:["#FF0000","#FF8800","#FFD700","#fff"]
+    };
+    const pcols = cols[type]||cols.punch;
+    for(let pi=0;pi<18;pi++){
+      const ang=Math.random()*Math.PI*2, spd=Math.random()*5+2;
+      z.hitParticles.push({
+        x:z.x+(Math.random()-0.5)*60, y:z.y-150+(Math.random()-0.5)*80,
+        vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-4,
+        r:Math.random()*7+3, alpha:1,
+        col:pcols[Math.floor(Math.random()*pcols.length)],
+        life:0, maxLife:24
+      });
+    }
+    for(let pi=0;pi<8;pi++){
+      const ang=-Math.PI/2+(Math.random()-0.5)*Math.PI, spd=Math.random()*3+2;
+      z.hitParticles.push({
+        x:z.x+(Math.random()-0.5)*30, y:z.y-130,
+        vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-5,
+        r:Math.random()*5+2, alpha:1,
+        col:["#00aa00","#006600","#44ff44","#003300"][Math.floor(Math.random()*4)],
+        life:0, maxLife:30
+      });
+    }
+    if(!z.dmgTexts) z.dmgTexts=[];
+    z.dmgTexts.push({val:dmg, x:z.x+(Math.random()-0.5)*60, y:z.y-200, life:0, maxLife:40});
+    z._hitFlash=8;
   }
 
   _drawHUD() {

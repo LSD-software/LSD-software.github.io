@@ -1181,19 +1181,29 @@ class LSDAttackForceUE {
     });
   }
   setupOnlineFight(data) {
-    // fighter1 = sempre il giocatore LOCALE
-    // fighter2 = sempre l'AVVERSARIO
-    const myChar = this.playerIndex===0 ? data.p0.char : data.p1.char;
-    const opChar = this.playerIndex===0 ? data.p1.char : data.p0.char;
-    this.p1Char = myChar; // fighter1 = locale
-    this.p2Char = opChar; // fighter2 = avversario
+    // Usa il personaggio che questo client ha scelto (salvato in _myChosenChar)
+    // Non fidarsi dell'ordine di data.p0/p1 perché potrebbe essere scambiato
+    const myChar = this._myChosenChar || (this.playerIndex===0 ? data.p0.char : data.p1.char);
+    const opChar = myChar===data.p0.char ? data.p1.char : data.p0.char;
+    // fighter1 = LOCALE (mio personaggio)
+    // fighter2 = AVVERSARIO
+    this.p1Char = myChar;
+    this.p2Char = opChar;
     this._buildFighters();
     this.menuPhase="fight";
     if(myChar==="grax") this.voltaGrax++; else this.voltaYuke++;
     showGamePad(isMobile);
   }
-  createRoom() { this.connectSocket(); this.socket.emit("create_room",{ char:this.p1Char }); }
-  joinRoom(code) { this.connectSocket(); this.socket.emit("join_room",{ code:code.trim(), char:this.p1Char }); }
+  createRoom() {
+    this._myChosenChar = this.p1Char; // salva prima che setupOnlineFight lo sovrascriva
+    this.connectSocket();
+    this.socket.emit("create_room",{ char:this._myChosenChar });
+  }
+  joinRoom(code) {
+    this._myChosenChar = this.p1Char;
+    this.connectSocket();
+    this.socket.emit("join_room",{ code:code.trim(), char:this._myChosenChar });
+  }
 
   _buildFighters() {
     const p1=this.p1Char, p2=this.p2Char;
@@ -1201,18 +1211,18 @@ class LSDAttackForceUE {
     const f2frames = n => Array.from({length:n},(_,i)=>({ r:images[`${p2}_r_${i}`], l:images[`${p2}_l_${i}`] }));
     const nFrames  = ch => ch==="grax"?14:13;
 
-    // Posizioni di partenza:
-    // Online playerIndex=0 → locale (fighter1) parte a SINISTRA
-    // Online playerIndex=1 → locale (fighter1) parte a DESTRA (viene specchiato)
-    // Locale/CPU: fighter1 a sinistra, fighter2 a destra
+    // Posizioni di partenza FISSE — non si spostano:
+    // playerIndex=0 (crea stanza) → locale(f1) a SINISTRA, avversario(f2) a DESTRA
+    // playerIndex=1 (entra stanza) → locale(f1) a DESTRA, avversario(f2) a SINISTRA
+    // Locale/CPU: fighter1 sempre sinistra, fighter2 sempre destra
     let f1startX, f2startX;
     if(this.mode==="online"){
       if(this.playerIndex===0){
-        f1startX = 200;          // locale parte a sinistra
-        f2startX = BASE_W-200;   // avversario a destra
+        f1startX = 200;
+        f2startX = BASE_W-200;
       } else {
-        f1startX = BASE_W-200;   // locale parte a destra
-        f2startX = 200;          // avversario a sinistra
+        f1startX = BASE_W-200;
+        f2startX = 200;
       }
     } else {
       f1startX = 380;
@@ -1578,10 +1588,14 @@ class LSDAttackForceUE {
     const f1=this.fighter1, f2=this.fighter2;
 
     // ── P1 HP bar
-    // fighter1=locale(YOU), fighter2=avversario(OPP) — in online mostra "YOU"/"OPP"
-    const p1label = this.mode==="online" ? "YOU" : f1.name.toUpperCase();
-    const p2label = this.mode==="online" ? "OPP" : f2.name.toUpperCase();
-    setFont(40,"left"); ctx.fillStyle=this.mode==="online"?"#FFD700":"#fff"; ctx.fillText(p1label,sx(80),sy(22));
+    // Barre vita: mostra nome reale del giocatore
+    const p1label = this.mode==="online"
+      ? (Auth.username()||"YOU").toUpperCase().slice(0,12)
+      : f1.name.toUpperCase();
+    const p2label = this.mode==="online"
+      ? (this.opponentInfo?.username||"OPP").toUpperCase().slice(0,12)
+      : f2.name.toUpperCase();
+    setFont(36,"left"); ctx.fillStyle=this.mode==="online"?"#FFD700":"#fff"; ctx.fillText(p1label,sx(80),sy(22));
     fillRoundRect(80,50,300,44,"#333",1,4);
     fillRoundRect(80,50,f1.hp*3,44,"#4EC600",1,4);
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(80),sy(50),ss(300),ss(44)); ctx.restore();
@@ -1593,7 +1607,7 @@ class LSDAttackForceUE {
     if(ult1pct>=1) fillText("ULTRA READY!",230,107,"#ff0000",13);
 
     // ── P2 HP bar
-    setFont(40,"right"); ctx.fillStyle=this.mode==="online"?"#ff6666":"#fff"; ctx.fillText(p2label,sx(BASE_W-80),sy(22));
+    setFont(36,"right"); ctx.fillStyle=this.mode==="online"?"#ff6666":"#fff"; ctx.fillText(p2label,sx(BASE_W-80),sy(22));
     fillRoundRect(BASE_W-380,50,300,44,"#333",1,4);
     const hp2w=f2.hp*3;
     fillRoundRect(BASE_W-380+(300-hp2w),50,hp2w,44,"#4EC600",1,4);
@@ -1932,9 +1946,12 @@ class Fighter {
       else this.frame=0;
     }
 
-    // Push-apart collision
+    // Push-apart collision — in online solo se l'avversario ha già inviato input
     const overlap=100;
-    if(Math.abs(this.x-enemy.x)<overlap){ this.x+=this.x<enemy.x?-1:+1; }
+    const enemyReady = this.mode!=="online" || (this._netKeys && Object.keys(this._netKeys).length>0) || (enemy._netKeys && Object.keys(enemy._netKeys||{}).length>0);
+    if(enemyReady && Math.abs(this.x-enemy.x)<overlap){
+      this.x += this.x<enemy.x ? -1 : +1;
+    }
 
     this.blocking=blockKey; if(blockKey) this.frame=7;
 

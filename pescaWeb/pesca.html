@@ -4,920 +4,314 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <link rel="icon" type="image/png" href="../img/icon.png">
-  <title>LSD P-E-S-C-A | Online</title>
+  <title>LSD P-E-S-C-A</title>
   <meta name="robots" content="noindex">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
-
   <style>
-    /* ══════════════════════════════════════════════════════
-       BASE & RESET
-    ══════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --gold:   #FFD700;
-      --garnet: #800000;
-      --dark:   #0a0a0a;
-      --panel:  rgba(10,10,10,0.92);
-      --border: rgba(255,215,0,0.35);
-      --font:   "Courier Prime", monospace;
-    }
-
     html, body {
       width: 100%; height: 100%;
-      overflow: hidden;
       background: #000;
-      font-family: var(--font);
+      overflow: hidden;
+      font-family: "Courier New", monospace;
       touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
-    /* Force landscape on mobile */
-    #rotatePrompt {
+    /* ── ROTATE OVERLAY ── */
+    #rotateOverlay {
       display: none;
       position: fixed; inset: 0; z-index: 9999;
       background: #000;
       flex-direction: column;
       align-items: center; justify-content: center;
-      color: var(--gold);
-      font-family: var(--font);
-      font-size: 1.2rem;
+      color: #FFD700;
+      font-size: 1.1rem;
       text-align: center;
-      gap: 20px;
+      gap: 16px;
     }
-    #rotatePrompt .rotate-icon { font-size: 4rem; animation: rotateAnim 2s ease-in-out infinite; }
-    @keyframes rotateAnim { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(90deg)} }
-
+    #rotateOverlay .icon { font-size: 3.5rem; animation: rot 2s ease-in-out infinite; }
+    @keyframes rot { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(90deg)} }
     @media (max-width: 767px) and (orientation: portrait) {
-      #rotatePrompt { display: flex; }
-      #gameRoot     { display: none; }
+      #rotateOverlay { display: flex; }
+      #gameCanvas    { display: none !important; }
     }
 
-    /* ══════════════════════════════════════════════════════
-       GAME ROOT — full viewport canvas wrapper
-    ══════════════════════════════════════════════════════ */
-    #gameRoot {
-      position: fixed; inset: 0;
-      width: 100%; height: 100%;
-    }
-
-    canvas#gameCanvas {
+    /* ── CANVAS ── */
+    #gameCanvas {
       display: block;
-      width: 100%; height: 100%;
-      image-rendering: pixelated;
-    }
-
-    /* ══════════════════════════════════════════════════════
-       OVERLAY UI PANELS (HTML over canvas)
-    ══════════════════════════════════════════════════════ */
-    .ui-layer {
       position: fixed; inset: 0;
-      pointer-events: none;
-      z-index: 10;
-    }
-    .ui-layer * { pointer-events: auto; }
-
-    /* HUD top bar */
-    #hud {
-      position: fixed; top: 0; left: 0; right: 0;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 16px;
-      background: rgba(0,0,0,0.65);
-      border-bottom: 1px solid var(--border);
-      z-index: 20;
-      gap: 12px;
-    }
-    #hud.hidden { display: none; }
-
-    .hud-stat {
-      display: flex; align-items: center; gap: 6px;
-      font-size: clamp(0.65rem, 1.8vw, 0.85rem);
-      color: #fff;
-      white-space: nowrap;
-    }
-    .hud-stat .label { color: var(--gold); font-weight: 700; letter-spacing: 1px; }
-    .hud-stat .val   { color: #fff; }
-    .hud-stat.dobloni .val { color: var(--gold); font-weight: 700; }
-
-    .hud-right { display: flex; gap: 8px; }
-    .hud-btn {
-      background: rgba(128,0,0,0.7);
-      border: 1px solid var(--gold);
-      color: var(--gold);
-      font-family: var(--font);
-      font-size: clamp(0.55rem, 1.5vw, 0.7rem);
-      padding: 4px 10px;
-      cursor: pointer;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      transition: all .2s;
-    }
-    .hud-btn:hover { background: var(--gold); color: var(--garnet); }
-
-    /* ══════════════════════════════════════════════════════
-       MODALS
-    ══════════════════════════════════════════════════════ */
-    .modal-bg {
-      position: fixed; inset: 0; z-index: 100;
-      background: rgba(0,0,0,0.88);
-      display: flex; align-items: center; justify-content: center;
-      padding: 16px;
-    }
-    .modal-bg.hidden { display: none; }
-
-    .modal {
-      background: var(--dark);
-      border: 2px solid var(--gold);
-      max-width: 640px; width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 28px 24px;
-      position: relative;
+      width: 100%; height: 100%;
+      cursor: default;
     }
 
-    .modal h2 {
-      color: var(--gold);
-      font-size: clamp(1rem, 3vw, 1.4rem);
-      letter-spacing: 4px;
-      text-align: center;
-      margin-bottom: 6px;
-    }
-    .modal .sub {
-      color: var(--garnet);
-      text-align: center;
-      font-size: 0.7rem;
-      letter-spacing: 2px;
-      margin-bottom: 20px;
-    }
-    .modal p { color: #ccc; font-size: 0.85rem; line-height: 1.7; margin-bottom: 12px; }
-    .modal ul { color: #ccc; font-size: 0.82rem; line-height: 1.8; padding-left: 20px; margin-bottom: 16px; }
-    .modal ul li { margin-bottom: 4px; }
-    .modal ul li span { color: var(--gold); font-weight: 700; }
-    .modal-close {
-      position: absolute; top: 12px; right: 14px;
-      background: none; border: none;
-      color: var(--gold); font-size: 1.3rem; cursor: pointer;
-      line-height: 1;
-    }
-
-    .modal-btn {
-      display: block; width: 100%;
-      background: var(--garnet);
-      border: 1px solid var(--gold);
-      color: #fff;
-      font-family: var(--font);
-      font-size: 1rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      padding: 14px;
-      cursor: pointer;
-      transition: all .25s;
-      margin-top: 8px;
-    }
-    .modal-btn:hover { background: var(--gold); color: var(--garnet); }
-    .modal-btn.outline {
-      background: transparent;
-      color: var(--gold);
-      font-size: 0.8rem;
-      padding: 10px;
-    }
-    .modal-btn.outline:hover { background: rgba(255,215,0,0.1); }
-    .modal-btn.danger {
-      background: #2a0000;
-      border-color: #cc0000;
-      color: #ff4444;
-      font-size: 0.75rem;
-      padding: 10px;
-    }
-    .modal-btn.danger:hover { background: #cc0000; color: #fff; }
-
-    .divider {
-      border: none; border-top: 1px solid rgba(255,215,0,0.2);
-      margin: 16px 0;
-    }
-
-    /* ══════════════════════════════════════════════════════
-       TUTORIAL POPUP
-    ══════════════════════════════════════════════════════ */
-    #tutorialModal .tut-step { display: none; }
-    #tutorialModal .tut-step.active { display: block; }
-
-    .tut-nav {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 20px;
-    }
-    .tut-dots { display: flex; gap: 8px; }
-    .tut-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: rgba(255,215,0,0.3);
-      transition: background .2s;
-    }
-    .tut-dot.active { background: var(--gold); }
-
-    .tut-img {
-      width: 100%; max-height: 140px;
-      object-fit: contain;
-      margin: 12px 0;
-      opacity: 0.9;
-    }
-
-    .controls-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 8px; margin: 12px 0;
-    }
-    .ctrl-item {
-      background: rgba(128,0,0,0.15);
-      border: 1px solid rgba(255,215,0,0.2);
-      padding: 10px 12px;
-      border-radius: 2px;
-    }
-    .ctrl-item .ctrl-key { color: var(--gold); font-weight: 700; font-size: 0.85rem; }
-    .ctrl-item .ctrl-desc { color: #aaa; font-size: 0.75rem; margin-top: 2px; }
-
-    /* ══════════════════════════════════════════════════════
-       SHOP MODAL
-    ══════════════════════════════════════════════════════ */
-    .shop-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 10px; margin: 12px 0;
-    }
-    .shop-item {
-      background: rgba(128,0,0,0.1);
-      border: 1px solid var(--border);
-      padding: 12px 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all .2s;
-      position: relative;
-    }
-    .shop-item:hover:not(.disabled) { border-color: var(--gold); background: rgba(255,215,0,0.08); }
-    .shop-item.disabled { opacity: 0.4; cursor: not-allowed; }
-    .shop-item.owned { border-color: #2ecc71; opacity: 0.7; cursor: default; }
-    .shop-item .item-name { color: #fff; font-size: 0.75rem; letter-spacing: 1px; }
-    .shop-item .item-price { color: var(--gold); font-size: 0.8rem; font-weight: 700; margin-top: 4px; }
-    .shop-item .item-rarity { font-size: 0.6rem; letter-spacing: 1px; margin-bottom: 4px; }
-    .rarity-comune { color: #aaa; }
-    .rarity-raro   { color: #4fc3f7; }
-    .rarity-mitico { color: #ce93d8; text-shadow: 0 0 8px #ce93d8; }
-    .shop-item .owned-badge {
-      position: absolute; top: 4px; right: 4px;
-      color: #2ecc71; font-size: 0.65rem; letter-spacing: 0;
-    }
-
-    .sell-section { margin: 10px 0; }
-    .sell-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      margin-bottom: 6px;
-      background: rgba(255,255,255,0.02);
-    }
-    .sell-row .fish-info { color: #ccc; font-size: 0.82rem; }
-    .sell-row .fish-count { color: var(--gold); font-weight: 700; }
-    .sell-btn {
-      background: var(--garnet);
-      border: 1px solid var(--gold);
-      color: #fff;
-      font-family: var(--font);
-      font-size: 0.7rem;
-      padding: 6px 14px;
-      cursor: pointer;
-      letter-spacing: 1px;
-      transition: all .2s;
-    }
-    .sell-btn:hover:not(:disabled) { background: var(--gold); color: var(--garnet); }
-    .sell-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    /* ══════════════════════════════════════════════════════
-       ENCYCLOPEDIA MODAL
-    ══════════════════════════════════════════════════════ */
-    .biome-tabs {
-      display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
-    }
-    .biome-tab {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: #888;
-      font-family: var(--font);
-      font-size: 0.7rem;
-      padding: 6px 12px;
-      cursor: pointer;
-      letter-spacing: 1px;
-      transition: all .2s;
-      text-transform: uppercase;
-    }
-    .biome-tab.active { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.08); }
-    .biome-tab:hover { border-color: var(--gold); color: #ddd; }
-
-    .enci-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-    }
-    .enci-slot {
-      aspect-ratio: 1;
-      border: 1px solid rgba(255,215,0,0.2);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.02);
-      position: relative;
-      overflow: hidden;
-    }
-    .enci-slot img { width: 80%; height: 80%; object-fit: contain; }
-    .enci-slot.locked { filter: brightness(0); }
-    .enci-slot .enci-num {
-      position: absolute; bottom: 2px; right: 4px;
-      font-size: 0.55rem; color: rgba(255,215,0,0.4);
-    }
-    .enci-slot .rarity-dot {
-      position: absolute; top: 3px; left: 3px;
-      width: 6px; height: 6px; border-radius: 50%;
-    }
-
-    /* ══════════════════════════════════════════════════════
-       LEADERBOARD MODAL
-    ══════════════════════════════════════════════════════ */
-    .lb-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-      margin-top: 10px;
-    }
-    .lb-table th {
-      color: var(--gold);
-      text-align: left;
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--border);
-      letter-spacing: 1px;
-      font-size: 0.68rem;
-    }
-    .lb-table td {
-      color: #ccc;
-      padding: 8px 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-    .lb-table tr.me td { color: var(--gold); font-weight: 700; }
-    .lb-table .rank-num { color: var(--garnet); font-weight: 700; }
-    .lb-table tr:nth-child(1) .rank-num { color: #FFD700; }
-    .lb-table tr:nth-child(2) .rank-num { color: #C0C0C0; }
-    .lb-table tr:nth-child(3) .rank-num { color: #CD7F32; }
-    .lb-loading { color: #888; text-align: center; padding: 20px; font-size: 0.8rem; }
-
-    /* ══════════════════════════════════════════════════════
-       SETTINGS MODAL
-    ══════════════════════════════════════════════════════ */
-    .settings-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(255,215,0,0.1);
-      color: #ccc;
-      font-size: 0.82rem;
-    }
-    .settings-row:last-child { border-bottom: none; }
-    .toggle-wrap { display: flex; align-items: center; gap: 8px; }
-    .toggle {
-      width: 40px; height: 22px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      cursor: pointer;
-      position: relative;
-      transition: background .2s;
-    }
-    .toggle.on { background: var(--garnet); border-color: var(--gold); }
-    .toggle::after {
-      content: '';
-      position: absolute; top: 3px; left: 3px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: #888;
-      transition: left .2s, background .2s;
-    }
-    .toggle.on::after { left: 21px; background: var(--gold); }
-
-    /* ══════════════════════════════════════════════════════
-       VHS MODAL
-    ══════════════════════════════════════════════════════ */
-    .vhs-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 10px; margin: 12px 0;
-    }
-    .vhs-slot {
-      aspect-ratio: 0.7;
-      border: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 6px;
-      background: rgba(255,255,255,0.02);
-      transition: all .2s;
-    }
-    .vhs-slot.found { border-color: var(--gold); background: rgba(255,215,0,0.05); }
-    .vhs-slot img { width: 60%; opacity: 0.2; filter: grayscale(1); }
-    .vhs-slot.found img { opacity: 1; filter: none; }
-    .vhs-slot .vhs-label { color: #555; font-size: 0.6rem; letter-spacing: 1px; }
-    .vhs-slot.found .vhs-label { color: var(--gold); }
-
-    /* ══════════════════════════════════════════════════════
-       CATCH TOAST
-    ══════════════════════════════════════════════════════ */
-    #catchToast {
+    /* ── FULLSCREEN BTN (shown only when not in fullscreen) ── */
+    #fsBtn {
       position: fixed;
-      bottom: 80px; left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: rgba(0,0,0,0.9);
-      border: 1px solid var(--gold);
-      padding: 12px 20px;
-      display: flex; align-items: center; gap: 12px;
-      min-width: 220px;
-      opacity: 0;
-      transition: opacity .3s, transform .3s;
-      z-index: 50;
-      pointer-events: none;
-    }
-    #catchToast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-    #catchToast .toast-img { width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated; }
-    #catchToast .toast-text .toast-title { color: var(--gold); font-size: 0.75rem; letter-spacing: 2px; }
-    #catchToast .toast-text .toast-name  { color: #fff; font-size: 0.85rem; font-weight: 700; }
-    #catchToast .toast-text .toast-rarity { font-size: 0.65rem; letter-spacing: 1px; margin-top: 2px; }
-
-    /* ══════════════════════════════════════════════════════
-       FISHING BAR (canvas-side UI rendered in HTML for mobile ease)
-    ══════════════════════════════════════════════════════ */
-    #fishingUI {
-      position: fixed;
-      right: 16px;
-      top: 50%; transform: translateY(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      z-index: 30;
-      pointer-events: none;
-    }
-    #fishingUI.hidden { display: none; }
-
-    .fishing-bar-wrap {
-      position: relative;
-      width: 36px;
-      height: clamp(200px, 40vh, 340px);
-      background: rgba(0,0,0,0.7);
-      border: 1px solid var(--border);
-    }
-    #fishZone {
-      position: absolute;
-      left: 3px; right: 3px;
-      background: rgba(255,215,0,0.25);
-      border: 1px solid var(--gold);
-      border-radius: 2px;
-      transition: top .016s linear;
-    }
-    #playerSlider {
-      position: absolute;
-      left: 0; right: 0;
-      height: 44px;
-      background: rgba(128,0,0,0.8);
-      border: 2px solid var(--gold);
-      display: flex; align-items: center; justify-content: center;
-    }
-    #playerSlider::after {
-      content: '▶';
-      color: var(--gold);
+      top: 8px; right: 8px;
+      z-index: 100;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,215,0,0.4);
+      color: #FFD700;
       font-size: 0.7rem;
-    }
-
-    #captureProgress {
-      width: 36px; height: 8px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid var(--border);
-      overflow: hidden;
-    }
-    #captureProgressFill {
-      height: 100%;
-      background: var(--gold);
-      width: 0%;
-      transition: width .1s;
-    }
-
-    .fishing-hint {
-      color: rgba(255,215,0,0.6);
-      font-size: clamp(0.5rem, 1.2vw, 0.65rem);
-      text-align: center;
+      padding: 5px 10px;
+      cursor: pointer;
       letter-spacing: 1px;
-      writing-mode: horizontal-tb;
-      max-width: 80px;
+      font-family: "Courier New", monospace;
     }
+    #fsBtn:hover { background: rgba(255,215,0,0.15); }
 
-    /* Mobile touch buttons */
-    #mobileControls {
+    /* ── MOBILE UP/DOWN BUTTONS ── */
+    #mobControls {
       display: none;
       position: fixed;
-      right: 60px;
+      right: 8px;
       top: 50%; transform: translateY(-50%);
-      flex-direction: column; gap: 6px;
-      z-index: 30;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 50;
     }
-    @media (hover: none) {
-      #mobileControls { display: flex; }
-    }
-    .mob-btn {
-      width: 52px; height: 52px;
-      background: rgba(128,0,0,0.75);
-      border: 2px solid var(--gold);
-      border-radius: 4px;
-      color: var(--gold);
-      font-size: 1.4rem;
+    @media (hover: none) { #mobControls { display: flex; } }
+    .mobBtn {
+      width: 56px; height: 56px;
+      background: rgba(128,0,0,0.8);
+      border: 2px solid #FFD700;
+      color: #FFD700;
+      font-size: 1.6rem;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
-      active: background rgba(255,215,0,0.3);
+      -webkit-tap-highlight-color: transparent;
     }
-    .mob-btn:active { background: rgba(255,215,0,0.2); }
-
-    /* ══════════════════════════════════════════════════════
-       LOADING / AUTH SCREEN
-    ══════════════════════════════════════════════════════ */
-    #loadingScreen {
-      position: fixed; inset: 0; z-index: 200;
-      background: #000;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 20px;
-    }
-    #loadingScreen.hidden { display: none; }
-    #loadingScreen .ls-logo {
-      color: var(--gold);
-      font-size: clamp(1.4rem, 5vw, 2.5rem);
-      letter-spacing: 8px;
-      font-weight: 700;
-    }
-    #loadingScreen .ls-sub {
-      color: var(--garnet);
-      font-size: 0.75rem;
-      letter-spacing: 4px;
-    }
-    .ls-bar {
-      width: 200px; height: 3px;
-      background: rgba(255,215,0,0.15);
-      position: relative; overflow: hidden;
-    }
-    .ls-bar::after {
-      content: '';
-      position: absolute; inset-block: 0; left: -100%;
-      width: 60%;
-      background: var(--gold);
-      animation: lsSlide 1.2s ease-in-out infinite;
-    }
-    @keyframes lsSlide { to { left: 160%; } }
-    #loadingScreen .ls-msg {
-      color: #555;
-      font-size: 0.7rem;
-      letter-spacing: 2px;
-    }
-
-    /* Notification */
-    #notification {
-      position: fixed;
-      top: 56px; left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.9);
-      border: 1px solid var(--border);
-      color: var(--gold);
-      font-size: 0.75rem;
-      letter-spacing: 1px;
-      padding: 8px 18px;
-      z-index: 80;
-      opacity: 0;
-      transition: opacity .3s;
-      pointer-events: none;
-      text-align: center;
-      max-width: 300px;
-    }
-    #notification.show { opacity: 1; }
-
-    /* ══════════════════════════════════════════════════════
-       MAP MODAL (biome selector)
-    ══════════════════════════════════════════════════════ */
-    .biome-select-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr);
-      gap: 10px; margin: 12px 0;
-    }
-    .biome-card {
-      position: relative;
-      aspect-ratio: 16/9;
-      border: 2px solid var(--border);
-      overflow: hidden;
-      cursor: pointer;
-      transition: border-color .2s;
-    }
-    .biome-card:hover:not(.locked-biome) { border-color: var(--gold); }
-    .biome-card.active-biome { border-color: var(--gold); box-shadow: 0 0 12px rgba(255,215,0,0.3); }
-    .biome-card.locked-biome { cursor: not-allowed; }
-    .biome-card img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
-    .biome-card .biome-label {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      background: rgba(0,0,0,0.75);
-      padding: 4px 8px;
-      font-size: 0.7rem;
-      color: #fff;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .biome-card.locked-biome .biome-label { color: #555; }
-    .biome-lock {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.65);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      color: var(--gold);
-      font-size: 0.7rem;
-      letter-spacing: 1px;
-      gap: 4px;
-    }
-    .biome-lock .lock-icon { font-size: 1.6rem; }
-    .biome-lock .lock-cost { color: var(--gold); font-weight: 700; }
-
-    /* ══════════════════════════════════════════════════════
-       SCROLLBAR
-    ══════════════════════════════════════════════════════ */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #000; }
-    ::-webkit-scrollbar-thumb { background: var(--garnet); }
+    .mobBtn:active { background: rgba(255,215,0,0.25); }
   </style>
 </head>
 <body>
 
-<!-- ══ ROTATE PROMPT ══ -->
-<div id="rotatePrompt">
-  <div class="rotate-icon">📱</div>
-  <div>Rotate your device to landscape<br>to play LSD P-E-S-C-A</div>
+<div id="rotateOverlay">
+  <div class="icon">📱</div>
+  <div>Rotate your device<br>to play LSD P-E-S-C-A</div>
 </div>
 
-<!-- ══ LOADING SCREEN ══ -->
-<div id="loadingScreen">
-  <div class="ls-logo">P-E-S-C-A</div>
-  <div class="ls-sub">LSD SOFTWARE</div>
-  <div class="ls-bar"></div>
-  <div class="ls-msg" id="lsMsg">INITIALIZING…</div>
-</div>
+<canvas id="gameCanvas"></canvas>
+<button id="fsBtn" onclick="toggleFS()">⛶ FULLSCREEN</button>
 
-<!-- ══ GAME ROOT ══ -->
-<div id="gameRoot">
-  <canvas id="gameCanvas"></canvas>
-
-  <!-- HUD -->
-  <div id="hud" class="hidden">
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <div class="hud-stat dobloni"><span class="label">◈</span><span class="val" id="hudDobloni">0</span></div>
-      <div class="hud-stat"><span class="label">C:</span><span class="val" id="hudComuni">0</span></div>
-      <div class="hud-stat"><span class="label">R:</span><span class="val" id="hudRari">0</span></div>
-      <div class="hud-stat"><span class="label">M:</span><span class="val" id="hudMitici">0</span></div>
-    </div>
-    <div class="hud-right">
-      <button class="hud-btn" onclick="UI.openMap()">MAP</button>
-      <button class="hud-btn" onclick="UI.openShop()">SHOP</button>
-      <button class="hud-btn" onclick="UI.openEnciclopedia()">LOG</button>
-      <button class="hud-btn" onclick="UI.openLeaderboard()">RANK</button>
-      <button class="hud-btn" onclick="UI.openSettings()">⚙</button>
-    </div>
-  </div>
-
-  <!-- FISHING BAR -->
-  <div id="fishingUI" class="hidden">
-    <div class="fishing-hint">HOLD IN ZONE</div>
-    <div class="fishing-bar-wrap" id="fishingBarWrap">
-      <div id="fishZone"></div>
-      <div id="playerSlider"></div>
-    </div>
-    <div id="captureProgress"><div id="captureProgressFill"></div></div>
-  </div>
-
-  <!-- Mobile up/down -->
-  <div id="mobileControls">
-    <div class="mob-btn" id="mobUp">▲</div>
-    <div class="mob-btn" id="mobDown">▼</div>
-  </div>
-</div>
-
-<!-- ══ CATCH TOAST ══ -->
-<div id="catchToast">
-  <img class="toast-img" id="toastImg" src="" alt="">
-  <div class="toast-text">
-    <div class="toast-title" id="toastTitle">CAUGHT!</div>
-    <div class="toast-name" id="toastName"></div>
-    <div class="toast-rarity" id="toastRarity"></div>
-  </div>
-</div>
-
-<div id="notification"></div>
-
-<!-- ══ TUTORIAL MODAL ══ -->
-<div id="tutorialModal" class="modal-bg">
-  <div class="modal">
-    <h2>P-E-S-C-A</h2>
-    <div class="sub">LSD SOFTWARE — FISHING GAME</div>
-
-    <div class="tut-step active" data-step="0">
-      <p>Welcome to <strong style="color:var(--gold)">LSD P-E-S-C-A</strong> — a retro fishing simulator. Cast your line, catch fish, collect rare species, and unlock mysterious biomes.</p>
-      <p>Your progress is saved automatically to your LSD account.</p>
-      <ul>
-        <li><span>◈ Dobloni</span> — your in-game currency</li>
-        <li><span>C / R / M</span> — Common, Rare, Mythic fish in your bag</li>
-        <li><span>4 Biomes</span> — River, Sea, Ocean, Arctic (unlock via Shop)</li>
-      </ul>
-    </div>
-
-    <div class="tut-step" data-step="1">
-      <p><strong style="color:var(--gold)">HOW TO FISH</strong></p>
-      <p>A vertical fishing bar appears on the right. A <span style="color:var(--gold)">gold zone</span> (the fish) moves up and down. Your job is to keep your <span style="color:var(--garnet);font-weight:700">red slider</span> overlapping the gold zone for 3 seconds to catch the fish.</p>
-      <div class="controls-grid">
-        <div class="ctrl-item"><div class="ctrl-key">↑ / ↓</div><div class="ctrl-desc">Move slider (keyboard)</div></div>
-        <div class="ctrl-item"><div class="ctrl-key">W / S</div><div class="ctrl-desc">Move slider (alternate)</div></div>
-        <div class="ctrl-item"><div class="ctrl-key">▲ ▼ Buttons</div><div class="ctrl-desc">Mobile controls</div></div>
-        <div class="ctrl-item"><div class="ctrl-key">Touch &amp; Hold</div><div class="ctrl-desc">Tap the bar to set slider</div></div>
-      </div>
-    </div>
-
-    <div class="tut-step" data-step="2">
-      <p><strong style="color:var(--gold)">FISH RARITIES</strong></p>
-      <ul>
-        <li><span style="color:#aaa">● Common</span> — sell for 1 Doblone. Fish 1–6.</li>
-        <li><span style="color:#4fc3f7">◆ Rare</span> — sell for 5 Dobloni. Fish 7–9.</li>
-        <li><span style="color:#ce93d8">★ Mythic</span> — sell for 10 Dobloni. Fish 10. Counts for leaderboard!</li>
-        <li><span style="color:var(--gold)">📼 VHS</span> — mysterious object. One per biome.</li>
-      </ul>
-      <p>Every fish you catch is recorded in your <strong style="color:var(--gold)">FIELD LOG</strong>.</p>
-    </div>
-
-    <div class="tut-step" data-step="3">
-      <p><strong style="color:var(--gold)">SHOP & BIOMES</strong></p>
-      <ul>
-        <li>Sell fish from the <strong>SHOP</strong> to earn Dobloni.</li>
-        <li>Unlock new biomes in the <strong>MAP</strong>:</li>
-      </ul>
-      <ul style="margin-left:10px">
-        <li>🌊 <span>Sea</span> — 10 Dobloni</li>
-        <li>🌀 <span>Ocean</span> — 25 Dobloni</li>
-        <li>❄️ <span>Arctic</span> — 50 Dobloni</li>
-      </ul>
-      <p>Progress is auto-saved every 30 seconds and on each catch.</p>
-    </div>
-
-    <div class="tut-nav">
-      <div class="tut-dots" id="tutDots">
-        <div class="tut-dot active"></div>
-        <div class="tut-dot"></div>
-        <div class="tut-dot"></div>
-        <div class="tut-dot"></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="modal-btn outline" style="margin:0;padding:8px 16px;width:auto" id="tutPrev">← PREV</button>
-        <button class="modal-btn" style="margin:0;padding:8px 20px;width:auto" id="tutNext">NEXT →</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MAP MODAL ══ -->
-<div id="mapModal" class="modal-bg hidden">
-  <div class="modal">
-    <button class="modal-close" onclick="UI.closeAll()">✕</button>
-    <h2>BIOME MAP</h2>
-    <div class="sub">SELECT YOUR FISHING GROUND</div>
-    <div class="biome-select-grid" id="biomeSelectGrid"></div>
-  </div>
-</div>
-
-<!-- ══ SHOP MODAL ══ -->
-<div id="shopModal" class="modal-bg hidden">
-  <div class="modal">
-    <button class="modal-close" onclick="UI.closeAll()">✕</button>
-    <h2>SHOP</h2>
-    <div class="sub">SELL FISH — BUY UPGRADES</div>
-
-    <div style="color:var(--gold);font-size:0.7rem;letter-spacing:2px;margin-bottom:10px">SELL FISH</div>
-    <div class="sell-section">
-      <div class="sell-row">
-        <div class="fish-info">● COMMON <span class="fish-count" id="shopComuni">×0</span></div>
-        <div style="color:#aaa;font-size:0.75rem">+1 ◈ each</div>
-        <button class="sell-btn" id="sellComuniBtn" onclick="Game.sellFish('comuni')">SELL ALL</button>
-      </div>
-      <div class="sell-row">
-        <div class="fish-info" style="color:#4fc3f7">◆ RARE <span class="fish-count" id="shopRari">×0</span></div>
-        <div style="color:#aaa;font-size:0.75rem">+5 ◈ each</div>
-        <button class="sell-btn" id="sellRariBtn" onclick="Game.sellFish('rari')">SELL ALL</button>
-      </div>
-      <div class="sell-row">
-        <div class="fish-info" style="color:#ce93d8">★ MYTHIC <span class="fish-count" id="shopMitici">×0</span></div>
-        <div style="color:#aaa;font-size:0.75rem">+10 ◈ each</div>
-        <button class="sell-btn" id="sellMiticiBtn" onclick="Game.sellFish('mitici')">SELL ALL</button>
-      </div>
-    </div>
-
-    <hr class="divider">
-    <div style="color:var(--gold);font-size:0.7rem;letter-spacing:2px;margin-bottom:10px">UNLOCK BIOMES</div>
-    <div id="shopBiomeList"></div>
-
-    <hr class="divider">
-    <div style="color:var(--gold);font-size:0.7rem;letter-spacing:2px;margin-bottom:10px">MYSTERIOUS OBJECTS</div>
-    <div class="vhs-grid" id="shopVhsGrid"></div>
-  </div>
-</div>
-
-<!-- ══ ENCYCLOPEDIA MODAL ══ -->
-<div id="enciModal" class="modal-bg hidden">
-  <div class="modal">
-    <button class="modal-close" onclick="UI.closeAll()">✕</button>
-    <h2>FIELD LOG</h2>
-    <div class="sub">SPECIES REGISTRY</div>
-    <div class="biome-tabs" id="enciTabs"></div>
-    <div class="enci-grid" id="enciGrid"></div>
-  </div>
-</div>
-
-<!-- ══ LEADERBOARD MODAL ══ -->
-<div id="lbModal" class="modal-bg hidden">
-  <div class="modal">
-    <button class="modal-close" onclick="UI.closeAll()">✕</button>
-    <h2>LEADERBOARD</h2>
-    <div class="sub">PESCA RANKINGS</div>
-    <div id="lbContent" class="lb-loading">Loading…</div>
-  </div>
-</div>
-
-<!-- ══ SETTINGS MODAL ══ -->
-<div id="settingsModal" class="modal-bg hidden">
-  <div class="modal">
-    <button class="modal-close" onclick="UI.closeAll()">✕</button>
-    <h2>SETTINGS</h2>
-    <div class="sub">GAME OPTIONS</div>
-    <div class="settings-row">
-      <span>Music</span>
-      <div class="toggle-wrap">
-        <div class="toggle on" id="toggleMusic" onclick="Audio.toggle()"></div>
-      </div>
-    </div>
-    <div class="settings-row">
-      <span>Logged in as</span>
-      <span style="color:var(--gold);font-size:0.8rem" id="settingsUser">—</span>
-    </div>
-    <hr class="divider">
-    <button class="modal-btn outline" onclick="UI.openLeaderboard()">VIEW LEADERBOARD</button>
-    <hr class="divider">
-    <button class="modal-btn danger" id="resetBtn" onclick="Game.confirmReset()">⚠ RESET ALL PROGRESS</button>
-    <div id="resetConfirm" class="hidden" style="margin-top:10px">
-      <p style="color:#ff4444;font-size:0.78rem;margin-bottom:8px">Are you sure? This cannot be undone.</p>
-      <div style="display:flex;gap:8px">
-        <button class="modal-btn danger" style="padding:8px" onclick="Game.executeReset()">YES, RESET</button>
-        <button class="modal-btn outline" style="padding:8px" onclick="document.getElementById('resetConfirm').classList.add('hidden')">CANCEL</button>
-      </div>
-    </div>
-  </div>
+<div id="mobControls">
+  <div class="mobBtn" id="mobUp">▲</div>
+  <div class="mobBtn" id="mobDown">▼</div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// LSD P-E-S-C-A — Web Game Engine
-// ══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  LSD P-E-S-C-A  —  Web Port  (faithful to original)
+// ════════════════════════════════════════════════════════════
 
 const API_URL = "https://lsd-backend-4phu.onrender.com";
 
-// ─── FISH DATA ────────────────────────────────────────────────
-const BIOMES = [
-  { id: "fiume",  name: "RIVER",  img: "assets/biomi/bioma0.png", cost: 0,  color: "#1a4a2e" },
-  { id: "mare",   name: "SEA",    img: "assets/biomi/bioma1.png", cost: 10, color: "#0a2a4a" },
-  { id: "oceano", name: "OCEAN",  img: "assets/biomi/bioma2.png", cost: 25, color: "#050f2a" },
-  { id: "artico", name: "ARCTIC", img: "assets/biomi/bioma3.png", cost: 50, color: "#0a2030" }
-];
+// ── CANVAS SETUP ────────────────────────────────────────────
+const canvas = document.getElementById("gameCanvas");
+const ctx    = canvas.getContext("2d");
 
-const BIOME_KEYS  = ["fiume","mare","oceano","artico"];
-const BIOME_PATHS = ["pesci/fiume","pesci/mare","pesci/oceano","pesci/artico"];
+// Virtual resolution (matches original 1920×1080)
+const VW = 1920, VH = 1080;
+let scale = 1, offX = 0, offY = 0;
 
-// Fish 1-6 = comune, 7-9 = raro, 10 = mitico, 11 = VHS
-function getRarity(idx) {
-  if (idx <= 6)  return { label:"COMMON",  cls:"rarity-comune", color:"#aaa",    sell:1  };
-  if (idx <= 9)  return { label:"RARE",    cls:"rarity-raro",   color:"#4fc3f7", sell:5  };
-  if (idx === 10) return { label:"MYTHIC", cls:"rarity-mitico", color:"#ce93d8", sell:10 };
-  return { label:"MYSTERIOUS", cls:"", color:"var(--gold)", sell:0 };
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const sw = canvas.width  / VW;
+  const sh = canvas.height / VH;
+  scale = Math.min(sw, sh);
+  offX  = (canvas.width  - VW * scale) / 2;
+  offY  = (canvas.height - VH * scale) / 2;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+// Convert screen coords → virtual coords
+function toV(sx, sy) {
+  return { x: (sx - offX) / scale, y: (sy - offY) / scale };
 }
 
-const FISH_NAMES = {
-  fiume:  ["Trout","Carp","Perch","Pike","Roach","Bream","Chub","Barbel","Catfish","River Dragon"],
-  mare:   ["Mackerel","Sea Bass","Mullet","Dorado","Tuna","Grouper","Amberjack","Swordfish","Hammerhead","Leviathan"],
-  oceano: ["Clownfish","Anglerfish","Manta","Oarfish","Colossal Squid","Viper Eel","Megamouth","Goblin Shark","Coelacanth","Abyssal Titan"],
-  artico: ["Capelin","Char","Halibut","Pollock","Narwhal","Seal","Orca","Polar Cod","Ice Shark","Frost Colossus"]
+// ── FULLSCREEN ──────────────────────────────────────────────
+function toggleFS() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+}
+document.addEventListener("fullscreenchange", () => {
+  document.getElementById("fsBtn").textContent =
+    document.fullscreenElement ? "✕ EXIT FS" : "⛶ FULLSCREEN";
+});
+// Auto-request fullscreen on first tap (mobile)
+document.addEventListener("touchstart", () => {
+  if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+}, { once: true });
+
+// ── API CLIENT ───────────────────────────────────────────────
+const Api = {
+  token() { return localStorage.getItem("lsd_token"); },
+  user()  { return JSON.parse(localStorage.getItem("lsd_user") || "null"); },
+  async req(path, method="GET", body=null) {
+    const h = { "Content-Type":"application/json" };
+    if (this.token()) h["Authorization"] = "Bearer " + this.token();
+    const r = await fetch(API_URL + path, {
+      method, headers: h,
+      body: body ? JSON.stringify(body) : undefined
+    });
+    return r.json();
+  },
+  loadState()  { return this.req("/pesca/state"); },
+  saveState(s) { return this.req("/pesca/save", "POST", s); },
+  resetState() { return this.req("/pesca/reset", "POST"); }
 };
 
-// ─── STATE ────────────────────────────────────────────────────
-const State = {
-  dobloni:         0,
-  comuni:          0,
-  rari:            0,
-  mitici:          0,
-  biomiSbloccati:  [true, false, false, false],
-  biomaSelezionato: 0,
-  enciclopedia: { fiume: new Array(10).fill(false), mare: new Array(10).fill(false), oceano: new Array(10).fill(false), artico: new Array(10).fill(false) },
-  vhs:           [false, false, false, false],
+// ── ASSET LOADER ─────────────────────────────────────────────
+const IMG = {};
+let assetsLoaded = 0, assetsTotal = 0;
+
+function loadImg(key, src) {
+  assetsTotal++;
+  const img = new Image();
+  img.onload  = () => assetsLoaded++;
+  img.onerror = () => assetsLoaded++;
+  img.src = src;
+  IMG[key] = img;
+  return img;
+}
+
+function allLoaded() { return assetsLoaded >= assetsTotal; }
+
+// Load everything
+loadImg("logo",       "assets/ui/logo.png");
+loadImg("home",       "assets/ui/home.png");
+loadImg("info",       "assets/ui/info.png");
+loadImg("zaino",      "assets/ui/zaino.png");
+loadImg("sfondoShop", "assets/ui/sfondoShop.png");
+loadImg("inventario", "assets/ui/inventario.png");
+loadImg("mappa",      "assets/ui/mappa.png");
+loadImg("canna",      "assets/ui/canna_da_pesca.png");
+loadImg("pesce",      "assets/ui/pesce.png");
+loadImg("cassetta",   "assets/ui/cassettaVHS.png");
+
+for (let i = 1; i <= 4; i++) loadImg("schermata"+i, "assets/schermate/schermata"+i+".png");
+loadImg("volPiu",  "assets/volume/vol_piu.png");
+loadImg("volMeno", "assets/volume/vol_meno.png");
+loadImg("muto",    "assets/volume/muto.png");
+
+for (let i = 0; i < 4; i++) loadImg("bioma"+i, "assets/biomi/bioma"+i+".png");
+
+// Fish arrays [1..10] per biome
+const FISH = { fiume: [null], mare: [null], oceano: [null], artico: [null] };
+const BPATHS = ["1pesci_fiume","2pesci_mare","3pesci_oceano","4pesci_artico"];
+const BKEYS  = ["fiume","mare","oceano","artico"];
+BKEYS.forEach((k, bi) => {
+  for (let i = 1; i <= 10; i++) {
+    const img = loadImg(`${k}_${i}`, `assets/pesci/${BPATHS[bi]}/${i}.png`);
+    FISH[k].push(img);
+  }
+});
+
+// ── AUDIO ────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null, masterGain = null;
+let muted = false, volume = 1.0;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx  = new AudioCtx();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.15;
+  masterGain.connect(audioCtx.destination);
+  playAmbient();
+}
+document.addEventListener("click",    initAudio, { once: true });
+document.addEventListener("touchstart", initAudio, { once: true });
+
+function playAmbient() {
+  if (!audioCtx) return;
+  // Generative underwater ambient loop
+  const notes = [130.81, 146.83, 164.81, 174.61, 196.00, 220.00, 246.94];
+  const seq   = [0,2,4,2,4,7,4,2,0,4,2,7,4,2,4,0];
+  const now   = audioCtx.currentTime;
+
+  seq.forEach((n, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.value = notes[n % notes.length] * 0.5;
+    g.gain.setValueAtTime(0, now + i * 1.2);
+    g.gain.linearRampToValueAtTime(0.1, now + i * 1.2 + 0.4);
+    g.gain.exponentialRampToValueAtTime(0.001, now + i * 1.2 + 2.2);
+    o.connect(g); g.connect(masterGain);
+    o.start(now + i * 1.2); o.stop(now + i * 1.2 + 2.3);
+    if (i % 3 === 0) {
+      const o2 = audioCtx.createOscillator();
+      const g2 = audioCtx.createGain();
+      o2.type = "triangle"; o2.frequency.value = notes[(n+2)%notes.length] * 0.25;
+      g2.gain.setValueAtTime(0.04, now + i * 1.2); g2.gain.exponentialRampToValueAtTime(0.001, now + i * 1.2 + 3);
+      o2.connect(g2); g2.connect(masterGain); o2.start(now + i * 1.2); o2.stop(now + i * 1.2 + 3.1);
+    }
+  });
+  const loopDur = seq.length * 1.2;
+  setTimeout(playAmbient, (loopDur - 0.3) * 1000);
+}
+
+function playCatch(mythic) {
+  if (!audioCtx || muted) return;
+  const now = audioCtx.currentTime;
+  (mythic ? [523,659,784,1047] : [392,494,587]).forEach((f, i) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = f; o.type = mythic ? "triangle" : "square";
+    g.gain.setValueAtTime(0.2, now+i*0.1); g.gain.exponentialRampToValueAtTime(0.001, now+i*0.1+0.4);
+    o.connect(g); g.connect(masterGain); o.start(now+i*0.1); o.stop(now+i*0.1+0.5);
+  });
+}
+
+function playClick() {
+  if (!audioCtx || muted) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.frequency.value = 440; o.type = "square";
+  g.gain.setValueAtTime(0.07, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.07);
+  o.connect(g); g.connect(masterGain); o.start(); o.stop(audioCtx.currentTime + 0.08);
+}
+
+function setVolume(delta) {
+  volume = Math.max(0, Math.min(1, volume + delta));
+  if (masterGain) masterGain.gain.value = muted ? 0 : volume * 0.2;
+}
+function toggleMute() {
+  muted = !muted;
+  if (masterGain) masterGain.gain.value = muted ? 0 : volume * 0.2;
+}
+
+// ── GAME STATE ───────────────────────────────────────────────
+const S = {
+  // Currency
+  dobloni: 0,
+  // Fish inventory
+  comuni: 0, rari: 0, mitici: 0,
+  // Biomes
+  biomaBool: [true, false, false, false],
+  selezionato: [true, false, false, false], // which biome is active
+  // Encyclopedia (booleans per fish per biome)
+  enci: {
+    fiume:  new Array(10).fill(false),
+    mare:   new Array(10).fill(false),
+    oceano: new Array(10).fill(false),
+    artico: new Array(10).fill(false)
+  },
+  // VHS cassettes
+  vhs: [false, false, false, false],
+  // Biome background index (0-3)
+  get biomeIdx() {
+    return this.selezionato.findIndex(v => v);
+  },
+  get biomeKey() { return BKEYS[this.biomeIdx]; },
 
   toPayload() {
     return {
@@ -925,837 +319,768 @@ const State = {
       comuni:           this.comuni,
       rari:             this.rari,
       mitici:           this.mitici,
-      biomiSbloccati:   this.biomiSbloccati,
-      biomaSelezionato: this.biomaSelezionato,
-      enciclopedia:     this.enciclopedia,
-      vhs:              this.vhs
+      biomiSbloccati:   this.biomaBool,
+      biomaSelezionato: this.biomeIdx,
+      enciclopedia: {
+        fiume:  this.enci.fiume,
+        mare:   this.enci.mare,
+        oceano: this.enci.oceano,
+        artico: this.enci.artico
+      },
+      vhs: this.vhs
     };
   },
-
-  fromServer(s) {
-    if (!s) return;
-    this.dobloni         = s.dobloni         ?? 0;
-    this.comuni          = s.comuni          ?? 0;
-    this.rari            = s.rari            ?? 0;
-    this.mitici          = s.mitici          ?? 0;
-    this.biomiSbloccati  = s.biomiSbloccati  ?? [true,false,false,false];
-    this.biomaSelezionato= s.biomaSelezionato?? 0;
-    this.vhs             = s.vhs             ?? [false,false,false,false];
-    if (s.enciclopedia) {
-      this.enciclopedia = {
-        fiume:  s.enciclopedia.fiume  || new Array(10).fill(false),
-        mare:   s.enciclopedia.mare   || new Array(10).fill(false),
-        oceano: s.enciclopedia.oceano || new Array(10).fill(false),
-        artico: s.enciclopedia.artico || new Array(10).fill(false)
-      };
+  fromServer(d) {
+    if (!d) return;
+    this.dobloni = d.dobloni ?? 0;
+    this.comuni  = d.comuni  ?? 0;
+    this.rari    = d.rari    ?? 0;
+    this.mitici  = d.mitici  ?? 0;
+    this.biomaBool = d.biomiSbloccati ?? [true,false,false,false];
+    this.selezionato = [false,false,false,false];
+    this.selezionato[d.biomaSelezionato ?? 0] = true;
+    this.vhs = d.vhs ?? [false,false,false,false];
+    if (d.enciclopedia) {
+      this.enci.fiume  = d.enciclopedia.fiume  || new Array(10).fill(false);
+      this.enci.mare   = d.enciclopedia.mare   || new Array(10).fill(false);
+      this.enci.oceano = d.enciclopedia.oceano || new Array(10).fill(false);
+      this.enci.artico = d.enciclopedia.artico || new Array(10).fill(false);
     }
   }
 };
 
-// ─── API CLIENT ───────────────────────────────────────────────
-const Api = {
-  getToken() { return localStorage.getItem("lsd_token"); },
-  getUser()  { return JSON.parse(localStorage.getItem("lsd_user") || "null"); },
-  isGuest()  { return this.getUser()?.isGuest === true; },
+// ── FISHING MECHANICS ────────────────────────────────────────
+// Faithful port of CannaDaPesca.pde
+const ROD = {
+  // Player slider (y in virtual coords, range 400–715)
+  y: 714,
+  speed: 3,
+  // Fish indicator
+  yPesce: 715,
+  speedPesce: 2,
+  dir: 1,
+  // Capture state
+  tempoCattura: 0,
+  inizioCattura: 0,
+  inizioCattur: false,
+  pesceCatturato: false,
+  inizioTempoDiAttesa: 0,
+  contatoreIncrementato: false,
+  // Current random fish (1-11)
+  randomPesce: 1,
+  // Whether catch was already processed
+  catchProcessed: false,
 
-  async request(path, method="GET", body=null) {
-    const h = { "Content-Type":"application/json" };
-    const t = this.getToken();
-    if (t) h["Authorization"] = `Bearer ${t}`;
-    const opts = { method, headers: h };
-    if (body) opts.body = JSON.stringify(body);
-    const r = await fetch(`${API_URL}${path}`, opts);
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
-    return data;
+  reset(biomeSpeed) {
+    this.speedPesce = biomeSpeed;
+    this.dir        = 1;
+    this.yPesce     = 715;
+    this.y          = 714;
+    this.tempoCattura = 0;
+    this.inizioCattur = false;
+    this.pesceCatturato = false;
+    this.contatoreIncrementato = false;
+    this.catchProcessed = false;
   },
 
-  async loadState()  { return this.request("/pesca/state"); },
-  async saveState(s) { return this.request("/pesca/save", "POST", s); },
-  async resetState() { return this.request("/pesca/reset", "POST"); },
-  async leaderboard(){ return this.request("/pesca/leaderboard"); }
-};
-
-// ─── WEB AUDIO ───────────────────────────────────────────────
-const Audio = {
-  ctx: null, gainNode: null, muted: false,
-  nodes: [],
-
-  init() {
-    try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      this.gainNode = this.ctx.createGain();
-      this.gainNode.gain.value = 0.18;
-      this.gainNode.connect(this.ctx.destination);
-      this.loop();
-    } catch(e) { console.warn("WebAudio unavailable"); }
+  spawnFish() {
+    const bi  = S.biomeIdx;
+    const hasVHS = S.vhs[bi];
+    // If VHS already found, only 1-10. Else 1-11.
+    this.randomPesce = hasVHS
+      ? Math.floor(Math.random() * 10) + 1
+      : Math.floor(Math.random() * 11) + 1;
+    this.reset(BIOME_SPEEDS[bi]);
   },
 
-  toggle() {
-    this.muted = !this.muted;
-    const t = document.getElementById("toggleMusic");
-    t.classList.toggle("on", !this.muted);
-    if (this.gainNode) {
-      this.gainNode.gain.setTargetAtTime(this.muted ? 0 : 0.18, this.ctx.currentTime, 0.1);
-    }
-  },
-
-  // Generative ambient underwater loop
-  loop() {
-    if (!this.ctx) return;
-    const notes = [130.81, 146.83, 164.81, 174.61, 196.00, 220.00, 246.94];
-    const play = (freq, when, dur, vol=0.3) => {
-      const osc = this.ctx.createOscillator();
-      const g   = this.ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      g.gain.setValueAtTime(0, when);
-      g.gain.linearRampToValueAtTime(vol, when + 0.3);
-      g.gain.exponentialRampToValueAtTime(0.001, when + dur);
-      osc.connect(g);
-      g.connect(this.gainNode);
-      osc.start(when);
-      osc.stop(when + dur + 0.1);
-    };
-
-    const now = this.ctx.currentTime;
-    const seq = [0,2,4,2,4,7,4,2]; // melody pattern
-    seq.forEach((n, i) => {
-      play(notes[n % notes.length] * 0.5, now + i * 1.4, 2.5, 0.12);
-      if (i % 2 === 0) play(notes[(n+2) % notes.length] * 0.25, now + i * 1.4 + 0.7, 3, 0.06);
-    });
-
-    // Ambient drone
-    const drone = this.ctx.createOscillator();
-    const dg    = this.ctx.createGain();
-    drone.type  = "sawtooth";
-    drone.frequency.setValueAtTime(65, now);
-    drone.frequency.linearRampToValueAtTime(70, now + 11.2);
-    dg.gain.setValueAtTime(0.04, now);
-    drone.connect(dg);
-    dg.connect(this.gainNode);
-    drone.start(now);
-    drone.stop(now + 11.2);
-
-    const loopDur = seq.length * 1.4;
-    setTimeout(() => this.loop(), (loopDur - 0.5) * 1000);
-  },
-
-  playCatch(mythic=false) {
-    if (!this.ctx || this.muted) return;
-    const now = this.ctx.currentTime;
-    const freqs = mythic ? [523, 659, 784, 1047] : [392, 494, 587];
-    freqs.forEach((f, i) => {
-      const o = this.ctx.createOscillator();
-      const g = this.ctx.createGain();
-      o.frequency.value = f;
-      o.type = mythic ? "triangle" : "square";
-      g.gain.setValueAtTime(0.18, now + i * 0.1);
-      g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.4);
-      o.connect(g); g.connect(this.gainNode);
-      o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.5);
-    });
-  },
-
-  playClick() {
-    if (!this.ctx || this.muted) return;
-    const o = this.ctx.createOscillator();
-    const g = this.ctx.createGain();
-    o.frequency.value = 440; o.type = "square";
-    g.gain.setValueAtTime(0.08, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
-    o.connect(g); g.connect(this.gainNode);
-    o.start(); o.stop(this.ctx.currentTime + 0.06);
-  }
-};
-
-// ─── CANVAS RENDERER ─────────────────────────────────────────
-const Renderer = {
-  canvas: null, ctx: null,
-  bgImages: [null, null, null, null],
-  bgLoaded: [false, false, false, false],
-  offscreen: null, offCtx: null,
-  W: 0, H: 0,
-  particles: [],
-
-  init() {
-    this.canvas = document.getElementById("gameCanvas");
-    this.ctx    = this.canvas.getContext("2d");
-    this.resize();
-    window.addEventListener("resize", () => this.resize());
-
-    // Offscreen for effects
-    this.offscreen = document.createElement("canvas");
-    this.offCtx    = this.offscreen.getContext("2d");
-
-    // Preload all biome backgrounds
-    BIOMES.forEach((b, i) => {
-      const img = new Image();
-      img.src = `assets/biomi/bioma${i}.png`;
-      img.onload = () => { this.bgImages[i] = img; this.bgLoaded[i] = true; };
-    });
-
-    this.spawnParticles();
-  },
-
-  resize() {
-    this.W = this.canvas.width  = window.innerWidth;
-    this.H = this.canvas.height = window.innerHeight;
-    if (this.offscreen) {
-      this.offscreen.width  = this.W;
-      this.offscreen.height = this.H;
-    }
-  },
-
-  spawnParticles() {
-    this.particles = Array.from({length: 30}, () => ({
-      x: Math.random() * 1920,
-      y: Math.random() * 1080,
-      r: Math.random() * 2 + 0.5,
-      vy: -(Math.random() * 0.4 + 0.1),
-      vx: (Math.random() - 0.5) * 0.2,
-      a: Math.random() * 0.4 + 0.1
-    }));
-  },
-
-  drawFrame(biomeIdx, gameState) {
-    const { ctx, W, H } = this;
-    ctx.clearRect(0, 0, W, H);
-
-    // Background
-    if (this.bgLoaded[biomeIdx]) {
-      ctx.drawImage(this.bgImages[biomeIdx], 0, 0, W, H);
-    } else {
-      ctx.fillStyle = BIOMES[biomeIdx].color;
-      ctx.fillRect(0, 0, W, H);
-    }
-
-    // Vignette
-    const vg = ctx.createRadialGradient(W/2, H/2, H*0.2, W/2, H/2, H*0.85);
-    vg.addColorStop(0, "rgba(0,0,0,0)");
-    vg.addColorStop(1, "rgba(0,0,0,0.55)");
-    ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, W, H);
-
-    // Bubbles / particles
-    this.particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
-      ctx.beginPath();
-      ctx.arc(p.x * W/1920, p.y * H/1080, p.r, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(255,255,255,${p.a * 0.35})`;
-      ctx.fill();
-    });
-
-    // Fishing line (when fishing)
-    if (gameState.fishing) {
-      const barX = W - 24;
-      ctx.beginPath();
-      ctx.moveTo(W * 0.75, H * 0.08);
-      ctx.bezierCurveTo(W * 0.8, H * 0.3, barX, H * 0.4, barX, H * 0.5);
-      ctx.strokeStyle = "rgba(255,255,255,0.35)";
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-  }
-};
-
-// ─── FISHING BAR LOGIC ────────────────────────────────────────
-const FishBar = {
-  barH: 0,
-  playerY: 0.5,   // 0..1 normalized
-  fishY:   0.2,
-  fishDir: 1,
-  fishSpeed: 0.003,
-  zoneH: 0.22,    // zone height ratio
-  captureTime: 0,
-  captureRequired: 3000, // ms
-  capturing: false,
-  active: false,
-  lastTS: 0,
-
-  // Input state
-  upHeld: false, downHeld: false,
-
-  init() {
-    this._bindKeys();
-    this._bindTouch();
-    this._bindMobileBtn();
-  },
-
-  start(difficulty=1) {
-    this.active   = true;
-    this.playerY  = 0.5;
-    this.fishY    = 0.2 + Math.random() * 0.5;
-    this.fishSpeed = (0.002 + Math.random() * 0.003) * difficulty;
-    this.fishDir   = Math.random() < 0.5 ? 1 : -1;
-    this.captureTime = 0;
-    this.capturing   = false;
-    this.zoneH = Math.max(0.14, 0.22 - difficulty * 0.02);
-    document.getElementById("fishingUI").classList.remove("hidden");
-    this.upHeld = this.downHeld = false;
-  },
-
-  stop() {
-    this.active = false;
-    document.getElementById("fishingUI").classList.add("hidden");
-    document.getElementById("captureProgressFill").style.width = "0%";
-  },
-
-  update(ts) {
-    if (!this.active) return false;
-    const dt = ts - (this.lastTS || ts);
-    this.lastTS = ts;
+  update(now) {
+    if (this.pesceCatturato) return; // frozen until toast clears
 
     // Move fish
-    this.fishY += this.fishDir * this.fishSpeed * dt;
-    if (this.fishY <= 0.01 || this.fishY >= 0.99 - this.zoneH) {
-      this.fishDir *= -1;
-      // Randomize speed slightly
-      this.fishSpeed = this.fishSpeed * (0.9 + Math.random() * 0.2);
-    }
+    this.yPesce += this.dir * this.speedPesce;
+    if (this.yPesce > 715 || this.yPesce < 400) this.dir *= -1;
 
-    // Move player
-    const speed = 0.0018;
-    if (this.upHeld)   this.playerY = Math.max(0, this.playerY - speed * dt);
-    if (this.downHeld) this.playerY = Math.min(1 - 0.12, this.playerY + speed * dt);
-
-    // Overlap check (player zone = playerY..playerY+0.12, fish zone = fishY..fishY+zoneH)
-    const pTop = this.playerY, pBot = this.playerY + 0.12;
-    const fTop = this.fishY,   fBot = this.fishY + this.zoneH;
-    const overlap = pTop < fBot && pBot > fTop;
-
-    if (overlap) {
-      if (!this.capturing) this.capturing = true;
-      this.captureTime += dt;
+    // Check overlap: fish in player rect (y .. y+60)
+    if (this.yPesce > this.y && this.yPesce < this.y + 60) {
+      if (!this.inizioCattur) {
+        this.inizioCattura = now;
+        this.inizioCattur  = true;
+      }
+      this.tempoCattura = now - this.inizioCattura;
+      if (this.tempoCattura >= 10000) {
+        this.pesceCatturato       = true;
+        this.inizioTempoDiAttesa  = now;
+      }
     } else {
-      this.capturing   = false;
-      this.captureTime = Math.max(0, this.captureTime - dt * 0.5);
+      this.inizioCattur  = false;
+      this.tempoCattura  = 0;
     }
-
-    // Update DOM
-    const barEl   = document.getElementById("fishingBarWrap");
-    const barH    = barEl.clientHeight;
-    document.getElementById("fishZone").style.top    = (this.fishY * barH) + "px";
-    document.getElementById("fishZone").style.height = (this.zoneH * barH) + "px";
-    document.getElementById("playerSlider").style.top = (this.playerY * barH) + "px";
-
-    const pct = Math.min(100, (this.captureTime / this.captureRequired) * 100);
-    document.getElementById("captureProgressFill").style.width = pct + "%";
-
-    if (this.captureTime >= this.captureRequired) {
-      this.stop();
-      return true; // caught!
-    }
-    return false;
-  },
-
-  _bindKeys() {
-    document.addEventListener("keydown", e => {
-      if (!this.active) return;
-      if (e.key === "ArrowUp"   || e.key === "w" || e.key === "W") { this.upHeld   = true; e.preventDefault(); }
-      if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") { this.downHeld = true; e.preventDefault(); }
-    });
-    document.addEventListener("keyup", e => {
-      if (e.key === "ArrowUp"   || e.key === "w" || e.key === "W") this.upHeld   = false;
-      if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") this.downHeld = false;
-    });
-  },
-
-  _bindTouch() {
-    const barWrap = document.getElementById("fishingBarWrap");
-    barWrap.addEventListener("touchmove", e => {
-      e.preventDefault();
-      const rect = barWrap.getBoundingClientRect();
-      const t    = e.touches[0];
-      this.playerY = Math.max(0, Math.min(0.88, (t.clientY - rect.top) / rect.height - 0.06));
-    }, { passive: false });
-    barWrap.addEventListener("touchstart", e => {
-      e.preventDefault();
-      const rect = barWrap.getBoundingClientRect();
-      const t    = e.touches[0];
-      this.playerY = Math.max(0, Math.min(0.88, (t.clientY - rect.top) / rect.height - 0.06));
-    }, { passive: false });
-    // pointer events for desktop too
-    barWrap.addEventListener("pointermove", e => {
-      if (e.buttons !== 1) return;
-      const rect = barWrap.getBoundingClientRect();
-      this.playerY = Math.max(0, Math.min(0.88, (e.clientY - rect.top) / rect.height - 0.06));
-    });
-  },
-
-  _bindMobileBtn() {
-    const up   = document.getElementById("mobUp");
-    const down = document.getElementById("mobDown");
-    const setU = v => this.upHeld   = v;
-    const setD = v => this.downHeld = v;
-    up.addEventListener("touchstart",  e => { e.preventDefault(); setU(true);  }, { passive:false });
-    up.addEventListener("touchend",    ()  => setU(false));
-    down.addEventListener("touchstart",e => { e.preventDefault(); setD(true);  }, { passive:false });
-    down.addEventListener("touchend",  ()  => setD(false));
-    up.addEventListener("mousedown",   ()  => setU(true));
-    up.addEventListener("mouseup",     ()  => setU(false));
-    down.addEventListener("mousedown", ()  => setD(true));
-    down.addEventListener("mouseup",   ()  => setD(false));
   }
 };
 
-// ─── MAIN GAME CONTROLLER ─────────────────────────────────────
-const Game = {
-  phase:      "loading",   // loading | menu | fishing | caught
-  fishImages: {},          // { fiume: [null,...×11], mare, oceano, artico }
-  currentFish: null,       // { biome, idx, rarity }
-  saveTimer:  null,
-  raf:        null,
-  gameState:  { fishing: false },
+const BIOME_SPEEDS = [2, 4, 8, 16];
 
-  async init() {
-    setMsg("CONNECTING…");
-    // Wake server
-    try { await fetch(`${API_URL}/health`); } catch(e) {}
+// ── SCREENS / PHASES ─────────────────────────────────────────
+// Phases: "loading" | "menu" | "game" | "shop" | "mappa" | "info"
+let phase     = "loading";
+let loadingStarted = false;
 
-    // Check auth
-    const token = Api.getToken();
-    if (!token) {
-      window.location.href = "/cardGameWeb/auth.html?redirect=" + encodeURIComponent(window.location.href);
+// Loading screen slideshow
+const SLIDE = { idx: 0, lastChange: 0, interval: 10000 };
+
+// Inventory/Encyclopedia sub-state
+const UI_STATE = {
+  inventarioOpen: false,
+  enciOpenIdx: -1,  // -1=none, 0-3=biome
+  statoEnci: false
+};
+
+// Info sub-state
+let infoOpen = false; // shown over menu
+
+// Save timer
+let saveTimer = null;
+
+// ── DRAW HELPERS ─────────────────────────────────────────────
+function drawImg(key, x, y, w, h) {
+  const img = IMG[key];
+  if (!img || !img.complete) return;
+  if (w !== undefined) ctx.drawImage(img, x, y, w, h);
+  else ctx.drawImage(img, x, y);
+}
+
+function text(str, x, y, size, color, align="left") {
+  ctx.save();
+  ctx.font      = `${size}px "Courier New", monospace`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.fillText(str, x, y);
+  ctx.restore();
+}
+
+function rect(x, y, w, h, color) {
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+}
+
+// ── DRAW FUNCTIONS (port of original .pde files) ─────────────
+
+function drawLoading(now) {
+  if (!SLIDE.lastChange) SLIDE.lastChange = now;
+  if (now - SLIDE.lastChange >= SLIDE.interval) {
+    SLIDE.idx = (SLIDE.idx + 1) % 4;
+    SLIDE.lastChange = now;
+  }
+  drawImg("schermata" + (SLIDE.idx + 1), 0, 0, VW, VH);
+}
+
+function drawMenu(now) {
+  // Background slideshow
+  drawLoading(now);
+
+  // Logo overlay
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.31)";
+  ctx.fillRect(0, 55, 650, 200);
+  ctx.restore();
+  drawImg("logo", 30, 60);
+
+  // Info button (top right)
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.31)";
+  ctx.beginPath(); ctx.arc(1850, 70, 25, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  drawImg("info", 1825, 45);
+
+  // Sidebar menu buttons (bottom-left, original positions)
+  const items = [
+    { label: "Play",  y: VH - 200 },
+    { label: "Map",   y: VH - 150 },
+    { label: "Shop",  y: VH - 100 },
+    { label: "Save",  y: VH - 50  }
+  ];
+  ctx.save();
+  ctx.font = "32px \"Courier New\", monospace";
+  items.forEach(item => {
+    const hov = hoverV(10, item.y - 28, 150, 32);
+    ctx.fillStyle = hov ? "#ED6307" : "#ffffff";
+    ctx.fillText(item.label, 10, item.y);
+    if (hov) {
+      ctx.fillStyle = "#ED6307";
+      ctx.fillRect(8, item.y + 2, 200, 10);
+    }
+  });
+  ctx.restore();
+}
+
+function drawGame(now) {
+  // Biome background
+  drawImg("bioma" + S.biomeIdx, 0, 0, VW, VH);
+
+  // Home button
+  drawImg("home", 50, 50);
+
+  // Dobloni HUD
+  ctx.save();
+  ctx.font = "38px \"Courier New\", monospace";
+  ctx.fillStyle = "#E58115";
+  ctx.fillText("Dobloni: " + S.dobloni, 1700, 50);
+  ctx.restore();
+
+  // Fishing rod
+  drawRod(now);
+}
+
+function drawRod(now) {
+  // Canna da pesca image
+  drawImg("canna", 1800, 390);
+
+  // Player slider (red rect)
+  rect(1840, ROD.y, 31, 60, "rgba(255,0,0,0.9)");
+
+  // Fish icon
+  drawImg("pesce", 1840, ROD.yPesce, 30, 30);
+
+  // Capture progress bar (below rod)
+  if (ROD.inizioCattur && ROD.tempoCattura > 0) {
+    const pct = Math.min(1, ROD.tempoCattura / 10000);
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillRect(1835, 785, 36, 8);
+    ctx.fillStyle = `hsl(${(1-pct)*120},100%,50%)`;
+    ctx.fillRect(1835, 785, 36 * pct, 8);
+    ctx.restore();
+  }
+
+  // ── CATCH DISPLAY ──
+  if (ROD.pesceCatturato) {
+    const elapsed = now - ROD.inizioTempoDiAttesa;
+
+    if (!ROD.contatoreIncrementato) {
+      // Register catch
+      const rp = ROD.randomPesce;
+      const bi = S.biomeIdx;
+      const bk = S.biomeKey;
+
+      if (rp <= 10) {
+        // Register rarity
+        if      (rp <= 6) S.comuni++;
+        else if (rp <= 9) S.rari++;
+        else              S.mitici++;
+        // Encyclopedia
+        S.enci[bk][rp - 1] = true;
+        playCatch(rp === 10);
+      } else {
+        // VHS
+        S.vhs[bi] = true;
+        playCatch(true);
+      }
+      ROD.contatoreIncrementato = true;
+      // Save immediately
+      Api.saveState(S.toPayload()).catch(() => {});
+    }
+
+    if (elapsed <= 4000) {
+      // Draw catch notification box
+      ctx.save();
+      ctx.fillStyle = "rgba(250,242,242,0.8)";
+      ctx.fillRect(1590, 125, 330, 100);
+      ctx.font = "24px \"Courier New\", monospace";
+      ctx.fillStyle = "#000";
+
+      const rp = ROD.randomPesce;
+      const bi = S.biomeIdx;
+      const bk = S.biomeKey;
+
+      if (rp <= 10) {
+        ctx.fillText("FISH CAUGHT!", 1640, 185);
+        const fishImg = FISH[bk][rp];
+        if (fishImg && fishImg.complete) ctx.drawImage(fishImg, 1590, 130, 100, 90);
+      } else {
+        ctx.fillText("Mysterious...", 1640, 185);
+        drawImg("cassetta", 1590, 130, 100, 90);
+      }
+      ctx.restore();
+
+      ROD.inizioCattur = false;
+    } else {
+      // Reset for next fish — THE FIX: clear all state cleanly
+      ROD.pesceCatturato        = false;
+      ROD.contatoreIncrementato = false;
+      ROD.inizioCattur          = false;
+      ROD.tempoCattura          = 0;
+      ROD.catchProcessed        = false;
+      // Spawn new fish
+      ROD.spawnFish();
+    }
+  }
+}
+
+function drawShop(now) {
+  drawImg("sfondoShop", 0, 0, VW, VH);
+  drawImg("home", 50, 50);
+  drawImg("zaino", 1780, 80);
+
+  ctx.save();
+  ctx.font = "38px \"Courier New\", monospace";
+  ctx.fillStyle = "#B70B0B";
+  ctx.fillText("Dobloni: " + S.dobloni, 1700, 50);
+  ctx.font = "28px \"Courier New\", monospace";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("Comuni: "  + S.comuni,  470,  50);
+  ctx.fillText("Rari: "    + S.rari,    890,  50);
+  ctx.fillText("Mitici: "  + S.mitici,  1310, 50);
+  ctx.fillText("COMMON FISH",  550, 895);
+  ctx.fillText("RARE FISH",   1175, 895);
+  ctx.fillText("MYTHIC FISH", 1400, 895);
+  ctx.restore();
+
+  if (!UI_STATE.inventarioOpen) {
+    drawShopPrices();
+  } else {
+    drawInventario();
+  }
+}
+
+function drawShopPrices() {
+  ctx.save();
+  ctx.font = "28px \"Courier New\", monospace";
+  ctx.fillStyle = "#ffffff";
+  if (hoverV(545, 780, 185, 125)) {
+    ctx.fillText(S.comuni >= 1 ? "+1 doblone" : "No common fish", 520, 750);
+  }
+  if (hoverV(1140, 780, 190, 125)) {
+    ctx.fillText(S.rari >= 1 ? "+5 dobloni" : "No rare fish", 1135, 750);
+  }
+  if (hoverV(1375, 780, 195, 125)) {
+    ctx.fillText(S.mitici >= 1 ? "+10 dobloni" : "No mythic fish", 1365, 750);
+  }
+  ctx.restore();
+}
+
+function drawInventario() {
+  drawImg("inventario", 0, 0, VW, VH);
+  // Encyclopedia panels (same original y regions)
+  const rows = [
+    { biome: 0, y1: 95,  y2: 315 },
+    { biome: 1, y1: 325, y2: 530 },
+    { biome: 2, y1: 540, y2: 765 },
+    { biome: 3, y1: 770, y2: 975 }
+  ];
+  rows.forEach(r => {
+    if (UI_STATE.enciOpenIdx === r.biome) {
+      drawEnciclopedia(r.biome);
+    }
+  });
+}
+
+function drawEnciclopedia(biomeIdx) {
+  const bk    = BKEYS[biomeIdx];
+  const enci  = S.enci[bk];
+  const startX = 565, startY = [115, 345, 555, 785][biomeIdx];
+  const slotW = 78, slotH = 78;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+  ctx.fillRect(560, startY - 20, 800, 90);
+  ctx.restore();
+
+  for (let i = 0; i < 10; i++) {
+    const x = startX + i * (slotW + 5);
+    const y = startY;
+    if (enci[i]) {
+      const fishImg = FISH[bk][i + 1];
+      if (fishImg && fishImg.complete) {
+        ctx.drawImage(fishImg, x, y, slotW, slotH);
+      }
+    } else {
+      ctx.save();
+      ctx.fillStyle = "rgba(0,0,0,0.7)";
+      ctx.fillRect(x, y, slotW, slotH);
+      ctx.fillStyle = "#333";
+      ctx.font = "28px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("?", x + slotW/2, y + slotH/2 + 10);
+      ctx.restore();
+    }
+  }
+}
+
+function drawMappa() {
+  drawImg("mappa", 0, 0, VW, VH);
+  drawImg("home", 50, 50);
+
+  ctx.save();
+  ctx.font = "38px \"Courier New\", monospace";
+  ctx.fillStyle = "#E58115";
+  ctx.fillText("Dobloni: " + S.dobloni, 1700, 50);
+  ctx.font = "32px \"Courier New\", monospace";
+  ctx.restore();
+
+  // Biome checkpoints (original coords)
+  const POINTS = [
+    { cx: 135,  cy: 590, cost: 0,  label: "River"  },
+    { cx: 648,  cy: 705, cost: 10, label: "Sea"    },
+    { cx: 480,  cy: 330, cost: 20, label: "Ocean"  },
+    { cx: 1311, cy: 160, cost: 50, label: "Arctic" }
+  ];
+
+  POINTS.forEach((p, i) => {
+    const unlocked = S.biomaBool[i];
+    const selected = S.selezionato[i];
+    const hov = hoverCircle(p.cx, p.cy, 30);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p.cx, p.cy, 30, 0, Math.PI*2);
+    ctx.fillStyle = selected ? "#ff0000" : (unlocked ? "#E58115" : "#444");
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = "28px \"Courier New\", monospace";
+    ctx.fillStyle = "#ffffff";
+    if (selected) {
+      ctx.fillText("You are here!", p.cx - 50, p.cy + 55);
+    } else if (hov) {
+      if (unlocked) {
+        ctx.fillText("Unlocked", p.cx - 40, p.cy - 40);
+      } else {
+        ctx.fillText("Buy: " + p.cost + " dobloni", p.cx - 70, p.cy - 40);
+      }
+    }
+    ctx.restore();
+  });
+}
+
+function drawInfo() {
+  // Dark overlay over current background
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.82)";
+  ctx.fillRect(0, 0, VW, VH);
+  ctx.restore();
+
+  drawImg("home", 50, 50);
+
+  text("Settings", VW/2, 150, 48, "#FFD700", "center");
+  text("Music volume:", 700, 620, 32, "#ffffff");
+  drawImg("volPiu",  800, 640);
+  drawImg("volMeno", 930, 640);
+  drawImg("muto",   1045, 640);
+
+  // Volume bar
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,0.15)";
+  ctx.fillRect(700, 680, 400, 10);
+  ctx.fillStyle = "#FFD700";
+  ctx.fillRect(700, 680, 400 * volume, 10);
+  ctx.restore();
+
+  text(muted ? "MUTED" : Math.round(volume * 100) + "%", 1160, 655, 28, "#ffffff");
+
+  // Credits
+  text("LSD P-E-S-C-A", VW/2, 400, 36, "#FFD700", "center");
+  text("LSD Software — Milan, Italy", VW/2, 450, 26, "#aaa", "center");
+  text("Logged in as: " + (Api.user()?.username || "guest"), VW/2, 510, 26, "#aaa", "center");
+
+  // Reset button
+  const hov = hoverV(760, 720, 400, 60);
+  ctx.save();
+  ctx.fillStyle = hov ? "#cc0000" : "#2a0000";
+  ctx.strokeStyle = "#cc0000";
+  ctx.lineWidth = 2;
+  ctx.fillRect(760, 720, 400, 60);
+  ctx.strokeRect(760, 720, 400, 60);
+  ctx.restore();
+  text("⚠ RESET PROGRESS", VW/2, 760, 28, hov ? "#fff" : "#ff4444", "center");
+  text("Resets only Pesca data", VW/2, 800, 22, "#666", "center");
+}
+
+// ── MOUSE / TOUCH ────────────────────────────────────────────
+let mouseVX = 0, mouseVY = 0;
+
+function hoverV(x, y, w, h) {
+  return mouseVX >= x && mouseVX <= x+w && mouseVY >= y && mouseVY <= y+h;
+}
+function hoverCircle(cx, cy, r) {
+  const dx = mouseVX - cx, dy = mouseVY - cy;
+  return dx*dx + dy*dy <= r*r;
+}
+
+canvas.addEventListener("mousemove", e => {
+  const v = toV(e.clientX, e.clientY);
+  mouseVX = v.x; mouseVY = v.y;
+  // Mouse controls slider in game
+  if (phase === "game" && !ROD.pesceCatturato && mouseVY >= 400 && mouseVY <= 715) {
+    ROD.y = mouseVY;
+  }
+});
+
+canvas.addEventListener("touchmove", e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  const v = toV(t.clientX, t.clientY);
+  mouseVX = v.x; mouseVY = v.y;
+  if (phase === "game" && !ROD.pesceCatturato && mouseVY >= 400 && mouseVY <= 715) {
+    ROD.y = mouseVY;
+  }
+}, { passive: false });
+
+// ── RESET CONFIRM STATE ──────────────────────────────────────
+let resetConfirmPending = false;
+let resetConfirmTime    = 0;
+
+// ── CLICK HANDLER ────────────────────────────────────────────
+async function handleClick(vx, vy) {
+  playClick();
+
+  // ── GAME phase ──
+  if (phase === "game") {
+    if (vx > 50 && vx < 100 && vy > 50 && vy < 100) { // home button
+      phase = "menu"; ROD.reset(BIOME_SPEEDS[S.biomeIdx]);
+    }
+    return;
+  }
+
+  // ── MENU phase ──
+  if (phase === "menu") {
+    // Info button
+    if (vx > 1825 && vx < 1875 && vy > 45 && vy < 95) {
+      infoOpen = true; return;
+    }
+    // Menu buttons
+    if (vx > 10 && vx < 180 && vy > VH-228 && vy < VH-200) { // Play
+      phase = "game"; ROD.spawnFish();
+    }
+    if (vx > 10 && vx < 180 && vy > VH-178 && vy < VH-150) { // Map
+      phase = "mappa";
+    }
+    if (vx > 10 && vx < 180 && vy > VH-128 && vy < VH-100) { // Shop
+      phase = "shop"; UI_STATE.inventarioOpen = false; UI_STATE.enciOpenIdx = -1; UI_STATE.statoEnci = false;
+    }
+    if (vx > 10 && vx < 180 && vy > VH-78 && vy < VH-50) { // Save
+      await Api.saveState(S.toPayload());
+    }
+    return;
+  }
+
+  // ── INFO overlay ──
+  if (infoOpen) {
+    if (vx > 50 && vx < 100 && vy > 50 && vy < 100) { infoOpen = false; return; }
+    // Volume buttons (original coords)
+    if (vx > 800 && vx < 850  && vy > 650 && vy < 690) { setVolume(+0.1); return; }
+    if (vx > 930 && vx < 970  && vy > 650 && vy < 690) { setVolume(-0.1); return; }
+    if (vx > 1045&& vx < 1100 && vy > 650 && vy < 690) { toggleMute(); return; }
+    // Reset button
+    if (vx > 760 && vx < 1160 && vy > 720 && vy < 780) {
+      const now = performance.now();
+      if (resetConfirmPending && now - resetConfirmTime < 4000) {
+        // Second click within 4 seconds = confirm
+        try {
+          const d = await Api.resetState();
+          S.fromServer(d.state);
+          resetConfirmPending = false;
+          infoOpen = false;
+        } catch(e) {}
+      } else {
+        resetConfirmPending = true;
+        resetConfirmTime    = now;
+      }
       return;
     }
-
-    setMsg("LOADING STATE…");
-    try {
-      const d = await Api.loadState();
-      State.fromServer(d.state);
-    } catch(e) {
-      console.warn("Could not load state:", e);
-    }
-
-    setMsg("LOADING ASSETS…");
-    await this._preloadFishImages();
-
-    Renderer.init();
-    FishBar.init();
-    Audio.init();
-
-    // Hide loading
-    document.getElementById("loadingScreen").classList.add("hidden");
-    document.getElementById("hud").classList.remove("hidden");
-
-    // Show settings username
-    const user = Api.getUser();
-    document.getElementById("settingsUser").textContent = user?.username || "—";
-
-    this.updateHUD();
-    this.phase = "fishing";
-    this.gameState.fishing = true;
-    this._spawnNewFish();
-
-    // Auto-save every 30s
-    this.saveTimer = setInterval(() => this._save(), 30000);
-
-    // Show tutorial on first visit
-    if (!localStorage.getItem("pesca_tut_done")) {
-      document.getElementById("tutorialModal").classList.remove("hidden");
-    }
-
-    this._loop(0);
-  },
-
-  async _preloadFishImages() {
-    const load = src => new Promise(res => {
-      const img = new Image();
-      img.onload = () => res(img);
-      img.onerror = () => res(null);
-      img.src = src;
-    });
-
-    for (let b = 0; b < 4; b++) {
-      const key   = BIOME_KEYS[b];
-      const path  = BIOME_PATHS[b];
-      this.fishImages[key] = [null]; // index 0 unused
-      for (let i = 1; i <= 10; i++) {
-        const img = await load(`assets/${path}/${i}.png`);
-        this.fishImages[key].push(img);
-      }
-    }
-    // VHS image
-    this.vhsImage = await (new Promise(res => {
-      const i = new Image(); i.onload = ()=>res(i); i.onerror=()=>res(null);
-      i.src = "assets/ui/cassettaVHS.png";
-    }));
-  },
-
-  _spawnNewFish() {
-    const biome = BIOME_KEYS[State.biomaSelezionato];
-    // Random 1-11 (11 = VHS, rare chance 5%)
-    const r = Math.random();
-    let idx;
-    if (r < 0.05) idx = 11;   // VHS — 5% chance
-    else idx = Math.floor(Math.random() * 10) + 1;  // 1-10
-
-    this.currentFish = { biome, idx, rarity: getRarity(idx) };
-    FishBar.start(State.biomaSelezionato * 0.3 + 1);
-  },
-
-  _loop(ts) {
-    this.raf = requestAnimationFrame(t => this._loop(t));
-    Renderer.drawFrame(State.biomaSelezionato, this.gameState);
-
-    if (this.phase === "fishing") {
-      const caught = FishBar.update(ts);
-      if (caught) this._onCatch();
-    }
-  },
-
-  _onCatch() {
-    const { biome, idx, rarity } = this.currentFish;
-    const isVHS = idx === 11;
-
-    if (!isVHS) {
-      // Register rarity
-      if (idx <= 6)       State.comuni++;
-      else if (idx <= 9)  State.rari++;
-      else                State.mitici++;
-
-      // Encyclopedia
-      const eKey = BIOME_KEYS[BIOMES.findIndex(b=>b.id===biome)];
-      if (State.enciclopedia[eKey]) State.enciclopedia[eKey][idx - 1] = true;
-
-      Audio.playCatch(idx === 10);
-    } else {
-      const biomeIdx = BIOMES.findIndex(b=>b.id===biome);
-      State.vhs[biomeIdx] = true;
-      Audio.playCatch(true);
-    }
-
-    this.updateHUD();
-    this._showCatchToast();
-    this._save();
-
-    // Respawn after toast
-    setTimeout(() => this._spawnNewFish(), 3200);
-  },
-
-  _showCatchToast() {
-    const { biome, idx, rarity } = this.currentFish;
-    const isVHS = idx === 11;
-    const toast = document.getElementById("catchToast");
-
-    if (!isVHS) {
-      const img = this.fishImages[biome]?.[idx];
-      document.getElementById("toastImg").src    = img?.src || "";
-      document.getElementById("toastTitle").textContent  = "CAUGHT!";
-      document.getElementById("toastName").textContent   = FISH_NAMES[biome]?.[idx-1] || `Fish #${idx}`;
-      document.getElementById("toastRarity").textContent = rarity.label;
-      document.getElementById("toastRarity").style.color = rarity.color;
-    } else {
-      document.getElementById("toastImg").src    = this.vhsImage?.src || "";
-      document.getElementById("toastTitle").textContent  = "MYSTERIOUS!";
-      document.getElementById("toastName").textContent   = "VHS Tape";
-      document.getElementById("toastRarity").textContent = "RARE OBJECT";
-      document.getElementById("toastRarity").style.color = "var(--gold)";
-    }
-
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
-  },
-
-  async _save() {
-    try {
-      await Api.saveState(State.toPayload());
-    } catch(e) { console.warn("Save failed:", e); }
-  },
-
-  updateHUD() {
-    document.getElementById("hudDobloni").textContent = State.dobloni;
-    document.getElementById("hudComuni").textContent  = State.comuni;
-    document.getElementById("hudRari").textContent    = State.rari;
-    document.getElementById("hudMitici").textContent  = State.mitici;
-  },
-
-  sellFish(type) {
-    const prices = { comuni: 1, rari: 5, mitici: 10 };
-    const count  = State[type];
-    if (count <= 0) return;
-    State.dobloni += count * prices[type];
-    State[type] = 0;
-    this.updateHUD();
-    UI.refreshShop();
-    this._save();
-    notify(`+${count * prices[type]} ◈ Dobloni`);
-    Audio.playClick();
-  },
-
-  unlockBiome(idx) {
-    const cost = BIOMES[idx].cost;
-    if (State.biomiSbloccati[idx]) return notify("Already unlocked.");
-    if (State.dobloni < cost) return notify("Not enough Dobloni.");
-    State.dobloni -= cost;
-    State.biomiSbloccati[idx] = true;
-    State.biomaSelezionato = idx;
-    this.updateHUD();
-    UI.refreshShop();
-    UI.refreshMap();
-    this._save();
-    notify(`${BIOMES[idx].name} unlocked!`);
-    Audio.playClick();
-  },
-
-  selectBiome(idx) {
-    if (!State.biomiSbloccati[idx]) return notify("Biome locked. Buy it in the Shop.");
-    State.biomaSelezionato = idx;
-    FishBar.stop();
-    this._spawnNewFish();
-    UI.closeAll();
-    this._save();
-    notify(`Switched to ${BIOMES[idx].name}`);
-  },
-
-  confirmReset() {
-    document.getElementById("resetConfirm").classList.remove("hidden");
-  },
-
-  async executeReset() {
-    try {
-      const d = await Api.resetState();
-      State.fromServer(d.state);
-      this.updateHUD();
-      UI.closeAll();
-      document.getElementById("resetConfirm").classList.add("hidden");
-      notify("Progress reset.");
-      // Respawn
-      FishBar.stop();
-      this._spawnNewFish();
-    } catch(e) { notify("Reset failed."); }
+    return;
   }
-};
 
-// ─── UI CONTROLLER ────────────────────────────────────────────
-const UI = {
-  currentEnciTab: 0,
-
-  closeAll() {
-    ["mapModal","shopModal","enciModal","lbModal","settingsModal","tutorialModal"]
-      .forEach(id => document.getElementById(id).classList.add("hidden"));
-    document.getElementById("resetConfirm").classList.add("hidden");
-  },
-
-  openMap() {
-    Audio.playClick();
-    this.refreshMap();
-    document.getElementById("mapModal").classList.remove("hidden");
-  },
-
-  refreshMap() {
-    const grid = document.getElementById("biomeSelectGrid");
-    grid.innerHTML = "";
-    BIOMES.forEach((b, i) => {
-      const locked  = !State.biomiSbloccati[i];
-      const active  = State.biomaSelezionato === i;
-      const div = document.createElement("div");
-      div.className = "biome-card" +
-        (active ? " active-biome" : "") +
-        (locked  ? " locked-biome" : "");
-      div.innerHTML = `
-        <img src="${b.img}" alt="${b.name}">
-        <div class="biome-label">
-          <span>${b.name}</span>
-          ${active ? '<span style="color:var(--gold)">▶ ACTIVE</span>' : ''}
-        </div>
-        ${locked ? `<div class="biome-lock">
-          <span class="lock-icon">🔒</span>
-          <span>${b.cost} ◈</span>
-          <span style="font-size:0.6rem;color:#666">BUY IN SHOP</span>
-        </div>` : ''}
-      `;
-      if (!locked) div.onclick = () => { Game.selectBiome(i); Audio.playClick(); };
-      grid.appendChild(div);
-    });
-  },
-
-  openShop() {
-    Audio.playClick();
-    this.refreshShop();
-    document.getElementById("shopModal").classList.remove("hidden");
-  },
-
-  refreshShop() {
-    // Fish counts
-    document.getElementById("shopComuni").textContent = `×${State.comuni}`;
-    document.getElementById("shopRari").textContent   = `×${State.rari}`;
-    document.getElementById("shopMitici").textContent = `×${State.mitici}`;
-    document.getElementById("sellComuniBtn").disabled = State.comuni === 0;
-    document.getElementById("sellRariBtn").disabled   = State.rari   === 0;
-    document.getElementById("sellMiticiBtn").disabled = State.mitici === 0;
-
-    // Biome unlocks
-    const bl = document.getElementById("shopBiomeList");
-    bl.innerHTML = "";
-    BIOMES.forEach((b, i) => {
-      if (b.cost === 0) return;
-      const owned = State.biomiSbloccati[i];
-      const row = document.createElement("div");
-      row.className = "sell-row";
-      row.innerHTML = `
-        <div class="fish-info">${b.name}</div>
-        <div style="color:var(--gold);font-size:0.75rem">${owned ? "✓ UNLOCKED" : `${b.cost} ◈`}</div>
-        <button class="sell-btn" ${owned ? "disabled" : ""} onclick="Game.unlockBiome(${i}); UI.refreshShop();">
-          ${owned ? "OWNED" : "BUY"}
-        </button>
-      `;
-      bl.appendChild(row);
-    });
-
-    // VHS grid
-    const vg = document.getElementById("shopVhsGrid");
-    vg.innerHTML = "";
-    BIOMES.forEach((b, i) => {
-      const found = State.vhs[i];
-      const slot  = document.createElement("div");
-      slot.className = "vhs-slot" + (found ? " found" : "");
-      slot.innerHTML = `
-        <img src="assets/ui/cassettaVHS.png" alt="VHS">
-        <div class="vhs-label">${b.name}</div>
-      `;
-      vg.appendChild(slot);
-    });
-  },
-
-  openEnciclopedia() {
-    Audio.playClick();
-    this._buildEnciTabs();
-    this._renderEnciGrid(this.currentEnciTab);
-    document.getElementById("enciModal").classList.remove("hidden");
-  },
-
-  _buildEnciTabs() {
-    const tabs = document.getElementById("enciTabs");
-    tabs.innerHTML = "";
-    BIOMES.forEach((b, i) => {
-      const btn = document.createElement("button");
-      btn.className = "biome-tab" + (i === this.currentEnciTab ? " active" : "");
-      btn.textContent = b.name;
-      btn.onclick = () => {
-        this.currentEnciTab = i;
-        tabs.querySelectorAll(".biome-tab").forEach((t,ti) => t.classList.toggle("active", ti===i));
-        this._renderEnciGrid(i);
-        Audio.playClick();
-      };
-      tabs.appendChild(btn);
-    });
-  },
-
-  _renderEnciGrid(biomeIdx) {
-    const key   = BIOME_KEYS[biomeIdx];
-    const enci  = State.enciclopedia[key];
-    const names = FISH_NAMES[key];
-    const grid  = document.getElementById("enciGrid");
-    grid.innerHTML = "";
-
-    for (let i = 0; i < 10; i++) {
-      const found   = enci[i];
-      const rarity  = getRarity(i + 1);
-      const slot    = document.createElement("div");
-      slot.className = "enci-slot" + (found ? "" : " locked");
-      slot.title     = found ? names[i] : "???";
-
-      const img = Game.fishImages[key]?.[i + 1];
-      slot.innerHTML = `
-        <img src="${img?.src || ''}" alt="${found ? names[i] : '?'}">
-        <div class="rarity-dot" style="background:${found ? rarity.color : 'transparent'}"></div>
-        <div class="enci-num">${i+1}</div>
-      `;
-      if (found) {
-        slot.title = `${names[i]} — ${rarity.label}`;
-      }
-      grid.appendChild(slot);
+  // ── SHOP phase ──
+  if (phase === "shop") {
+    // Home
+    if (vx > 50 && vx < 100 && vy > 50 && vy < 100) {
+      phase = "menu"; UI_STATE.inventarioOpen = false; return;
     }
-  },
-
-  async openLeaderboard() {
-    Audio.playClick();
-    document.getElementById("lbModal").classList.remove("hidden");
-    const el = document.getElementById("lbContent");
-    el.innerHTML = '<div class="lb-loading">Loading…</div>';
-    try {
-      const d = await Api.leaderboard();
-      const me = d.myRank;
-      let html = `<table class="lb-table">
-        <thead><tr>
-          <th>#</th><th>PLAYER</th><th>◈ DOBLONI</th><th>★ MYTHICS</th>
-        </tr></thead><tbody>`;
-      if (!d.leaderboard.length) {
-        html += `<tr><td colspan="4" style="text-align:center;color:#666">No scores yet. Be the first!</td></tr>`;
-      }
-      d.leaderboard.forEach(r => {
-        const isMe = me && r.username === me.username;
-        html += `<tr class="${isMe ? 'me' : ''}">
-          <td class="rank-num">${r.rank}</td>
-          <td>${r.username}</td>
-          <td>${r.dobloniTotali}</td>
-          <td>${r.pescaMiticiTotali}</td>
-        </tr>`;
-      });
-      if (me && d.leaderboard.length && !d.leaderboard.find(r=>r.username===me.username)) {
-        html += `<tr style="border-top:1px solid var(--border)"><td colspan="4" style="text-align:center;color:#666;font-size:0.7rem">…</td></tr>
-          <tr class="me"><td class="rank-num">${me.rank}</td><td>${me.username}</td><td>${me.dobloniTotali}</td><td>${me.pescaMiticiTotali}</td></tr>`;
-      }
-      html += "</tbody></table>";
-      el.innerHTML = html;
-    } catch(e) {
-      el.innerHTML = `<div class="lb-loading" style="color:#ff4444">Failed to load. Server may be waking up.</div>`;
+    // Backpack / inventory toggle
+    if (vx > 1780 && vx < 1860 && vy > 80 && vy < 160) {
+      UI_STATE.inventarioOpen = !UI_STATE.inventarioOpen;
+      if (!UI_STATE.inventarioOpen) { UI_STATE.enciOpenIdx = -1; UI_STATE.statoEnci = false; }
+      return;
     }
-  },
-
-  openSettings() {
-    Audio.playClick();
-    document.getElementById("settingsModal").classList.remove("hidden");
+    if (!UI_STATE.inventarioOpen) {
+      // Sell fish
+      if (vx > 545 && vx < 730  && vy > 780 && vy < 905 && S.comuni >= 1) { S.comuni--;  S.dobloni += 1;  }
+      if (vx > 1140&& vx < 1330 && vy > 780 && vy < 905 && S.rari   >= 1) { S.rari--;    S.dobloni += 5;  }
+      if (vx > 1375&& vx < 1570 && vy > 780 && vy < 905 && S.mitici >= 1) { S.mitici--;  S.dobloni += 10; }
+    } else {
+      // Encyclopedia tabs (original regions)
+      if (!UI_STATE.statoEnci) {
+        const tabs = [[95,315,0],[325,530,1],[540,765,2],[770,975,3]];
+        for (const [y1,y2,bi] of tabs) {
+          if (vx > 560 && vx < 1360 && vy > y1 && vy < y2) {
+            UI_STATE.enciOpenIdx = bi;
+            UI_STATE.statoEnci   = true;
+            break;
+          }
+        }
+      } else {
+        // Click outside closes current enci
+        if (!(vx > 560 && vx < 1360)) {
+          UI_STATE.enciOpenIdx = -1;
+          UI_STATE.statoEnci   = false;
+        }
+      }
+    }
+    return;
   }
-};
 
-// ─── TUTORIAL ─────────────────────────────────────────────────
-let tutStep = 0;
-const tutSteps = document.querySelectorAll(".tut-step");
-const tutDots  = document.querySelectorAll(".tut-dot");
-
-function setTutStep(n) {
-  tutStep = Math.max(0, Math.min(tutSteps.length - 1, n));
-  tutSteps.forEach((s, i) => s.classList.toggle("active", i === tutStep));
-  tutDots.forEach((d, i)  => d.classList.toggle("active", i === tutStep));
-  document.getElementById("tutPrev").style.opacity = tutStep === 0 ? "0.3" : "1";
-  const nxtBtn = document.getElementById("tutNext");
-  nxtBtn.textContent = tutStep === tutSteps.length - 1 ? "START FISHING →" : "NEXT →";
+  // ── MAPPA phase ──
+  if (phase === "mappa") {
+    if (vx > 50 && vx < 100 && vy > 50 && vy < 100) { phase = "menu"; return; }
+    // Biome select / buy (original coords)
+    const MPTS = [
+      { cx:135, cy:590, bnd:[[110,165,560,618]], cost:0  },
+      { cx:648, cy:705, bnd:[[620,676,678,735]], cost:10 },
+      { cx:480, cy:330, bnd:[[450,510,300,360]], cost:20 },
+      { cx:1311,cy:160, bnd:[[1285,1340,130,185]], cost:50 }
+    ];
+    MPTS.forEach(({ bnd, cost }, i) => {
+      const [x1,x2,y1,y2] = bnd[0];
+      if (vx > x1 && vx < x2 && vy > y1 && vy < y2) {
+        if (!S.biomaBool[i] && S.dobloni >= cost) {
+          S.dobloni -= cost;
+          S.biomaBool[i] = true;
+          S.selezionato = [false,false,false,false];
+          S.selezionato[i] = true;
+        } else if (S.biomaBool[i]) {
+          S.selezionato = [false,false,false,false];
+          S.selezionato[i] = true;
+        }
+      }
+    });
+    return;
+  }
 }
 
-document.getElementById("tutNext").onclick = () => {
-  if (tutStep >= tutSteps.length - 1) {
-    document.getElementById("tutorialModal").classList.add("hidden");
-    localStorage.setItem("pesca_tut_done", "1");
-    Audio.playClick();
+canvas.addEventListener("click", e => {
+  const v = toV(e.clientX, e.clientY);
+  handleClick(v.x, v.y);
+});
+canvas.addEventListener("touchend", e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  const v = toV(t.clientX, t.clientY);
+  handleClick(v.x, v.y);
+}, { passive: false });
+
+// ── KEYBOARD ─────────────────────────────────────────────────
+const keys = {};
+document.addEventListener("keydown", e => {
+  keys[e.key] = true;
+  if ((e.key === "ArrowUp" || e.key === "w") && phase === "game") e.preventDefault();
+  if ((e.key === "ArrowDown" || e.key === "s") && phase === "game") e.preventDefault();
+});
+document.addEventListener("keyup",   e => { keys[e.key] = false; });
+
+function handleKeys() {
+  if (phase !== "game" || ROD.pesceCatturato) return;
+  if ((keys["ArrowUp"]   || keys["w"] || keys["W"]) && ROD.y > 400)  ROD.y -= ROD.speed;
+  if ((keys["ArrowDown"] || keys["s"] || keys["S"]) && ROD.y < 715)  ROD.y += ROD.speed;
+}
+
+// ── MOBILE BUTTONS ───────────────────────────────────────────
+const mobUp   = document.getElementById("mobUp");
+const mobDown = document.getElementById("mobDown");
+let mobUpHeld = false, mobDownHeld = false;
+
+mobUp.addEventListener("touchstart",   e => { e.preventDefault(); mobUpHeld   = true; }, { passive:false });
+mobUp.addEventListener("touchend",     ()  => mobUpHeld   = false);
+mobDown.addEventListener("touchstart", e => { e.preventDefault(); mobDownHeld = true; }, { passive:false });
+mobDown.addEventListener("touchend",   ()  => mobDownHeld = false);
+mobUp.addEventListener("mousedown",    ()  => mobUpHeld   = true);
+mobUp.addEventListener("mouseup",      ()  => mobUpHeld   = false);
+mobDown.addEventListener("mousedown",  ()  => mobDownHeld = true);
+mobDown.addEventListener("mouseup",    ()  => mobDownHeld = false);
+
+function handleMobileButtons() {
+  if (phase !== "game" || ROD.pesceCatturato) return;
+  if (mobUpHeld   && ROD.y > 400) ROD.y -= ROD.speed;
+  if (mobDownHeld && ROD.y < 715) ROD.y += ROD.speed;
+}
+
+// ── MAIN LOOP ────────────────────────────────────────────────
+function loop(now) {
+  requestAnimationFrame(loop);
+  handleKeys();
+  handleMobileButtons();
+
+  ctx.save();
+  ctx.translate(offX, offY);
+  ctx.scale(scale, scale);
+
+  if (phase === "loading") {
+    drawLoading(now);
   } else {
-    setTutStep(tutStep + 1);
-    Audio.playClick();
+    if (phase === "menu")  { drawMenu(now); }
+    if (phase === "game")  { drawGame(now); ROD.update(now); }
+    if (phase === "shop")  { drawShop(now); }
+    if (phase === "mappa") { drawMappa(); }
+
+    // Info overlay renders on top of any phase
+    if (infoOpen) drawInfo();
+
+    // Reset confirm flash
+    if (resetConfirmPending && performance.now() - resetConfirmTime < 4000) {
+      ctx.save();
+      ctx.fillStyle = "rgba(204,0,0,0.15)";
+      ctx.fillRect(755, 715, 410, 75);
+      ctx.font = "20px monospace";
+      ctx.fillStyle = "#ff8888";
+      ctx.textAlign = "center";
+      ctx.fillText("Click again to confirm reset", VW/2, 810);
+      ctx.restore();
+    } else if (resetConfirmPending) {
+      resetConfirmPending = false;
+    }
   }
-};
-document.getElementById("tutPrev").onclick = () => { setTutStep(tutStep - 1); Audio.playClick(); };
-setTutStep(0);
 
-// ─── HELPERS ─────────────────────────────────────────────────
-function setMsg(m) { document.getElementById("lsMsg").textContent = m; }
-
-let notifyTimer = null;
-function notify(msg) {
-  const el = document.getElementById("notification");
-  el.textContent = msg;
-  el.classList.add("show");
-  clearTimeout(notifyTimer);
-  notifyTimer = setTimeout(() => el.classList.remove("show"), 2500);
+  ctx.restore();
 }
 
-// ─── BOOT ─────────────────────────────────────────────────────
-window.addEventListener("DOMContentLoaded", () => Game.init());
-window.addEventListener("click", () => { if (Audio.ctx?.state === "suspended") Audio.ctx.resume(); }, { once: true });
+// ── BOOT ─────────────────────────────────────────────────────
+async function boot() {
+  // Auth check
+  if (!Api.token()) {
+    window.location.href = "/cardGameWeb/auth.html?redirect=" + encodeURIComponent(location.href);
+    return;
+  }
+
+  // Wait for assets
+  const waitAssets = () => new Promise(res => {
+    const check = () => allLoaded() ? res() : setTimeout(check, 100);
+    check();
+  });
+
+  phase = "loading";
+  SLIDE.lastChange = performance.now();
+  requestAnimationFrame(loop); // start loop immediately so loading screens show
+
+  await waitAssets();
+
+  // Load server state
+  try {
+    const d = await Api.loadState();
+    S.fromServer(d.state);
+  } catch(e) { console.warn("State load failed:", e); }
+
+  // Show menu
+  phase = "menu";
+
+  // Auto-save every 30s
+  saveTimer = setInterval(() => {
+    if (phase === "game") Api.saveState(S.toPayload()).catch(() => {});
+  }, 30000);
+}
+
+boot();
 </script>
 </body>
 </html>

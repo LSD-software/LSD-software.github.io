@@ -1711,7 +1711,10 @@ class LSDAttackForceUE {
     // (ultra combo è segreta — non mostrata in HUD)
   }
   _getP1Input() {
-    // Invia solo i tasti — ogni client gestisce la propria posizione
+    // Invia tasti + posizione X + HP del fighter locale
+    // playerIndex=0 → fighter locale è fighter1
+    // playerIndex=1 → fighter locale è fighter2
+    const myFighter = this.playerIndex===0 ? this.fighter1 : this.fighter2;
     return {
       a: !!(keys["a"]||keys["A"]),
       d: !!(keys["d"]||keys["D"]),
@@ -1719,7 +1722,11 @@ class LSDAttackForceUE {
       s: !!(keys["s"]||keys["S"]),
       q: !!(keys["q"]||keys["Q"]),
       e: !!(keys["e"]||keys["E"]),
-      c: !!(keys["c"]||keys["C"])
+      c: !!(keys["c"]||keys["C"]),
+      x:  myFighter ? myFighter.x  : null,
+      hp: myFighter ? myFighter.hp : null,
+      fr: myFighter ? myFighter.frame : 0,
+      an: myFighter && myFighter.anim ? myFighter.anim.type : null
     };
   }
 }
@@ -1871,9 +1878,19 @@ class Fighter {
   }
 
   applyNetworkInput(inp) {
-    // Salva i tasti ricevuti dalla rete — NON sovrascrivere posizione locale
-    // Ogni client è l'autorità sulla posizione del proprio fighter
-    this._netKeys = inp || {};
+    if(!inp){ this._netKeys={}; return; }
+    this._netKeys = inp;
+    // Sincronizza posizione X dell'avversario (autorità del mittente)
+    if(inp.x !== null && inp.x !== undefined){
+      this.x = inp.x;
+    }
+    // Sincronizza HP
+    if(inp.hp !== null && inp.hp !== undefined){
+      this.hp = Math.max(0, inp.hp);
+    }
+    // Sincronizza frame animazione (visuale)
+    if(inp.fr !== undefined) this._remoteFrame = inp.fr;
+    if(inp.an !== undefined) this._remoteAnim  = inp.an;
   }
   syncState(state){ if(state.x!==undefined) this.x=state.x; if(state.hp!==undefined) this.hp=state.hp; }
 
@@ -1883,6 +1900,14 @@ class Fighter {
 
     // Aggiorna sempre il facing verso il nemico
     this.facing = (enemy.x > this.x) ? 1 : -1;
+
+    // Fighter di rete: la posizione arriva già da applyNetworkInput
+    // Non simuliamo il movimento — usciamo subito dopo aver aggiornato il facing
+    if(this._isNetworkFighter){
+      // Aggiorna CD per la barra ultra visuale
+      if(!this._initialized){ this.cd1=this.cd2=this.cd3=this.cd4=this.cd5=millis()-(14000); this._initialized=true; }
+      return;
+    }
 
     if(this.mode==="cpu"&&this.playerNum===2){ this._cpuUpdate(enemy, now, t); return; }
 
@@ -2168,7 +2193,11 @@ class Fighter {
 
   // ── Draw character ─────────────────────────────────────────
   drawChar(playerNum) {
-    const frameSet = this.frames[Math.min(this.frame, this.frames.length-1)];
+    // Se questo fighter è controllato dalla rete, usa il frame remoto
+    const displayFrame = (this._isNetworkFighter && this._remoteFrame !== undefined)
+      ? this._remoteFrame
+      : this.frame;
+    const frameSet = this.frames[Math.min(displayFrame, this.frames.length-1)];
     if (frameSet) {
       const img = this.facing===1 ? frameSet.r : frameSet.l;
       if (img && img.complete && img.naturalWidth) drawImg(img, this.x, this.y);

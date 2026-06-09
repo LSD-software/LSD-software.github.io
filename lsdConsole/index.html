@@ -33,6 +33,49 @@ body{
   image-rendering:auto;
 }
 
+/* ── Landscape overlay ── */
+#landscapeOverlay{
+  display:none;position:fixed;inset:0;z-index:99999;
+  background:#000;
+  flex-direction:column;align-items:center;justify-content:center;gap:20px;
+}
+#landscapeOverlay .rot-icon{font-size:clamp(48px,12vw,80px);animation:rotPulse 1.5s infinite ease-in-out;}
+#landscapeOverlay p{color:#baa701;font-family:monospace;font-size:clamp(14px,4vw,22px);text-align:center;padding:0 20px;letter-spacing:2px;}
+@keyframes rotPulse{0%,100%{transform:rotate(-20deg);}50%{transform:rotate(20deg);}}
+
+/* ── Tutorial popup ── */
+#tutorialOverlay{
+  display:none;position:fixed;inset:0;z-index:8000;
+  background:rgba(0,0,0,0.92);
+  align-items:center;justify-content:center;
+}
+#tutorialBox{
+  background:linear-gradient(160deg,#0a0000 0%,#1a0a00 100%);
+  border:2px solid #baa701;border-radius:16px;
+  max-width:min(680px,94vw);width:100%;max-height:86vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 0 40px #baa70144;
+}
+#tutorialHead{
+  padding:18px 24px 12px;border-bottom:1px solid #baa70133;
+  font-size:clamp(18px,4vw,26px);color:#baa701;letter-spacing:4px;font-family:monospace;text-align:center;
+  text-shadow:0 0 20px #baa70188;
+}
+#tutorialBody{
+  overflow-y:auto;padding:20px 24px;flex:1;color:#ddd;font-family:monospace;font-size:clamp(13px,2.5vw,16px);line-height:1.7;
+}
+#tutorialBody h3{color:#FF8800;margin:18px 0 6px;letter-spacing:2px;font-size:clamp(14px,3vw,18px);}
+#tutorialBody .key{display:inline-block;background:#222;border:1px solid #555;border-radius:4px;padding:1px 8px;color:#FFD700;font-size:0.9em;}
+#tutorialBody .tip{background:#0a1a00;border-left:3px solid #baa701;padding:8px 12px;margin:10px 0;border-radius:0 6px 6px 0;}
+#tutorialFoot{padding:14px 24px;border-top:1px solid #baa70133;text-align:center;}
+#tutorialOK{
+  background:linear-gradient(135deg,#a10000,#cc1111);color:#baa701;
+  border:none;padding:12px 48px;font-size:clamp(15px,3vw,20px);
+  cursor:pointer;letter-spacing:3px;font-family:monospace;
+  border-radius:8px;box-shadow:0 0 20px #a10000aa;transition:all 0.2s;
+}
+#tutorialOK:hover{filter:brightness(1.3);transform:scale(1.05);}
+
 /* ── Fullscreen prompt ── */
 #fsPrompt{position:fixed;inset:0;background:radial-gradient(ellipse at center,#1a0000 0%,#000 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:clamp(12px,3vw,24px);}
 #fsPrompt h1{font-size:clamp(28px,7vw,64px);color:#a10000;letter-spacing:clamp(4px,1.5vw,10px);text-shadow:0 0 30px #a10000aa;animation:pulse 2s infinite;}
@@ -42,6 +85,7 @@ body{
 #loadBar{width:clamp(240px,60vw,400px);height:8px;background:#222;border-radius:4px;overflow:hidden;}
 #loadBarFill{height:100%;background:#a10000;width:0;transition:width 0.1s;}
 @keyframes pulse{0%,100%{text-shadow:0 0 20px #a10000aa;}50%{text-shadow:0 0 40px #ff0000cc;}}
+@keyframes rotPulse{0%,100%{transform:rotate(-20deg);}50%{transform:rotate(20deg);}}
 
 /* ── Auth overlay — stile CardGame ── */
 #authOverlay{
@@ -329,6 +373,39 @@ body{
 <!-- Video overlay for ultimates -->
 <div id="videoOverlay">
   <video id="ultimateVideo" playsinline webkit-playsinline></video>
+</div>
+
+<!-- Landscape overlay -->
+<div id="landscapeOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#000;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+  <div style="font-size:clamp(48px,12vw,80px);animation:rotPulse 1.5s infinite ease-in-out;">📱</div>
+  <p style="color:#baa701;font-family:monospace;font-size:clamp(14px,4vw,22px);text-align:center;padding:0 20px;letter-spacing:2px;">ROTATE YOUR DEVICE<br>TO CONTINUE</p>
+</div>
+
+<!-- Tutorial overlay -->
+<div id="tutorialOverlay" style="display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(160deg,#0a0000,#1a0a00);border:2px solid #baa701;border-radius:16px;max-width:min(680px,94vw);width:100%;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 40px #baa70144;">
+    <div style="padding:18px 24px 12px;border-bottom:1px solid #baa70133;font-size:clamp(18px,4vw,26px);color:#baa701;letter-spacing:4px;font-family:monospace;text-align:center;text-shadow:0 0 20px #baa70188;">⚡ LSD ATTACK FORCE: ULTRA ⚡</div>
+    <div id="tutorialBody" style="overflow-y:auto;padding:20px 24px;flex:1;color:#ddd;font-family:monospace;font-size:clamp(13px,2.5vw,16px);line-height:1.7;">
+      <h3 style="color:#FF8800;margin:14px 0 6px;letter-spacing:2px;">🎮 HOW TO PLAY</h3>
+      <p>Welcome, warrior. Two fighters enter — only one leaves standing.<br>Master your moves and <b style="color:#FFD700">crush your opponent!</b></p>
+      <h3 style="color:#FF8800;margin:14px 0 6px;letter-spacing:2px;">🕹️ GAME MODES</h3>
+      <p><b style="color:#FFD700">VS CPU</b> — Battle an AI. Choose Easy, Medium or Hard.<br><b style="color:#FFD700">LOCAL 1v1</b> — Two players, one keyboard. Face your rival side by side.<br><b style="color:#FFD700">ONLINE</b> — Challenge a friend worldwide. Share a room code and fight!</p>
+      <h3 style="color:#FF8800;margin:14px 0 6px;letter-spacing:2px;">🧙 CHOOSE YOUR FIGHTER</h3>
+      <p><b style="color:#FF8800">GRAX</b> — Brutal warrior with bone-crushing power and regeneration.<br><b style="color:#00CCFF">YUKE</b> — Swift mystic channeling cosmic energy. Fast and unpredictable.</p>
+      <h3 style="color:#FF8800;margin:14px 0 6px;letter-spacing:2px;">⌨️ PLAYER 1 CONTROLS</h3>
+      <p>Move: <b style="color:#FFD700">[A] [D]</b> &nbsp;|&nbsp; Punch: <b style="color:#FFD700">[W]</b> &nbsp;|&nbsp; Kick: <b style="color:#FFD700">[S]</b> &nbsp;|&nbsp; Block: <b style="color:#FFD700">[C]</b><br>Special Q: <b style="color:#FFD700">[Q]</b> &nbsp;|&nbsp; Special E: <b style="color:#FFD700">[E]</b></p>
+      <h3 style="color:#FF8800;margin:14px 0 6px;letter-spacing:2px;">⌨️ PLAYER 2 CONTROLS (Local)</h3>
+      <p>Move: <b style="color:#FFD700">[J] [L]</b> &nbsp;|&nbsp; Punch: <b style="color:#FFD700">[I]</b> &nbsp;|&nbsp; Kick: <b style="color:#FFD700">[K]</b> &nbsp;|&nbsp; Block: <b style="color:#FFD700">[.]</b><br>Special Q: <b style="color:#FFD700">[U]</b> &nbsp;|&nbsp; Special E: <b style="color:#FFD700">[O]</b></p>
+      <h3 style="color:#FF8800;margin:14px 0 6px;letter-spacing:2px;">⚔️ COMBAT BASICS</h3>
+      <p><b style="color:#FF8800">Punch</b> — Fast, low damage. Quick to land.<br><b style="color:#FF4400">Kick</b> — Slower but heavy. Knocks opponents back far.<br><b style="color:#0088FF">Block</b> — Hold to reduce damage. Timing is everything.<br><b style="color:#FFD700">Special Q</b> — Your fighter's signature ranged attack.<br><b style="color:#FF8800">Special E</b> — A powerful ability unique to each fighter.</p>
+      <div style="background:#0a1a00;border-left:3px solid #baa701;padding:8px 12px;margin:10px 0;border-radius:0 6px 6px 0;">💡 <b>TIP:</b> Never stand still! Mix attacks to keep your opponent off balance.</div>
+      <div style="background:#0a1a00;border-left:3px solid #baa701;padding:8px 12px;margin:10px 0;border-radius:0 6px 6px 0;">🏆 <b>GOAL:</b> Drain your opponent's HP to zero. Last fighter standing wins!</div>
+      <div style="background:#1a0a00;border-left:3px solid #FF4400;padding:8px 12px;margin:10px 0;border-radius:0 6px 6px 0;">🔒 <b>SECRET:</b> Every fighter hides a devastating ultimate. Discover it through battle...</div>
+    </div>
+    <div style="padding:14px 24px;border-top:1px solid #baa70133;text-align:center;">
+      <button id="tutorialOK" style="background:linear-gradient(135deg,#a10000,#cc1111);color:#baa701;border:none;padding:12px 48px;font-size:clamp(15px,3vw,20px);cursor:pointer;letter-spacing:3px;font-family:monospace;border-radius:8px;box-shadow:0 0 20px #a10000aa;transition:all 0.2s;">⚡ I'M READY — LET'S FIGHT! ⚡</button>
+    </div>
+  </div>
 </div>
 
 <canvas id="canvas"></canvas>
@@ -857,6 +934,14 @@ class LSDConsole {
     this.sidePanelOpen = !this.sidePanelOpen;
   }
   handleKeyPress(k) {
+    // Mostra tutorial AFUE alla prima apertura
+    if(this.screen===1 && !this._afueTutorialShown){
+      this._afueTutorialShown=true;
+      const tov=document.getElementById("tutorialOverlay");
+      const tok=document.getElementById("tutorialOK");
+      if(tov){ tov.style.display="flex"; }
+      if(tok){ tok.onclick=()=>{ tov.style.display="none"; }; }
+    }
     if (this.screen===1) this.lsdafue.handleKeyPress(k);
     if (this.screen===2) this.target.keyPress(k);
     if (this.screen===3) this.nation.keyPress(k);
@@ -899,7 +984,15 @@ class LSDConsole {
     this.update();
     switch(this.screen){
       case 0: this.drawMenu();    break;
-      case 1: this.lsdafue.draw(); break;
+      case 1:
+        if(!this._afueTutorialShown){
+          this._afueTutorialShown=true;
+          const tov=document.getElementById("tutorialOverlay");
+          const tok=document.getElementById("tutorialOK");
+          if(tov) tov.style.display="flex";
+          if(tok&&!tok._bound){ tok._bound=true; tok.onclick=()=>{ tov.style.display="none"; }; }
+        }
+        this.lsdafue.draw(); break;
       case 2: this.target.draw(); break;
       case 3: this.nation.draw(); break;
       case 4: this.zombies.draw(); break;
@@ -1582,13 +1675,17 @@ class LSDAttackForceUE {
     // ── VICTORY DISPLAY ───────────────────────────────────
     if(this.victory && !window._ultraPlaying){
       if(!this.victoryTime) this.victoryTime=millis();
-      ctx.save(); ctx.fillStyle="rgba(0,0,0,0.82)"; ctx.fillRect(0,0,W,H); ctx.restore();
+      ctx.save(); ctx.fillStyle="rgba(0,0,0,0.88)"; ctx.fillRect(0,0,W,H); ctx.restore();
 
-      // Logica semplice: localWon=true → YOU WIN, false → YOU LOSE
+      // Determina testo vittoria/sconfitta
+      const WIN_LINES  = ["🏆  YOU WIN!",  "VICTORY ACHIEVED", "ENEMY DEFEATED"];
+      const LOSE_LINES = ["💀  YOU LOST",  "DEFEAT",           "TRY AGAIN"];
       let topLine, topCol, subLine;
       if(this.mode==="online"){
-        topLine = this.localWon ? "🏆  YOU WIN!"  : "💀  YOU LOSE";
-        topCol  = this.localWon ? "#FFD700"       : "#FF3333";
+        const wIdx = Math.floor(((millis()-this.victoryTime)/2000))%WIN_LINES.length;
+        const lIdx = Math.floor(((millis()-this.victoryTime)/2000))%LOSE_LINES.length;
+        topLine = this.localWon ? WIN_LINES[wIdx]  : LOSE_LINES[lIdx];
+        topCol  = this.localWon ? "#FFD700" : "#FF3333";
         subLine = `${this.winner} wins the round`;
       } else {
         topLine = `🏆  ${this.winner}  WINS!`;
@@ -1603,11 +1700,21 @@ class LSDAttackForceUE {
       ctx.fillText(topLine, sx(BASE_W/2), sy(BASE_H/2-60));
       ctx.shadowBlur=0;
       if(subLine){ setFont(32); ctx.fillStyle="#fff"; ctx.fillText(subLine, sx(BASE_W/2), sy(BASE_H/2+20)); }
-      setFont(22); ctx.fillStyle="#888";
-      ctx.fillText("Returning to menu...", sx(BASE_W/2), sy(BASE_H/2+90));
-
-      if(millis()-this.victoryTime>=4500){
+      // Pulsanti HOME e RESUME — utente decide quando uscire
+      const _btnW=210, _btnH=66, _btnY=BASE_H-150;
+      // HOME
+      fillRoundRect(BASE_W/2-240,_btnY,_btnW,_btnH,"#1a0000",1,14);
+      strokeRoundRect(BASE_W/2-240,_btnY,_btnW,_btnH,"#cc2200",2.5,14);
+      fillText("🏠  HOME",BASE_W/2-135,_btnY+34,"#FF7766",23);
+      // RESUME
+      fillRoundRect(BASE_W/2+30,_btnY,_btnW,_btnH,"#001800",1,14);
+      strokeRoundRect(BASE_W/2+30,_btnY,_btnW,_btnH,"#baa701",2.5,14);
+      fillText("▶  PLAY AGAIN",BASE_W/2+135,_btnY+34,"#baa701",23);
+      if(isButtonPressed(BASE_W/2-135,_btnY+34,_btnW,_btnH)){
         showGamePad(false); this.reset(); if(game) game.screen=0;
+      }
+      if(isButtonPressed(BASE_W/2+135,_btnY+34,_btnW,_btnH)){
+        showGamePad(false); this.reset();
       }
     }
   }
@@ -1836,6 +1943,18 @@ class Fighter {
     if(millis()-this.cd5 < 12000) return;
     if(window._ultraPlaying) return;
     if(this._zombieUltraLocked) return; // bloccata nei round 1-9 zombie mode
+    // NUOVA REGOLA: Ultra eseguibile SOLO se il nemico ha <50% HP
+    // _ownerAfue tiene il riferimento all'istanza LSDAfue
+    if(this._ownerAfue){
+      const f1=this._ownerAfue.fighter1, f2=this._ownerAfue.fighter2;
+      const enemy = (f1===this) ? f2 : f1;
+      if(enemy && enemy.hp >= 50){
+        // Feedback visivo: lampeggio rosso "NOT YET"
+        if(!this._ultraBlockedMsg) this._ultraBlockedMsg=0;
+        this._ultraBlockedMsg = millis();
+        return;
+      }
+    }
     this.ultActive=true; this.ultIdx=0; this.ultIdxAlt=0;
     this.cd5=millis();
     window._ultraPlaying = true;
@@ -1924,20 +2043,17 @@ class Fighter {
 
   applyNetworkInput(inp) {
     if(!inp){ this._netKeys={}; return; }
-    // La posizione X viene aggiornata direttamente dal mittente (source of truth).
-    // I tasti a/d ricevuti vengono mappati sullo stesso schema del fighter locale:
-    // il facing si aggiorna automaticamente in update() guardando il nemico,
-    // quindi non serve invertire — il fighter si muove nella direzione corretta.
+    // ARCHITETTURA ONLINE: riceviamo i tasti dell'avversario.
+    // Ogni client calcola HP autonomamente tramite _dealDmg locale.
+    // Non sincronizziamo HP dalla rete per evitare conflitti.
+    // Sincronizziamo solo: posizione X (movimento) e tasti (azioni).
     this._netKeys = inp;
-    // Sincronizza posizione X dell'avversario (autorità del mittente)
+    // Sincronizza posizione X dell'avversario (source of truth del mittente)
     if(inp.x !== null && inp.x !== undefined){
       this.x = inp.x;
     }
-    // Sincronizza HP
-    if(inp.hp !== null && inp.hp !== undefined){
-      this.hp = Math.max(0, inp.hp);
-    }
-    // Sincronizza frame animazione (visuale)
+    // HP NON sincronizzato — ogni client è authority per i danni subiti localmente.
+    // Sincronizza frame animazione (visuale fluidità)
     if(inp.fr !== undefined) this._remoteFrame = inp.fr;
     if(inp.an !== undefined) this._remoteAnim  = inp.an;
   }
@@ -2099,13 +2215,41 @@ class Fighter {
     // Special (E key for P1) — usable anytime
     if(specKey&&now-this.cd4>12000&&!this.anim){
       this.anim={type:"special",start:frameCount,dur:36}; this.cd4=now;
-      if(this.name==="grax") { this.hp=Math.min(100,this.hp+20); this._dealDmg(enemy,18,6,true); this._knockback(enemy,200); }
+      if(this.name==="grax") {
+        const healAmt = Math.floor(Math.random()*16)+5; // +5 a +20
+        this.hp=Math.min(100,this.hp+healAmt);
+        if(!this._dmgNumbers) this._dmgNumbers=[];
+        this._dmgNumbers.push({ val:healAmt, x:this.x, y:this.y-180, vy:-2.5, alpha:1, life:0, maxLife:50, col:"#44FF44", isHeal:true });
+        this._dealDmg(enemy,18,6,true); this._knockback(enemy,200);
+      }
       else { this._dealDmg(enemy,12,5,true); /* meteora launched in anim */ }
     }
     // Ultra kill: applica 60 di danno all'avversario dopo il video
     if(this.ultKill && !window._ultraPlaying){
-      enemy.hp=Math.max(0,enemy.hp-60);
+      const ultraDmg=60;
+      enemy.hp=Math.max(0,enemy.hp-ultraDmg);
+      if(!enemy._dmgNumbers) enemy._dmgNumbers=[];
+      enemy._dmgNumbers.push({ val:ultraDmg, x:enemy.x, y:enemy.y-200, vy:-3, alpha:1, life:0, maxLife:60, col:"#FF0000" });
+      enemy._spawnHitParticles("special", ultraDmg);
       this.ultKill=false;
+      // Forza check vittoria immediato dopo ultra
+      if(this._ownerAfue && enemy.hp<=0){
+        const afue = this._ownerAfue;
+        if(!afue.victory){
+          const p1Won = (this===afue.fighter1);
+          afue.victory=true;
+          afue.winner = p1Won ? (afue.fighter1.name.toUpperCase()) : (afue.fighter2.name.toUpperCase());
+          afue.localWon = (afue.mode==="online")
+            ? (afue.playerIndex===0 ? p1Won : !p1Won)
+            : p1Won;
+          if(!afue._victoryRegistered){
+            afue._victoryRegistered=true;
+            if(afue.mode==="online" && afue.socket && afue.playerIndex===0){
+              afue.socket.emit("round_result",{ winnerIndex: p1Won?0:1 });
+            }
+          }
+        }
+      }
     }
   }
 
@@ -2151,20 +2295,24 @@ class Fighter {
   }
 
   _dealDmg(enemy,dmg,blockDmg,moveType){
-    // In online: se questo fighter è di rete (l'avversario lo controlla),
-    // l'HP è già sincronizzato via applyNetworkInput → non applicare danno locale
-    // per evitare doppia contabilità. Mostriamo solo le particelle.
-    if(this._isNetworkFighter){
-      enemy._spawnHitParticles(enemy.blocking?"block":(moveType||"punch"), enemy.blocking?blockDmg:dmg);
-      return;
-    }
-    if(enemy.blocking){
-      enemy.hp=Math.max(0,enemy.hp-blockDmg);
-      enemy._spawnHitParticles("block", blockDmg);
-    } else {
-      enemy.hp=Math.max(0,enemy.hp-dmg);
-      enemy._spawnHitParticles(moveType||"punch", dmg);
-    }
+    // ARCHITETTURA ONLINE: ogni client è authority del proprio fighter.
+    // I danni vengono sempre calcolati localmente — non importa se il fighter
+    // è di rete o locale. L'HP del fighter di rete viene calcolato localmente
+    // (non viene sincronizzato da applyNetworkInput).
+    // La barra vita che vede P1 per il fighter di P2 è calcolata da P1 stesso
+    // in base ai colpi che ha ricevuto P2. Questo corrisponde esattamente
+    // alla verità perché ogni client simula lo stesso game state.
+    const actualDmg  = enemy.blocking ? blockDmg : dmg;
+    const hitType    = enemy.blocking ? "block"  : (moveType||"punch");
+    enemy.hp = Math.max(0, enemy.hp - actualDmg);
+    enemy._spawnHitParticles(hitType, actualDmg);
+    // Damage number feedback
+    if(!enemy._dmgNumbers) enemy._dmgNumbers=[];
+    enemy._dmgNumbers.push({
+      val: actualDmg, x: enemy.x, y: enemy.y-180,
+      vy:-2.5, alpha:1, life:0, maxLife:45,
+      col: enemy.blocking?"#4488FF":"#FF4400"
+    });
   }
   _spawnHitParticles(type, dmg) {
     if(!this.hitParticles) this.hitParticles=[];
@@ -2281,6 +2429,18 @@ class Fighter {
     if (this.projActive&&this.name==="yuke")  drawImg(images[projKey], this.projX, this.projY||this.y-100);
     if (this.proj2Active&&this.name==="yuke") drawImg(images[metKey],  this.projX, this.y-160);
 
+    // "NOT YET" ultra blocked feedback
+    if(this._ultraBlockedMsg && millis()-this._ultraBlockedMsg < 1500){
+      const pct = (millis()-this._ultraBlockedMsg)/1500;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1-pct*1.2);
+      ctx.font=`bold ${ss(22)}px monospace`;
+      ctx.textAlign="center";
+      ctx.fillStyle="#FF2200";
+      ctx.shadowColor="#FF2200"; ctx.shadowBlur=ss(12);
+      ctx.fillText("NOT YET — <50% HP!", sx(this.x), sy(this.y-220));
+      ctx.restore();
+    }
     // Hit flash
     if(this._hitFlash>0){
       ctx.save();
@@ -2305,6 +2465,23 @@ class Fighter {
         ctx.beginPath();
         ctx.arc(sx(p.x),sy(p.y),ss(p.r),0,Math.PI*2);
         ctx.fill();
+        ctx.restore();
+        return true;
+      });
+    }
+    // Damage numbers (fade up)
+    if(this._dmgNumbers&&this._dmgNumbers.length>0){
+      this._dmgNumbers = this._dmgNumbers.filter(n=>{
+        n.y+=n.vy; n.vy*=0.94; n.life++;
+        n.alpha = n.life < n.maxLife*0.6 ? 1 : 1-(n.life-n.maxLife*0.6)/(n.maxLife*0.4);
+        if(n.alpha<=0) return false;
+        ctx.save();
+        ctx.globalAlpha=Math.max(0,n.alpha);
+        ctx.font=`bold ${ss(28)}px monospace`;
+        ctx.textAlign="center";
+        ctx.fillStyle=n.col;
+        ctx.shadowColor=n.col; ctx.shadowBlur=ss(10);
+        ctx.fillText((n.isHeal?"+":"-")+n.val, sx(n.x), sy(n.y));
         ctx.restore();
         return true;
       });
@@ -2873,6 +3050,18 @@ class ZombieFighter {
     fillRoundRect(this.x-bwFull/2, this.y-230, bwFull, 10, "#333", 1, 3);
     fillRoundRect(this.x-bwFull/2, this.y-230, bw,     10, "#a10000", 1, 3);
 
+    // "NOT YET" ultra blocked feedback
+    if(this._ultraBlockedMsg && millis()-this._ultraBlockedMsg < 1500){
+      const pct = (millis()-this._ultraBlockedMsg)/1500;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1-pct*1.2);
+      ctx.font=`bold ${ss(22)}px monospace`;
+      ctx.textAlign="center";
+      ctx.fillStyle="#FF2200";
+      ctx.shadowColor="#FF2200"; ctx.shadowBlur=ss(12);
+      ctx.fillText("NOT YET — <50% HP!", sx(this.x), sy(this.y-220));
+      ctx.restore();
+    }
     // Hit flash
     if(this._hitFlash>0){
       ctx.save();
@@ -3119,6 +3308,17 @@ function startGame() {
   loadAllAssets();
   game = new LSDConsole();
   setupMobilePad();
+
+  // ── Landscape enforcement (mobile) ──────────────────────
+  const lsOverlay = document.getElementById("landscapeOverlay");
+  function checkOrientation(){
+    if(!lsOverlay) return;
+    const portrait = window.innerHeight > window.innerWidth;
+    lsOverlay.style.display = (isMobile && portrait) ? "flex" : "none";
+  }
+  window.addEventListener("resize", checkOrientation);
+  window.addEventListener("orientationchange", checkOrientation);
+  checkOrientation();
   // Lock zoom during gameplay for precise touch control
   document.getElementById("metaViewport").content =
     "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";

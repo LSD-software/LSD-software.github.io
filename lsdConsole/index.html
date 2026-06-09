@@ -1663,9 +1663,9 @@ class LSDAttackForceUE {
           this.localWon = p1Won; // in locale/cpu, P1=giocatore principale
         }
         if(this.localWon && game) game.trophies[13]=true;
-        // Solo playerIndex=0 (P1) emette round_result — il server salva stats per entrambi
-        // winnerIndex: 0=P1 ha vinto, 1=P2 ha vinto
-        if(this.mode==="online" && this.socket && this.playerIndex===0){
+        // Entrambi i giocatori emettono round_result — il server usa anti-duplicato
+        // winnerIndex: 0=P1 ha vinto, 1=P2 ha vinto (sempre riferito a fighter1/fighter2)
+        if(this.mode==="online" && this.socket){
           const winnerIndex = p1Won ? 0 : 1;
           this.socket.emit("round_result", { winnerIndex });
         }
@@ -2118,15 +2118,65 @@ class Fighter {
           }
         }
         else if(this.anim.type==="special"){
-          if(this.name==="grax") this.frame=el<10?11:el<20?12:13;
-          else{ this.frame=el<15?9:10; if(el===15){this.projX=this.x+this.facing*160;this.proj2Active=true;} }
+          if(this.name==="grax"){
+            // Grax E: cura + attacco ravvicinato — frame 11→12→13
+            this.frame=el<10?11:el<20?12:13;
+          } else {
+            // Yuke E: meteore — frame 9 (carica) → 10 (rilascio) → lancia meteore
+            this.frame=el<14?9:10;
+            // Lancia meteora al frame 16 (dopo il vento)
+            if(el===16){
+              // Numero di meteore casuale tra 2 e 4
+              const nMet = 2 + Math.floor(Math.random()*3);
+              if(!this._meteors) this._meteors=[];
+              for(let mi=0;mi<nMet;mi++){
+                // Origine: angolo alto sinistro o alto destro, casuale
+                const fromLeft = Math.random()<0.5;
+                const startX   = fromLeft ? 50  : BASE_W-50;
+                const startY   = 60 + Math.random()*120;
+                // Target: vicino al nemico con leggero spread
+                const tgtX = this._ownerAfue
+                  ? (this===this._ownerAfue.fighter1 ? this._ownerAfue.fighter2.x : this._ownerAfue.fighter1.x)
+                  : enemy.x;
+                const tgtY = 820;
+                const mdx = tgtX + (Math.random()-0.5)*80 - startX;
+                const mdy = tgtY - startY;
+                this._meteors.push({
+                  x:startX, y:startY,
+                  startX:startX, startY:startY,
+                  dx:mdx, dy:mdy,
+                  prog:0, speed:0.028 + Math.random()*0.012,
+                  hit:false, alpha:1
+                });
+              }
+            }
+          }
         }
       }
     }
 
-    // Move projectiles
-    if(this.projActive){ this.projX+=8*this.facing; if((this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40)){this.projActive=false; if(!enemy.blocking)this._dealDmg(enemy,15,5,false);} }
-    if(this.proj2Active){ this.projX+=6*this.facing; if((this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40)){this.proj2Active=false; if(!enemy.blocking)this._dealDmg(enemy,12,5,false);} }
+    // Move projectiles (Yuke Q skull)
+    if(this.projActive){
+      this.projX+=8*this.facing;
+      const hitQ=(this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40);
+      if(hitQ){ this.projActive=false; if(!enemy.blocking)this._dealDmg(enemy,15,5,"ranged"); }
+    }
+    // Move meteors (Yuke E)
+    if(this._meteors && this._meteors.length>0){
+      this._meteors.forEach(m=>{
+        if(m.hit) return;
+        m.prog = Math.min(1, m.prog + m.speed);
+        m.x = m.startX + m.dx * m.prog;
+        m.y = m.startY + m.dy * m.prog;
+        if(m.prog>=1 && !m.hit){
+          m.hit=true;
+          this._dealDmg(enemy, 10, 3, "special");
+          enemy._spawnHitParticles("special", 10);
+        }
+      });
+      this._meteors = this._meteors.filter(m=>m.prog<1||m.hit&&m.alpha>0);
+    }
+    // Old proj2Active removed (replaced by _meteors system above)
 
     // Update grax cube particles
     if(this.graxCubeActive) this._updateGraxCube(enemy, now);
@@ -2244,7 +2294,7 @@ class Fighter {
             : p1Won;
           if(!afue._victoryRegistered){
             afue._victoryRegistered=true;
-            if(afue.mode==="online" && afue.socket && afue.playerIndex===0){
+            if(afue.mode==="online" && afue.socket){
               afue.socket.emit("round_result",{ winnerIndex: p1Won?0:1 });
             }
           }
@@ -2296,16 +2346,15 @@ class Fighter {
 
   _dealDmg(enemy,dmg,blockDmg,moveType){
     // ARCHITETTURA ONLINE: ogni client è authority del proprio fighter.
-    // I danni vengono sempre calcolati localmente — non importa se il fighter
-    // è di rete o locale. L'HP del fighter di rete viene calcolato localmente
-    // (non viene sincronizzato da applyNetworkInput).
-    // La barra vita che vede P1 per il fighter di P2 è calcolata da P1 stesso
-    // in base ai colpi che ha ricevuto P2. Questo corrisponde esattamente
-    // alla verità perché ogni client simula lo stesso game state.
-    const actualDmg  = enemy.blocking ? blockDmg : dmg;
-    const hitType    = enemy.blocking ? "block"  : (moveType||"punch");
+    const actualDmg = enemy.blocking ? blockDmg : dmg;
+    const hitType   = enemy.blocking ? "block"  : (moveType||"punch");
     enemy.hp = Math.max(0, enemy.hp - actualDmg);
     enemy._spawnHitParticles(hitType, actualDmg);
+    // ── HIT REACTION: mostra frame 8 per ~14 frame ──────────
+    // Se non è in animazione attiva (attacco in corso), mostra lo sprite di danno
+    if(!enemy.anim){
+      enemy._hitReactionEnd = frameCount + 14;
+    }
     // Damage number feedback
     if(!enemy._dmgNumbers) enemy._dmgNumbers=[];
     enemy._dmgNumbers.push({
@@ -2388,7 +2437,7 @@ class Fighter {
     }
 
     if(this.projActive){ this.projX+=8*this.facing; if((this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40)){this.projActive=false;this._dealDmg(enemy,15,5,false);} }
-    if(this.proj2Active){ this.projX+=6*this.facing; if((this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40)){this.proj2Active=false;this._dealDmg(enemy,12,5,false);} }
+    // proj2Active rimosso — le meteore sono nel sistema this._meteors in update()
     if(this.graxCubeActive) this._updateGraxCube(enemy,now);
     if(this._cpuState.action!=="attack") return;
 
@@ -2414,10 +2463,19 @@ class Fighter {
 
   // ── Draw character ─────────────────────────────────────────
   drawChar(playerNum) {
-    // Se questo fighter è controllato dalla rete, usa il frame remoto
-    const displayFrame = (this._isNetworkFighter && this._remoteFrame !== undefined)
-      ? this._remoteFrame
-      : this.frame;
+    // Determina il frame da mostrare:
+    // 1. Hit reaction (frame 8) ha la priorità se il personaggio ha appena subito un colpo
+    // 2. Fighter di rete usa il frame remoto inviato dal sender
+    // 3. Altrimenti usa this.frame (locale)
+    let displayFrame;
+    const inHitReaction = this._hitReactionEnd && frameCount < this._hitReactionEnd && !this.anim;
+    if(inHitReaction){
+      displayFrame = 8; // sprite colpo subito (8.png)
+    } else if(this._isNetworkFighter && this._remoteFrame !== undefined){
+      displayFrame = this._remoteFrame;
+    } else {
+      displayFrame = this.frame;
+    }
     const frameSet = this.frames[Math.min(displayFrame, this.frames.length-1)];
     if (frameSet) {
       const img = this.facing===1 ? frameSet.r : frameSet.l;
@@ -2426,8 +2484,24 @@ class Fighter {
     // Yuke projectiles
     const projKey = this.facing===1 ? "yuke_proj_r" : "yuke_proj_l";
     const metKey  = this.facing===1 ? "yuke_meteora_r" : "yuke_meteora_l";
-    if (this.projActive&&this.name==="yuke")  drawImg(images[projKey], this.projX, this.projY||this.y-100);
-    if (this.proj2Active&&this.name==="yuke") drawImg(images[metKey],  this.projX, this.y-160);
+    if(this.projActive&&this.name==="yuke") drawImg(images[projKey], this.projX, this.projY||this.y-100);
+    // Disegna meteore (Yuke E) con meteora.png in traiettoria diagonale
+    if(this._meteors && this.name==="yuke"){
+      this._meteors.forEach(m=>{
+        if(m.hit) return;
+        const mk = this.facing===1 ? "yuke_meteora_r" : "yuke_meteora_l";
+        if(images[mk] && images[mk].complete){
+          // Calcola angolo della traiettoria per ruotare lo sprite
+          const angle = Math.atan2(m.dy, m.dx);
+          ctx.save();
+          ctx.translate(sx(m.x), sy(m.y));
+          ctx.rotate(angle);
+          const mw=ss(60), mh=ss(40);
+          ctx.drawImage(images[mk], -mw/2, -mh/2, mw, mh);
+          ctx.restore();
+        }
+      });
+    }
 
     // "NOT YET" ultra blocked feedback
     if(this._ultraBlockedMsg && millis()-this._ultraBlockedMsg < 1500){

@@ -2124,29 +2124,32 @@ class Fighter {
           } else {
             // Yuke E: meteore — frame 9 (carica) → 10 (rilascio) → lancia meteore
             this.frame=el<14?9:10;
-            // Lancia meteora al frame 16 (dopo il vento)
+            // Lancia meteore al frame 16 (dopo il vento)
             if(el===16){
-              // Numero di meteore casuale tra 2 e 4
-              const nMet = 2 + Math.floor(Math.random()*3);
+              const nMet = 1 + Math.floor(Math.random()*4); // da 1 a 4 meteore
               if(!this._meteors) this._meteors=[];
+              // Angolo di provenienza: UNO scelto a caso per tutto il lancio
+              const fromLeft = Math.random()<0.5;
+              // Posizione bersaglio = nemico corrente
+              const tgtX = enemy.x;
+              const tgtY = 820; // y del pavimento (piedi del personaggio)
               for(let mi=0;mi<nMet;mi++){
-                // Origine: angolo alto sinistro o alto destro, casuale
-                const fromLeft = Math.random()<0.5;
-                const startX   = fromLeft ? 50  : BASE_W-50;
-                const startY   = 60 + Math.random()*120;
-                // Target: vicino al nemico con leggero spread
-                const tgtX = this._ownerAfue
-                  ? (this===this._ownerAfue.fighter1 ? this._ownerAfue.fighter2.x : this._ownerAfue.fighter1.x)
-                  : enemy.x;
-                const tgtY = 820;
-                const mdx = tgtX + (Math.random()-0.5)*80 - startX;
+                // Tutte partono dallo stesso angolo, con piccolo spread verticale
+                const startX = fromLeft ? 30 : BASE_W-30;
+                const startY = 30 + mi*30; // piccolo scaglionamento verticale
+                // Cadono tutte addosso al nemico, leggero spread orizzontale
+                const spreadX = (Math.random()-0.5)*60;
+                const mdx = tgtX + spreadX - startX;
                 const mdy = tgtY - startY;
                 this._meteors.push({
                   x:startX, y:startY,
                   startX:startX, startY:startY,
                   dx:mdx, dy:mdy,
-                  prog:0, speed:0.028 + Math.random()*0.012,
-                  hit:false, alpha:1
+                  // Delay progressivo: la 2ª meteora parte dopo la 1ª, ecc.
+                  delay: mi * 6, // in frame
+                  delayDone:false,
+                  prog:0, speed:0.032 + Math.random()*0.010,
+                  hit:false
                 });
               }
             }
@@ -2161,22 +2164,29 @@ class Fighter {
       const hitQ=(this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40);
       if(hitQ){ this.projActive=false; if(!enemy.blocking)this._dealDmg(enemy,15,5,"ranged"); }
     }
-    // Move meteors (Yuke E)
+    // Move meteors (Yuke E) — con delay progressivo
     if(this._meteors && this._meteors.length>0){
       this._meteors.forEach(m=>{
         if(m.hit) return;
+        // Gestione delay: decrementa e aspetta
+        if(m.delay > 0){ m.delay--; return; }
+        // Aggiorna posizione target ogni frame (il nemico potrebbe essersi mosso)
+        // Ricalcola dx/dy mantenendo il progresso attuale
+        if(!m.delayDone){
+          m.delayDone=true;
+          // Ricalcola direzione verso la posizione attuale del nemico al momento del lancio
+        }
         m.prog = Math.min(1, m.prog + m.speed);
         m.x = m.startX + m.dx * m.prog;
         m.y = m.startY + m.dy * m.prog;
-        if(m.prog>=1 && !m.hit){
+        if(m.prog >= 1 && !m.hit){
           m.hit=true;
           this._dealDmg(enemy, 10, 3, "special");
-          enemy._spawnHitParticles("special", 10);
         }
       });
-      this._meteors = this._meteors.filter(m=>m.prog<1||m.hit&&m.alpha>0);
+      // Rimuovi solo le meteore che hanno colpito
+      this._meteors = this._meteors.filter(m => !m.hit);
     }
-    // Old proj2Active removed (replaced by _meteors system above)
 
     // Update grax cube particles
     if(this.graxCubeActive) this._updateGraxCube(enemy, now);
@@ -2485,21 +2495,38 @@ class Fighter {
     const projKey = this.facing===1 ? "yuke_proj_r" : "yuke_proj_l";
     const metKey  = this.facing===1 ? "yuke_meteora_r" : "yuke_meteora_l";
     if(this.projActive&&this.name==="yuke") drawImg(images[projKey], this.projX, this.projY||this.y-100);
-    // Disegna meteore (Yuke E) con meteora.png in traiettoria diagonale
+    // Disegna meteore (Yuke E) — ruotate nella direzione di caduta
     if(this._meteors && this.name==="yuke"){
       this._meteors.forEach(m=>{
-        if(m.hit) return;
-        const mk = this.facing===1 ? "yuke_meteora_r" : "yuke_meteora_l";
-        if(images[mk] && images[mk].complete){
-          // Calcola angolo della traiettoria per ruotare lo sprite
-          const angle = Math.atan2(m.dy, m.dx);
+        if(m.hit || m.delay>0) return;
+        // Usa sempre yuke_meteora_r (PNG orizzontale) e lo ruotiamo noi
+        const img = images["yuke_meteora_r"];
+        if(!img || !img.complete) return;
+        // Angolo reale della traiettoria (dx,dy) → ruota lo sprite
+        const angle = Math.atan2(m.dy, m.dx);
+        // Scia luminosa dietro la meteora
+        const trailLen = 5;
+        for(let ti=1; ti<=trailLen; ti++){
+          const tp = Math.max(0, m.prog - ti*0.025);
+          const tx = m.startX + m.dx*tp;
+          const ty = m.startY + m.dy*tp;
           ctx.save();
-          ctx.translate(sx(m.x), sy(m.y));
-          ctx.rotate(angle);
-          const mw=ss(60), mh=ss(40);
-          ctx.drawImage(images[mk], -mw/2, -mh/2, mw, mh);
+          ctx.globalAlpha = (1-ti/trailLen)*0.35;
+          ctx.fillStyle = "#FF8800";
+          ctx.shadowColor="#FF4400"; ctx.shadowBlur=ss(8);
+          ctx.beginPath();
+          ctx.arc(sx(tx), sy(ty), ss(8-ti), 0, Math.PI*2);
+          ctx.fill();
           ctx.restore();
         }
+        // Sprite meteora ruotata
+        ctx.save();
+        ctx.translate(sx(m.x), sy(m.y));
+        ctx.rotate(angle);
+        ctx.shadowColor="#FF6600"; ctx.shadowBlur=ss(14);
+        const mw=ss(72), mh=ss(48);
+        ctx.drawImage(img, -mw/2, -mh/2, mw, mh);
+        ctx.restore();
       });
     }
 

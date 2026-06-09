@@ -1190,7 +1190,21 @@ class LSDAttackForceUE {
     });
     // Round result for online: show YOU WIN / YOU LOSE
     this.socket.on("round_result_broadcast", d => {
-      this._onlineResult = d; // {winner, loser}
+      this._onlineResult = d; // {winner, loser, winnerIndex}
+      // P2 (playerIndex=1) non emette round_result ma deve aggiornare localWon
+      // quando riceve il broadcast
+      if(this.playerIndex===1){
+        const p1Won = d.winnerIndex===0;
+        const p2Won = d.winnerIndex===1;
+        if(!this._victoryRegistered){
+          this._victoryRegistered=true;
+          this.victory=true;
+          this.winner = p1Won ? (this.fighter1?this.fighter1.name.toUpperCase():"P1") : (this.fighter2?this.fighter2.name.toUpperCase():"P2");
+          this.localWon = p2Won; // P2 ha vinto se winnerIndex===1
+          if(this.localWon && game) game.trophies[13]=true;
+          if(!this.victoryTime) this.victoryTime=millis();
+        }
+      }
     });
   }
   setupOnlineFight(data) {
@@ -1198,6 +1212,15 @@ class LSDAttackForceUE {
     // fighter1 = P1 (sinistra), fighter2 = P2 (destra) — su ENTRAMBI i client
     this.p1Char = data.p0.char;  // personaggio di P1 (sinistra)
     this.p2Char = data.p1.char;  // personaggio di P2 (destra)
+
+    // Aggiorna nomi giocatori (source of truth = game_start dal server)
+    if(this.playerIndex===0){
+      // P1: il mio avversario è p1
+      this.opponentInfo = { username: data.p1.username, char: data.p1.char };
+    } else {
+      // P2: il mio avversario è p0
+      this.opponentInfo = { username: data.p0.username, char: data.p0.char };
+    }
 
     // Traccia il personaggio locale per trofei
     const myChar = this.playerIndex===0 ? this.p1Char : this.p2Char;
@@ -1361,7 +1384,16 @@ class LSDAttackForceUE {
               }
             } else {
               this.p2Char=c.key;
-              if(this.mode==="online"){ this.menuPhase="onlineLobby"; }
+              if(this.mode==="online"){
+                // Auto-join se arrivato tramite link invito (?room=CODICE)
+                if(this._autoJoinCode){
+                  const code=this._autoJoinCode; this._autoJoinCode=null;
+                  this.menuPhase="onlineLobby";
+                  this.joinRoom(code);
+                } else {
+                  this.menuPhase="onlineLobby";
+                }
+              }
               else { this._finishSelection(); }
             }
           }
@@ -1417,7 +1449,7 @@ class LSDAttackForceUE {
         strokeRoundRect(BASE_W/2-240,510,480,80,"#baa701",2,12);
         fillText(`ROOM CODE:`,BASE_W/2,530,"#888",20);
         fillText(code,BASE_W/2,565,"#FFD700",48);
-        // Copy button
+        // Copy CODE button
         fillRoundRect(BASE_W/2+180,548,120,36,"#333",1,8);
         fillText("📋 COPY",BASE_W/2+240,566,"#baa701",16);
         if(isButtonPressed(BASE_W/2+240,566,120,36)){
@@ -1425,8 +1457,17 @@ class LSDAttackForceUE {
           this._copyMsg=millis();
         }
         if(this._copyMsg&&millis()-this._copyMsg<2000) fillText("✓ Copied!",BASE_W/2+240,600,"#4EC600",16);
-        fillText("Share this code with your opponent",BASE_W/2,614,"#888",20);
-        fillText("Waiting for opponent...",BASE_W/2,650,"#baa701",22);
+        // Share Link button
+        const shareUrl=`https://lsd-software.github.io/lsdConsole/?room=${code}`;
+        fillRoundRect(BASE_W/2-220,610,440,48,"#1a1a00",1,10);
+        strokeRoundRect(BASE_W/2-220,610,440,48,"#baa701",1.5,10);
+        fillText("🔗 COPY INVITE LINK",BASE_W/2,634,"#baa701",20);
+        if(isButtonPressed(BASE_W/2,634,440,48)){
+          navigator.clipboard?.writeText(shareUrl).catch(()=>{});
+          this._copyLinkMsg=millis();
+        }
+        if(this._copyLinkMsg&&millis()-this._copyLinkMsg<2000) fillText("✓ Link copied!",BASE_W/2,672,"#4EC600",18);
+        fillText("Waiting for opponent...",BASE_W/2,700,"#baa701",22);
       }
       if(this.onlineMsg) fillText(this.onlineMsg,BASE_W/2,720,"#ff6666",24);
       drawButton("◀ BACK",BASE_W/2,BASE_H-50,200,55,"#333");
@@ -1485,12 +1526,16 @@ class LSDAttackForceUE {
     drawImg(images.bg_fight,BASE_W/2,BASE_H/2);
     if(!this.fighter1||!this.fighter2) return;
 
-    // Online: fighter1=locale (invia input), fighter2=avversario (riceve netKeys)
+    // Online: invia i miei tasti e applica input ricevuto all'avversario
+    // playerIndex=0 (P1): locale=fighter1, avversario=fighter2
+    // playerIndex=1 (P2): locale=fighter2, avversario=fighter1
     if(this.mode==="online"&&this.socket){
-      // Invia sempre i miei tasti (fighter1 = locale)
-      this.socket.emit("input", this._getP1Input());
-      // Applica input ricevuto a fighter2 (avversario)
-      this.fighter2.applyNetworkInput(this.opponentInput);
+      this.socket.emit("input", this._getLocalInput());
+      if(this.playerIndex===0){
+        this.fighter2.applyNetworkInput(this.opponentInput);
+      } else {
+        this.fighter1.applyNetworkInput(this.opponentInput);
+      }
     }
 
     // Blocca il combattimento durante la riproduzione dell'ultra
@@ -1525,14 +1570,11 @@ class LSDAttackForceUE {
           this.localWon = p1Won; // in locale/cpu, P1=giocatore principale
         }
         if(this.localWon && game) game.trophies[13]=true;
-        // Solo playerIndex=0 emette round_result — il server salva stats per entrambi
+        // Solo playerIndex=0 (P1) emette round_result — il server salva stats per entrambi
+        // winnerIndex: 0=P1 ha vinto, 1=P2 ha vinto
         if(this.mode==="online" && this.socket && this.playerIndex===0){
-          this.socket.emit("round_result",{
-            winner: p1Won ? this.fighter1.name : this.fighter2.name,
-            loser:  p1Won ? this.fighter2.name : this.fighter1.name,
-            p1username: this.p1Char, // il server li abbina tramite socket room
-            p2username: this.p2Char
-          });
+          const winnerIndex = p1Won ? 0 : 1;
+          this.socket.emit("round_result", { winnerIndex });
         }
       }
     }
@@ -1710,10 +1752,13 @@ class LSDAttackForceUE {
     }
     // (ultra combo è segreta — non mostrata in HUD)
   }
-  _getP1Input() {
+  _getLocalInput() {
     // Invia tasti + posizione X + HP del fighter locale
-    // playerIndex=0 → fighter locale è fighter1
-    // playerIndex=1 → fighter locale è fighter2
+    // playerIndex=0 (P1): fighter locale = fighter1, usa tasti a/d/w/s/q/e/c
+    // playerIndex=1 (P2): fighter locale = fighter2, usa tasti a/d/w/s/q/e/c
+    // Il fighter di rete (avversario) applicherà questi tasti normalmente perché
+    // entrambi i fighter usano lo stesso schema di tasti (a=sinistra, d=destra).
+    // La direzione visiva è gestita da facing che si aggiorna automaticamente.
     const myFighter = this.playerIndex===0 ? this.fighter1 : this.fighter2;
     return {
       a: !!(keys["a"]||keys["A"]),
@@ -1879,6 +1924,10 @@ class Fighter {
 
   applyNetworkInput(inp) {
     if(!inp){ this._netKeys={}; return; }
+    // La posizione X viene aggiornata direttamente dal mittente (source of truth).
+    // I tasti a/d ricevuti vengono mappati sullo stesso schema del fighter locale:
+    // il facing si aggiorna automaticamente in update() guardando il nemico,
+    // quindi non serve invertire — il fighter si muove nella direzione corretta.
     this._netKeys = inp;
     // Sincronizza posizione X dell'avversario (autorità del mittente)
     if(inp.x !== null && inp.x !== undefined){
@@ -1901,12 +1950,17 @@ class Fighter {
     // Aggiorna sempre il facing verso il nemico
     this.facing = (enemy.x > this.x) ? 1 : -1;
 
-    // Fighter di rete: la posizione arriva già da applyNetworkInput
-    // Non simuliamo il movimento — usciamo subito dopo aver aggiornato il facing
+    // Fighter di rete: la posizione X arriva da applyNetworkInput (source of truth).
+    // Facciamo girare il loop completo usando _netKeys ricevuti dalla rete,
+    // così le animazioni, proiettili e danni vengono simulati localmente.
+    // Il movimento fisico (x) è ignorato perché x viene sovrascritto da applyNetworkInput.
+    // Salviamo e ripristiniamo x dopo update per non lasciare che la simulazione locale
+    // sovrascriva la posizione autorevole del mittente.
     if(this._isNetworkFighter){
-      // Aggiorna CD per la barra ultra visuale
-      if(!this._initialized){ this.cd1=this.cd2=this.cd3=this.cd4=this.cd5=millis()-(14000); this._initialized=true; }
-      return;
+      const savedX = this.x; // posizione già aggiornata da applyNetworkInput
+      // Prosegue con il loop completo (vedi sotto) usando _netKeys
+      // Al termine usiamo savedX se non si è spostato da remoto nell'ultimo frame
+      this._networkSavedX = savedX;
     }
 
     if(this.mode==="cpu"&&this.playerNum===2){ this._cpuUpdate(enemy, now, t); return; }
@@ -1998,16 +2052,28 @@ class Fighter {
     }
 
     // Movement (slower, more deliberate)
-    if(!this.anim){
-      if(rightKey){ this.x=Math.min(this.x+3,BASE_W-80); this.frame=t<15?1:2; }
-      else if(leftKey){ this.x=Math.max(this.x-3,80); this.frame=t<=15?2:0; }
-      else this.frame=0;
-    }
+    // Per il fighter di rete: la X è già aggiornata da applyNetworkInput (source of truth).
+    // Aggiorniamo solo il frame animazione per la visuale, senza spostare x localmente.
+    if(this._isNetworkFighter){
+      if(!this.anim){
+        if(rightKey) this.frame=t<15?1:2;
+        else if(leftKey) this.frame=t<=15?2:0;
+        else this.frame=0;
+      }
+      // Ripristina X autorevole (non lasciare che knockback o altro la sovrascriva)
+      if(this._networkSavedX !== undefined) this.x = this._networkSavedX;
+    } else {
+      if(!this.anim){
+        if(rightKey){ this.x=Math.min(this.x+3,BASE_W-80); this.frame=t<15?1:2; }
+        else if(leftKey){ this.x=Math.max(this.x-3,80); this.frame=t<=15?2:0; }
+        else this.frame=0;
+      }
 
-    // Push-apart: impedisce sovrapposizione
-    const overlap=100;
-    if(Math.abs(this.x-enemy.x)<overlap){
-      this.x += this.x<enemy.x ? -1 : +1;
+      // Push-apart: impedisce sovrapposizione (solo fighter locale)
+      const overlap=100;
+      if(Math.abs(this.x-enemy.x)<overlap){
+        this.x += this.x<enemy.x ? -1 : +1;
+      }
     }
 
     this.blocking=blockKey; if(blockKey) this.frame=7;
@@ -2085,6 +2151,13 @@ class Fighter {
   }
 
   _dealDmg(enemy,dmg,blockDmg,moveType){
+    // In online: se questo fighter è di rete (l'avversario lo controlla),
+    // l'HP è già sincronizzato via applyNetworkInput → non applicare danno locale
+    // per evitare doppia contabilità. Mostriamo solo le particelle.
+    if(this._isNetworkFighter){
+      enemy._spawnHitParticles(enemy.blocking?"block":(moveType||"punch"), enemy.blocking?blockDmg:dmg);
+      return;
+    }
     if(enemy.blocking){
       enemy.hp=Math.max(0,enemy.hp-blockDmg);
       enemy._spawnHitParticles("block", blockDmg);
@@ -3051,6 +3124,14 @@ function startGame() {
     "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";
   requestAnimationFrame(loop);
   fetch(API_URL+"/health").catch(()=>{});
+
+  // Auto-join se URL contiene ?room=CODICE (link invito)
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomCode  = urlParams.get("room");
+  if(roomCode && /^\d{6}$/.test(roomCode)){
+    // Aspetta che l'utente scelga il personaggio, poi propone il join automatico
+    game._autoJoinCode = roomCode;
+  }
 }
 document.addEventListener("fullscreenchange",       () => setTimeout(resizeCanvas, 80));
 document.addEventListener("webkitfullscreenchange", () => setTimeout(resizeCanvas, 80));

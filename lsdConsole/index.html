@@ -361,6 +361,19 @@ body{
   </div>
 </div>
 
+<!-- ── AFUE Tutorial popup ── -->
+<div id="afueTutorial" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:8500;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);">
+  <div style="background:linear-gradient(160deg,#0d0000,#110000);border:2px solid #baa701;border-radius:16px;width:min(700px,96vw);max-height:90vh;overflow-y:auto;padding:clamp(20px,4vw,36px);display:flex;flex-direction:column;gap:14px;box-shadow:0 0 60px rgba(161,0,0,0.3);">
+    <div style="text-align:center;">
+      <h2 style="color:#a10000;font-family:Cinzel,serif;font-size:clamp(1.2rem,4vw,1.8rem);letter-spacing:4px;margin:0;text-shadow:0 0 20px rgba(161,0,0,0.5);">⚡ LSD ATTACK FORCE UE</h2>
+      <p style="color:#baa701;font-size:0.75rem;letter-spacing:3px;margin:4px 0 0;font-family:Courier New,monospace;">HOW TO PLAY</p>
+    </div>
+    <hr style="border:none;border-top:1px solid rgba(186,167,1,0.2);margin:0;">
+    <div id="afueTutorialContent" style="color:#ccc;font-family:Courier New,monospace;font-size:clamp(0.78rem,2vw,0.92rem);line-height:1.8;display:flex;flex-direction:column;gap:10px;"></div>
+    <button onclick="closeTutorial()" style="background:linear-gradient(135deg,#a10000,#7a0000);color:#baa701;border:2px solid #baa701;border-radius:8px;padding:14px;font-family:Cinzel,serif;font-size:1rem;font-weight:700;letter-spacing:2px;cursor:pointer;margin-top:6px;">▶ LET'S FIGHT!</button>
+  </div>
+</div>
+
 <!-- Room code input (mobile) -->
 <div id="codeInputOverlay">
   <div id="codeInputBox">
@@ -1181,17 +1194,17 @@ class LSDAttackForceUE {
     });
   }
   setupOnlineFight(data) {
-    // Usa il personaggio che questo client ha scelto (salvato in _myChosenChar)
-    // Non fidarsi dell'ordine di data.p0/p1 perché potrebbe essere scambiato
-    const myChar = this._myChosenChar || (this.playerIndex===0 ? data.p0.char : data.p1.char);
-    const opChar = myChar===data.p0.char ? data.p1.char : data.p0.char;
-    // fighter1 = LOCALE (mio personaggio)
-    // fighter2 = AVVERSARIO
-    this.p1Char = myChar;
-    this.p2Char = opChar;
+    // P1 (playerIndex=0) ha sempre p0.char, P2 ha sempre p1.char
+    // fighter1 = P1 (sinistra), fighter2 = P2 (destra) — su ENTRAMBI i client
+    this.p1Char = data.p0.char;  // personaggio di P1 (sinistra)
+    this.p2Char = data.p1.char;  // personaggio di P2 (destra)
+
+    // Traccia il personaggio locale per trofei
+    const myChar = this.playerIndex===0 ? this.p1Char : this.p2Char;
+    if(myChar==="grax") this.voltaGrax++; else this.voltaYuke++;
+
     this._buildFighters();
     this.menuPhase="fight";
-    if(myChar==="grax") this.voltaGrax++; else this.voltaYuke++;
     showGamePad(isMobile);
   }
   createRoom() {
@@ -1211,23 +1224,11 @@ class LSDAttackForceUE {
     const f2frames = n => Array.from({length:n},(_,i)=>({ r:images[`${p2}_r_${i}`], l:images[`${p2}_l_${i}`] }));
     const nFrames  = ch => ch==="grax"?14:13;
 
-    // Posizioni di partenza FISSE — non si spostano:
-    // playerIndex=0 (crea stanza) → locale(f1) a SINISTRA, avversario(f2) a DESTRA
-    // playerIndex=1 (entra stanza) → locale(f1) a DESTRA, avversario(f2) a SINISTRA
-    // Locale/CPU: fighter1 sempre sinistra, fighter2 sempre destra
-    let f1startX, f2startX;
-    if(this.mode==="online"){
-      if(this.playerIndex===0){
-        f1startX = 200;
-        f2startX = BASE_W-200;
-      } else {
-        f1startX = BASE_W-200;
-        f2startX = 200;
-      }
-    } else {
-      f1startX = 380;
-      f2startX = BASE_W-380;
-    }
+    // Posizioni FISSE su tutti i client:
+    // fighter1 = P1 = SEMPRE SINISTRA
+    // fighter2 = P2 = SEMPRE DESTRA
+    const f1startX = this.mode==="online" ? 200       : 380;
+    const f2startX = this.mode==="online" ? BASE_W-200 : BASE_W-380;
 
     this.fighter1 = new Fighter(f1frames(nFrames(p1)), f1startX, 800, p1, 1, this.mode);
     this.fighter2 = new Fighter(f2frames(nFrames(p2)), f2startX, 800, p2, 2,
@@ -1242,11 +1243,16 @@ class LSDAttackForceUE {
     this._onlineResult = null;
     this._victoryRegistered = false;
 
-    // fighter1 = LOCALE → usa sempre tastiera fisica
-    // fighter2 = AVVERSARIO → usa sempre _netKeys
-    // Questo è vero per ENTRAMBI i playerIndex
-    this.fighter1._isNetworkFighter = false;  // locale: mai network
-    this.fighter2._isNetworkFighter = (this.mode==="online"); // avversario: sempre network in online
+    // playerIndex=0: fighter1=locale(tastiera), fighter2=rete
+    // playerIndex=1: fighter1=rete, fighter2=locale(tastiera)
+    // local/cpu: fighter1=tastiera P1, fighter2=tastiera P2 (o CPU)
+    if(this.mode==="online"){
+      this.fighter1._isNetworkFighter = (this.playerIndex===1); // P2 vede f1 come rete
+      this.fighter2._isNetworkFighter = (this.playerIndex===0); // P1 vede f2 come rete
+    } else {
+      this.fighter1._isNetworkFighter = false;
+      this.fighter2._isNetworkFighter = false;
+    }
   }
 
   draw() {
@@ -1265,11 +1271,17 @@ class LSDAttackForceUE {
       ctx.restore();
       setFont(20); ctx.fillStyle="#000"; ctx.fillText(label,sx(x),sy(y));
     };
-    // fighter1 = sempre il giocatore locale → YOU
-    // fighter2 = sempre l'avversario       → OPP (o CPU/P2 in locale)
+    // Online: YOU è il fighter che controllo localmente
+    // playerIndex=0 → controllo fighter1 → YOU su fighter1
+    // playerIndex=1 → controllo fighter2 → YOU su fighter2
     if(this.mode==="online"){
-      drawLabel(this.fighter1,"▼ YOU","#FFD700");
-      drawLabel(this.fighter2,"▼ OPP","#ff6666");
+      if(this.playerIndex===0){
+        drawLabel(this.fighter1,"▼ YOU","#FFD700");
+        drawLabel(this.fighter2,"▼ OPP","#ff6666");
+      } else {
+        drawLabel(this.fighter1,"▼ OPP","#ff6666");
+        drawLabel(this.fighter2,"▼ YOU","#FFD700");
+      }
     } else {
       drawLabel(this.fighter1,"▼ P1","#4EC600");
       drawLabel(this.fighter2, this.mode==="cpu"?"▼ CPU":"▼ P2","#ff8800");
@@ -1495,23 +1507,32 @@ class LSDAttackForceUE {
     // fighter1 = LOCALE, fighter2 = AVVERSARIO (sempre)
     // fighter1.hp<=0 → locale perde; fighter2.hp<=0 → locale vince
     if(!this._victoryRegistered && !window._ultraPlaying){
-      const localDead = this.fighter1.hp<=0;
-      const oppDead   = this.fighter2.hp<=0;
-      if(localDead || oppDead){
+      const p1Dead = this.fighter1.hp<=0; // P1 (sinistra) morto
+      const p2Dead = this.fighter2.hp<=0; // P2 (destra) morto
+      if(p1Dead || p2Dead){
         this._victoryRegistered = true;
-        this.victory    = true;
-        this.localWon   = oppDead && !localDead; // true = locale ha vinto
-        this.winner     = this.localWon ? this.fighter1.name.toUpperCase()
-                                        : this.fighter2.name.toUpperCase();
+        this.victory = true;
+        // Chi ha vinto? fighter2 vivo → P2 vince; fighter1 vivo → P1 vince
+        const p1Won = p2Dead && !p1Dead;
+        const p2Won = p1Dead && !p2Dead;
+        this.winner = p1Won ? this.fighter1.name.toUpperCase() : this.fighter2.name.toUpperCase();
+        // localWon: il giocatore locale ha vinto?
+        // playerIndex=0=P1: localWon se P1 ha vinto
+        // playerIndex=1=P2: localWon se P2 ha vinto
+        if(this.mode==="online"){
+          this.localWon = (this.playerIndex===0 && p1Won) || (this.playerIndex===1 && p2Won);
+        } else {
+          this.localWon = p1Won; // in locale/cpu, P1=giocatore principale
+        }
         if(this.localWon && game) game.trophies[13]=true;
-        // Solo playerIndex=0 emette round_result (anti-duplicati)
+        // Solo playerIndex=0 emette round_result — il server salva stats per entrambi
         if(this.mode==="online" && this.socket && this.playerIndex===0){
-          // playerIndex=0: fighter1=locale, fighter2=avversario
-          // playerIndex=1: fighter1=locale, fighter2=avversario (stessa struttura!)
-          // Il server riceve winner/loser come nomi personaggi
-          const winnerName = this.localWon ? this.fighter1.name : this.fighter2.name;
-          const loserName  = this.localWon ? this.fighter2.name : this.fighter1.name;
-          this.socket.emit("round_result",{winner:winnerName, loser:loserName});
+          this.socket.emit("round_result",{
+            winner: p1Won ? this.fighter1.name : this.fighter2.name,
+            loser:  p1Won ? this.fighter2.name : this.fighter1.name,
+            p1username: this.p1Char, // il server li abbina tramite socket room
+            p2username: this.p2Char
+          });
         }
       }
     }
@@ -1588,14 +1609,26 @@ class LSDAttackForceUE {
     const f1=this.fighter1, f2=this.fighter2;
 
     // ── P1 HP bar
-    // Barre vita: mostra nome reale del giocatore
-    const p1label = this.mode==="online"
-      ? (Auth.username()||"YOU").toUpperCase().slice(0,12)
-      : f1.name.toUpperCase();
-    const p2label = this.mode==="online"
-      ? (this.opponentInfo?.username||"OPP").toUpperCase().slice(0,12)
-      : f2.name.toUpperCase();
-    setFont(36,"left"); ctx.fillStyle=this.mode==="online"?"#FFD700":"#fff"; ctx.fillText(p1label,sx(80),sy(22));
+    // Barre vita: mostra nome vero dei giocatori
+    // fighter1=P1(sinistra), fighter2=P2(destra) su tutti i client
+    // playerIndex=0: P1=me, P2=avversario
+    // playerIndex=1: P1=avversario, P2=me
+    let p1label, p2label, p1col, p2col;
+    if(this.mode==="online"){
+      const myName  = (Auth.username()||"YOU").toUpperCase().slice(0,12);
+      const oppName = (this.opponentInfo?.username||"OPP").toUpperCase().slice(0,12);
+      if(this.playerIndex===0){
+        p1label=myName;  p1col="#FFD700";  // P1=io (sinistra)
+        p2label=oppName; p2col="#ff6666";  // P2=avversario (destra)
+      } else {
+        p1label=oppName; p1col="#ff6666";  // P1=avversario (sinistra)
+        p2label=myName;  p2col="#FFD700";  // P2=io (destra)
+      }
+    } else {
+      p1label=f1.name.toUpperCase(); p1col="#fff";
+      p2label=f2.name.toUpperCase(); p2col="#fff";
+    }
+    setFont(36,"left"); ctx.fillStyle=p1col; ctx.fillText(p1label,sx(80),sy(22));
     fillRoundRect(80,50,300,44,"#333",1,4);
     fillRoundRect(80,50,f1.hp*3,44,"#4EC600",1,4);
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(80),sy(50),ss(300),ss(44)); ctx.restore();
@@ -1607,7 +1640,7 @@ class LSDAttackForceUE {
     if(ult1pct>=1) fillText("ULTRA READY!",230,107,"#ff0000",13);
 
     // ── P2 HP bar
-    setFont(36,"right"); ctx.fillStyle=this.mode==="online"?"#ff6666":"#fff"; ctx.fillText(p2label,sx(BASE_W-80),sy(22));
+    setFont(36,"right"); ctx.fillStyle=p2col; ctx.fillText(p2label,sx(BASE_W-80),sy(22));
     fillRoundRect(BASE_W-380,50,300,44,"#333",1,4);
     const hp2w=f2.hp*3;
     fillRoundRect(BASE_W-380+(300-hp2w),50,hp2w,44,"#4EC600",1,4);
@@ -1946,10 +1979,9 @@ class Fighter {
       else this.frame=0;
     }
 
-    // Push-apart collision — in online solo se l'avversario ha già inviato input
+    // Push-apart: impedisce sovrapposizione
     const overlap=100;
-    const enemyReady = this.mode!=="online" || (this._netKeys && Object.keys(this._netKeys).length>0) || (enemy._netKeys && Object.keys(enemy._netKeys||{}).length>0);
-    if(enemyReady && Math.abs(this.x-enemy.x)<overlap){
+    if(Math.abs(this.x-enemy.x)<overlap){
       this.x += this.x<enemy.x ? -1 : +1;
     }
 
@@ -2890,6 +2922,52 @@ class ArtistMaker {
 // ============================================================
 //  MAIN LOOP
 // ============================================================
+// ── AFUE Tutorial ────────────────────────────────────────────
+function showAFUETutorial() {
+  const el = document.getElementById("afueTutorial");
+  el.style.display = "flex";
+  document.getElementById("afueTutorialContent").innerHTML = `
+    <div style="background:rgba(161,0,0,0.1);border:1px solid rgba(186,167,1,0.2);border-radius:8px;padding:12px 16px;">
+      <div style="color:#baa701;font-weight:700;letter-spacing:2px;margin-bottom:6px;">🎭 CHARACTER SELECT</div>
+      Hover over a character icon to see their description.<br>
+      <b style="color:#fff">Click once</b> to select your fighter.<br>
+      In <b style="color:#fff">Local (2P)</b> mode, P1 selects first, then P2.
+    </div>
+    <div style="background:rgba(0,80,0,0.1);border:1px solid rgba(78,198,0,0.2);border-radius:8px;padding:12px 16px;">
+      <div style="color:#4EC600;font-weight:700;letter-spacing:2px;margin-bottom:6px;">⌨️ CONTROLS</div>
+      <b style="color:#FFD700">Player 1:</b> A/D = Move &nbsp;|&nbsp; W = Punch &nbsp;|&nbsp; S = Kick &nbsp;|&nbsp; Q = Ranged &nbsp;|&nbsp; E = Special &nbsp;|&nbsp; C = Block<br>
+      <b style="color:#ff8800">Player 2 (Local):</b> J/L = Move &nbsp;|&nbsp; I = Punch &nbsp;|&nbsp; K = Kick &nbsp;|&nbsp; U = Ranged &nbsp;|&nbsp; O = Special &nbsp;|&nbsp; . = Block<br>
+      <b style="color:#ff6666">Online:</b> Both players use the same keys on their own devices.
+    </div>
+    <div style="background:rgba(255,165,0,0.07);border:1px solid rgba(255,165,0,0.2);border-radius:8px;padding:12px 16px;">
+      <div style="color:#FFA500;font-weight:700;letter-spacing:2px;margin-bottom:6px;">⚡ ULTRA MOVE — SECRET COMBO</div>
+      Each character has a secret key combination that triggers an <b style="color:#FF4400">ULTRA attack</b>.<br>
+      The red bar under your HP charges over time — discover the combo by experimenting!<br>
+      <span style="color:#555">Hint: it uses 4 of your attack keys in sequence...</span>
+    </div>
+    <div style="background:rgba(0,100,200,0.08);border:1px solid rgba(0,150,255,0.2);border-radius:8px;padding:12px 16px;">
+      <div style="color:#4499ff;font-weight:700;letter-spacing:2px;margin-bottom:6px;">🌐 ONLINE MULTIPLAYER</div>
+      1. Select <b style="color:#fff">ONLINE</b> mode and choose your character.<br>
+      2. <b style="color:#fff">CREATE ROOM</b> → share the 6-digit code with your opponent.<br>
+      3. Your opponent clicks <b style="color:#fff">JOIN ROOM</b> and enters the code (or pastes it).<br>
+      4. P1 (creator) starts on the <b style="color:#FFD700">LEFT</b>, P2 (joiner) starts on the <b style="color:#ff6666">RIGHT</b>.<br>
+      Wins and losses are tracked in the <b style="color:#fff">Leaderboard</b>!
+    </div>
+    <div style="background:rgba(128,0,128,0.08);border:1px solid rgba(186,167,1,0.2);border-radius:8px;padding:12px 16px;">
+      <div style="color:#baa701;font-weight:700;letter-spacing:2px;margin-bottom:6px;">💡 TIPS</div>
+      • <b style="color:#fff">Block (C / .)</b> reduces incoming damage significantly.<br>
+      • <b style="color:#fff">Ranged attacks (Q)</b> travel across the screen — use them when far apart.<br>
+      • <b style="color:#fff">Special (E)</b> has a longer range and cooldown than basic attacks.<br>
+      • The <b style="color:#FF4400">ULTRA bar</b> recharges every ~12 seconds — use it wisely!
+    </div>
+  `;
+}
+function closeTutorial() {
+  document.getElementById("afueTutorial").style.display = "none";
+  // Avvia il gioco AFUE dopo aver chiuso il tutorial
+  if(game) { game.screen=1; showMobileMenu(true); }
+}
+
 // ── Game Drawer ──────────────────────────────────────────────
 function toggleDrawer() {
   const d = document.getElementById("gameDrawer");

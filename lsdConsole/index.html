@@ -1356,6 +1356,11 @@ class LSDAttackForceUE {
     this.fighter2._ownerAfue = this;
     this.fighter1._usedUltraThisRound = false;
     this.fighter2._usedUltraThisRound = false;
+    // AFUE usa 200 HP (partite più lunghe), zombie mode resta 100
+    this.fighter1.hp = 200;
+    this.fighter2.hp = 200;
+    this.fighter1.maxHp = 200;
+    this.fighter2.maxHp = 200;
     this._onlineResult = null;
     this._victoryRegistered = false;
 
@@ -1779,7 +1784,9 @@ class LSDAttackForceUE {
     }
     setFont(36,"left"); ctx.fillStyle=p1col; ctx.fillText(p1label,sx(80),sy(22));
     fillRoundRect(80,50,300,44,"#333",1,4);
-    fillRoundRect(80,50,f1.hp*3,44,"#4EC600",1,4);
+    const hp1pct = Math.min(1, f1.hp / (f1.maxHp||200));
+    const hp1col = hp1pct>0.5?"#4EC600":hp1pct>0.25?"#FFD700":"#FF3333";
+    fillRoundRect(80,50,300*hp1pct,44,hp1col,1,4);
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(80),sy(50),ss(300),ss(44)); ctx.restore();
 
     // P1 ultra bar (red under HP)
@@ -1791,8 +1798,10 @@ class LSDAttackForceUE {
     // ── P2 HP bar
     setFont(36,"right"); ctx.fillStyle=p2col; ctx.fillText(p2label,sx(BASE_W-80),sy(22));
     fillRoundRect(BASE_W-380,50,300,44,"#333",1,4);
-    const hp2w=f2.hp*3;
-    fillRoundRect(BASE_W-380+(300-hp2w),50,hp2w,44,"#4EC600",1,4);
+    const hp2pct = Math.min(1, f2.hp / (f2.maxHp||200));
+    const hp2col = hp2pct>0.5?"#4EC600":hp2pct>0.25?"#FFD700":"#FF3333";
+    const hp2w = 300*hp2pct;
+    fillRoundRect(BASE_W-380+(300-hp2w),50,hp2w,44,hp2col,1,4);
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(BASE_W-380),sy(50),ss(300),ss(44)); ctx.restore();
 
     // P2 ultra bar
@@ -1948,7 +1957,7 @@ class Fighter {
     if(this._ownerAfue){
       const f1=this._ownerAfue.fighter1, f2=this._ownerAfue.fighter2;
       const enemy = (f1===this) ? f2 : f1;
-      if(enemy && enemy.hp >= 50){
+      if(enemy && enemy.hp >= (enemy.maxHp||200)*0.5){
         // Feedback visivo: lampeggio rosso "NOT YET"
         if(!this._ultraBlockedMsg) this._ultraBlockedMsg=0;
         this._ultraBlockedMsg = millis();
@@ -2160,7 +2169,7 @@ class Fighter {
     if(this.projActive){
       this.projX+=8*this.facing;
       const hitQ=(this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40);
-      if(hitQ){ this.projActive=false; this._dealDmg(enemy,18,6,"ranged"); }
+      if(hitQ){ this.projActive=false; this._dealDmg(enemy,22,7,"ranged"); }
     }
     // Move meteors (Yuke E) — con delay progressivo
     if(this._meteors && this._meteors.length>0){
@@ -2193,7 +2202,7 @@ class Fighter {
             });
           } else {
             // Modalità normale: colpisci il fighter avversario
-            this._dealDmg(enemy, 14, 4, "special");
+            this._dealDmg(enemy, 18, 5, "special");
           }
         }
       });
@@ -2271,12 +2280,12 @@ class Fighter {
     // Punch
     if(punchKey&&now-this.cd1>1800&&!this.anim){
       this.anim={type:"punch",start:frameCount,dur:32}; this.cd1=now;
-      if(dist<200){ this._dealDmg(enemy,6,2,true); this._knockback(enemy,50); }
+      if(dist<200){ this._dealDmg(enemy,8,3,true); this._knockback(enemy,50); }
     }
     // Kick
     if(kickKey&&now-this.cd2>3500&&!this.anim){
       this.anim={type:"kick",start:frameCount,dur:32}; this.cd2=now;
-      if(dist<180){ this._dealDmg(enemy,12,3,true); this._knockback(enemy,120); }
+      if(dist<180){ this._dealDmg(enemy,16,4,true); this._knockback(enemy,120); }
     }
     // Ranged (Q key for P1)
     if(rangedKey&&now-this.cd3>8000&&!this.anim){
@@ -2288,17 +2297,17 @@ class Fighter {
     if(specKey&&now-this.cd4>12000&&!this.anim){
       this.anim={type:"special",start:frameCount,dur:36}; this.cd4=now;
       if(this.name==="grax") {
-        const healAmt = Math.floor(Math.random()*8)+8; // +8 a +15
-        this.hp=Math.min(100,this.hp+healAmt);
+        const healAmt = Math.floor(Math.random()*11)+12; // +12 a +22
+        this.hp=Math.min(this.maxHp||200,this.hp+healAmt);
         if(!this._dmgNumbers) this._dmgNumbers=[];
         this._dmgNumbers.push({ val:healAmt, x:this.x, y:this.y-180, vy:-2.5, alpha:1, life:0, maxLife:50, col:"#44FF44", isHeal:true });
-        this._dealDmg(enemy,14,5,true); this._knockback(enemy,200);
+        this._dealDmg(enemy,18,6,true); this._knockback(enemy,200);
       }
-      else { this._dealDmg(enemy,12,5,true); /* meteora launched in anim */ }
+      else { this._dealDmg(enemy,14,5,true); /* meteora launched in anim */ }
     }
     // Ultra kill: applica 60 di danno all'avversario dopo il video
     if(this.ultKill && !window._ultraPlaying){
-      const ultraDmg=60;
+      const ultraDmg=80;
       enemy.hp=Math.max(0,enemy.hp-ultraDmg);
       if(!enemy._dmgNumbers) enemy._dmgNumbers=[];
       enemy._dmgNumbers.push({ val:ultraDmg, x:enemy.x, y:enemy.y-200, vy:-3, alpha:1, life:0, maxLife:60, col:"#FF0000" });
@@ -2351,7 +2360,7 @@ class Fighter {
       // On hit
       if(!this._graxCubeMoved){
         this._graxCubeMoved=true;
-        if(!enemy.blocking) this._dealDmg(enemy,15,5,false); this._knockback(enemy,160);
+        if(!enemy.blocking) this._dealDmg(enemy,20,6,false); this._knockback(enemy,160);
       }
       this.graxCubeActive=false;
       return;
@@ -2472,7 +2481,7 @@ class Fighter {
       return;
     }
 
-    if(this.projActive){ this.projX+=8*this.facing; if((this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40)){this.projActive=false;this._dealDmg(enemy,15,5,false);} }
+    if(this.projActive){ this.projX+=8*this.facing; if((this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40)){this.projActive=false;this._dealDmg(enemy,22,7,false);} }
     // proj2Active rimosso — le meteore sono nel sistema this._meteors in update()
     if(this.graxCubeActive) this._updateGraxCube(enemy,now);
     if(this._cpuState.action!=="attack") return;
@@ -2496,18 +2505,18 @@ class Fighter {
 
     if(dist<190&&now-this.cd1>punchCD&&Math.random()<punchProb){
       this.anim={type:"punch",start:frameCount,dur:32}; this.cd1=now;
-      this._dealDmg(enemy,6,2,false); this._knockback(enemy,50);
+      this._dealDmg(enemy,8,3,false); this._knockback(enemy,50);
     } else if(dist<170&&now-this.cd2>kickCD&&Math.random()<kickProb){
       this.anim={type:"kick",start:frameCount,dur:32}; this.cd2=now;
-      this._dealDmg(enemy,12,3,false); this._knockback(enemy,120);
+      this._dealDmg(enemy,16,4,false); this._knockback(enemy,120);
     } else if(now-this.cd3>rangedCD&&Math.random()<rangedProb){
       this.anim={type:"ranged",start:frameCount,dur:34}; this.cd3=now;
     } else if(now-this.cd4>specCD&&Math.random()<specProb&&!this.anim){
       this.anim={type:"special",start:frameCount,dur:36}; this.cd4=now;
       if(this.name==="grax"){
-        const healAmt=Math.floor(Math.random()*8)+8;
-        this.hp=Math.min(100,this.hp+healAmt);
-        if(dist<250) this._dealDmg(enemy,14,5,false); this._knockback(enemy,200);
+        const healAmt=Math.floor(Math.random()*11)+12;
+        this.hp=Math.min(this.maxHp||200,this.hp+healAmt);
+        if(dist<250) this._dealDmg(enemy,18,6,false); this._knockback(enemy,200);
       }
     }
     else if(

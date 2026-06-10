@@ -2093,27 +2093,25 @@ class Fighter {
             this.frame=el<15?9:10;
             if(el===14){ this._launchGraxCube(enemy); }
           } else {
-            // Yuke: 5-frame charge windup, then release
-            if(el<8)       this.frame=9;          // wind-up start
-            else if(el<16) this.frame=10;          // wind-up peak
-            else if(el<22) this.frame=11;          // release arm forward
-            else           this.frame=12;          // follow-through
-            // Trail particles during charge
-            if(el>=8 && el<18 && el%2===0){
+            // Yuke Q: 11.png (carica teschio) → 12.png (lancio) → proiettileYq.png
+            if(el < 16) this.frame = 11;  // carica / preparazione
+            else        this.frame = 12;  // lancio
+            // Particelle viola durante la carica
+            if(el>=4 && el<16 && el%3===0){
               if(!this.hitParticles) this.hitParticles=[];
               const chargeX = this.x + this.facing*80;
               this.hitParticles.push({
-                x:chargeX+(Math.random()-0.5)*20, y:this.y-120+(Math.random()-0.5)*30,
+                x:chargeX+(Math.random()-0.5)*30, y:this.y-120+(Math.random()-0.5)*40,
                 vx:(Math.random()-0.5)*2, vy:-(Math.random()*2+1),
-                r:Math.random()*5+3, alpha:0.8,
-                col:"#00CCFF", life:0, maxLife:12
+                r:Math.random()*6+3, alpha:0.9,
+                col:"#AA00FF", life:0, maxLife:14
               });
             }
-            // Launch projectile at frame 20 (after wind-up)
-            if(el===20){
-              this.projX=this.x+this.facing*120;
-              this.projY=this.y-110;
-              this.projActive=true;
+            // Lancia proiettileYq al frame 16 (transizione 11→12)
+            if(el===16){
+              this.projX = this.x + this.facing*120;
+              this.projY = this.y - 120;
+              this.projActive = true;
             }
           }
         }
@@ -2162,29 +2160,43 @@ class Fighter {
     if(this.projActive){
       this.projX+=8*this.facing;
       const hitQ=(this.facing>0&&this.projX>enemy.x-40)||(this.facing<0&&this.projX<enemy.x+40);
-      if(hitQ){ this.projActive=false; if(!enemy.blocking)this._dealDmg(enemy,15,5,"ranged"); }
+      if(hitQ){ this.projActive=false; this._dealDmg(enemy,18,6,"ranged"); }
     }
     // Move meteors (Yuke E) — con delay progressivo
     if(this._meteors && this._meteors.length>0){
       this._meteors.forEach(m=>{
         if(m.hit) return;
-        // Gestione delay: decrementa e aspetta
         if(m.delay > 0){ m.delay--; return; }
-        // Aggiorna posizione target ogni frame (il nemico potrebbe essersi mosso)
-        // Ricalcola dx/dy mantenendo il progresso attuale
-        if(!m.delayDone){
-          m.delayDone=true;
-          // Ricalcola direzione verso la posizione attuale del nemico al momento del lancio
-        }
         m.prog = Math.min(1, m.prog + m.speed);
         m.x = m.startX + m.dx * m.prog;
         m.y = m.startY + m.dy * m.prog;
         if(m.prog >= 1 && !m.hit){
           m.hit=true;
-          this._dealDmg(enemy, 10, 3, "special");
+          // In zombie mode: cerca zombie reali nel raggio di impatto
+          const afue = this._ownerAfue;
+          const zombieMode = this._zombieMode || (afue && afue._isZombieMode);
+          if(zombieMode && this._ownerZombies){
+            // Colpisci tutti gli zombie nel raggio 150px dal punto di impatto
+            this._ownerZombies.zombieList.forEach(z=>{
+              if(z.hp<=0) return;
+              if(Math.abs(z.x - m.x) < 150){
+                z.hp = Math.max(0, z.hp - 14);
+                if(!z.hitParticles) z.hitParticles=[];
+                for(let pi=0;pi<12;pi++){
+                  const ang=Math.random()*Math.PI*2, spd=Math.random()*4+2;
+                  z.hitParticles.push({x:z.x,y:z.y-150,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-4,r:Math.random()*5+2,alpha:1,col:"#FF8800",life:0,maxLife:22});
+                }
+                z._hitFlash=8;
+                if(!z.dmgTexts) z.dmgTexts=[];
+                z.dmgTexts.push({val:14,x:z.x,y:z.y-200,life:0,maxLife:40});
+              }
+            });
+          } else {
+            // Modalità normale: colpisci il fighter avversario
+            this._dealDmg(enemy, 14, 4, "special");
+          }
         }
       });
-      // Rimuovi solo le meteore che hanno colpito
       this._meteors = this._meteors.filter(m => !m.hit);
     }
 
@@ -2259,12 +2271,12 @@ class Fighter {
     // Punch
     if(punchKey&&now-this.cd1>1800&&!this.anim){
       this.anim={type:"punch",start:frameCount,dur:32}; this.cd1=now;
-      if(dist<200){ this._dealDmg(enemy,5,1,true); this._knockback(enemy,50); }
+      if(dist<200){ this._dealDmg(enemy,6,2,true); this._knockback(enemy,50); }
     }
     // Kick
     if(kickKey&&now-this.cd2>3500&&!this.anim){
       this.anim={type:"kick",start:frameCount,dur:32}; this.cd2=now;
-      if(dist<180){ this._dealDmg(enemy,10,2.5,true); this._knockback(enemy,120); }
+      if(dist<180){ this._dealDmg(enemy,12,3,true); this._knockback(enemy,120); }
     }
     // Ranged (Q key for P1)
     if(rangedKey&&now-this.cd3>8000&&!this.anim){
@@ -2276,11 +2288,11 @@ class Fighter {
     if(specKey&&now-this.cd4>12000&&!this.anim){
       this.anim={type:"special",start:frameCount,dur:36}; this.cd4=now;
       if(this.name==="grax") {
-        const healAmt = Math.floor(Math.random()*16)+5; // +5 a +20
+        const healAmt = Math.floor(Math.random()*8)+8; // +8 a +15
         this.hp=Math.min(100,this.hp+healAmt);
         if(!this._dmgNumbers) this._dmgNumbers=[];
         this._dmgNumbers.push({ val:healAmt, x:this.x, y:this.y-180, vy:-2.5, alpha:1, life:0, maxLife:50, col:"#44FF44", isHeal:true });
-        this._dealDmg(enemy,18,6,true); this._knockback(enemy,200);
+        this._dealDmg(enemy,14,5,true); this._knockback(enemy,200);
       }
       else { this._dealDmg(enemy,12,5,true); /* meteora launched in anim */ }
     }
@@ -2407,22 +2419,31 @@ class Fighter {
   _cpuUpdate(enemy, now, t) {
     const dist=Math.abs(enemy.x-this.x);
     const diff=this.cpuDiff;
-    const reactionMs={easy:1400,medium:700,hard:250}[diff]||700;
-    const aggr={easy:0.25,medium:0.55,hard:0.9}[diff]||0.55;
+    // Tempi di reazione e aggressività aumentati rispetto a prima
+    const reactionMs={easy:900, medium:400, hard:100}[diff]||400;
+    const aggr      ={easy:0.45,medium:0.72,hard:0.96}[diff]||0.72;
+    // Velocità di avvicinamento per livello
+    const moveSpd   ={easy:3,   medium:4,   hard:5  }[diff]||4;
 
     this.facing=(enemy.x>this.x)?1:-1;
 
     if(now<this._cpuState.thinkEnd){
       const act=this._cpuState.action;
-      if(act==="approach"){ this.x+=this.facing*3; this.frame=t<15?1:2; }
+      if(act==="approach"){ this.x+=this.facing*moveSpd; this.frame=t<15?1:2; }
       else if(act==="retreat"){ this.x-=this.facing*2; this.frame=t<=15?2:0; }
+      else if(act==="strafe"){
+        // Hard CPU si muove lateralmente per schivare
+        this.x += Math.sin(now/200)*moveSpd;
+        this.frame=t<15?1:2;
+      }
       else this.frame=0;
     } else {
-      this._cpuState.thinkEnd=now+reactionMs+(Math.random()*300);
-      if(dist>300) this._cpuState.action="approach";
-      else if(dist<90&&diff!=="hard"&&Math.random()<0.5) this._cpuState.action="retreat";
+      this._cpuState.thinkEnd=now+reactionMs+(Math.random()*(diff==="hard"?80:200));
+      if(dist>320) this._cpuState.action="approach";
+      else if(dist<80 && diff==="easy" && Math.random()<0.5) this._cpuState.action="retreat";
+      else if(diff==="hard" && dist<250 && Math.random()<0.25) this._cpuState.action="strafe";
       else if(Math.random()<aggr) this._cpuState.action="attack";
-      else if(Math.random()<0.3) this._cpuState.action="retreat";
+      else if(Math.random()<0.25) this._cpuState.action="retreat";
       else this._cpuState.action="idle";
     }
 
@@ -2434,9 +2455,14 @@ class Fighter {
         if(this.anim.type==="punch")this.frame=el<15?3:4;
         else if(this.anim.type==="kick")this.frame=el<15?5:6;
         else if(this.anim.type==="ranged"){
-          this.frame=el<15?9:10;
-          if(this.name==="grax"&&el===14) this._launchGraxCube(enemy);
-          else if(this.name==="yuke"&&el===15){this.projX=this.x+this.facing*160;this.projActive=true;}
+          if(this.name==="grax"){
+            this.frame=el<15?9:10;
+            if(el===14) this._launchGraxCube(enemy);
+          } else {
+            // Yuke Q CPU: stessa sequenza 11→12→proiettile
+            this.frame = el<16 ? 11 : 12;
+            if(el===16){ this.projX=this.x+this.facing*120; this.projY=this.y-120; this.projActive=true; }
+          }
         }
         else if(this.anim.type==="special"){
           if(this.name==="grax")this.frame=el<10?11:el<20?12:13;
@@ -2451,14 +2477,39 @@ class Fighter {
     if(this.graxCubeActive) this._updateGraxCube(enemy,now);
     if(this._cpuState.action!=="attack") return;
 
-    // Blocking: hard CPU blocks when close
-    this.blocking=diff==="hard"&&Math.random()<0.25&&dist<200&&!this.anim;
-    if(this.blocking){this.frame=7;return;}
+    // Blocking: più reattivo in base al livello
+    const blockProb = {easy:0.05, medium:0.18, hard:0.38}[diff]||0.18;
+    this.blocking = Math.random()<blockProb && dist<220 && !this.anim;
+    if(this.blocking){ this.frame=7; return; }
 
     // CPU special moves — always available, just respects cooldowns
-    if(dist<180&&now-this.cd1>1800&&Math.random()<0.5){ this.anim={type:"punch",start:frameCount,dur:32}; this.cd1=now; this._dealDmg(enemy,5,1,false); this._knockback(enemy,50); }
-    else if(dist<160&&now-this.cd2>3500&&Math.random()<0.6){ this.anim={type:"kick",start:frameCount,dur:32}; this.cd2=now; this._dealDmg(enemy,10,2.5,false); this._knockback(enemy,120); }
-    else if(now-this.cd3>8000&&diff!=="easy"&&Math.random()<0.5){ this.anim={type:"ranged",start:frameCount,dur:34}; this.cd3=now; }
+    // Probabilità di attacco per livello
+    const punchProb  = {easy:0.45,medium:0.70,hard:0.92}[diff]||0.70;
+    const kickProb   = {easy:0.35,medium:0.60,hard:0.85}[diff]||0.60;
+    const rangedProb = {easy:0.20,medium:0.55,hard:0.80}[diff]||0.55;
+    const specProb   = {easy:0.10,medium:0.35,hard:0.65}[diff]||0.35;
+    // CD ridotti per hard
+    const punchCD    = {easy:1800,medium:1400,hard:900 }[diff]||1400;
+    const kickCD     = {easy:3500,medium:2500,hard:1600}[diff]||2500;
+    const rangedCD   = {easy:8000,medium:5500,hard:3500}[diff]||5500;
+    const specCD     = {easy:14000,medium:10000,hard:6000}[diff]||10000;
+
+    if(dist<190&&now-this.cd1>punchCD&&Math.random()<punchProb){
+      this.anim={type:"punch",start:frameCount,dur:32}; this.cd1=now;
+      this._dealDmg(enemy,6,2,false); this._knockback(enemy,50);
+    } else if(dist<170&&now-this.cd2>kickCD&&Math.random()<kickProb){
+      this.anim={type:"kick",start:frameCount,dur:32}; this.cd2=now;
+      this._dealDmg(enemy,12,3,false); this._knockback(enemy,120);
+    } else if(now-this.cd3>rangedCD&&Math.random()<rangedProb){
+      this.anim={type:"ranged",start:frameCount,dur:34}; this.cd3=now;
+    } else if(now-this.cd4>specCD&&Math.random()<specProb&&!this.anim){
+      this.anim={type:"special",start:frameCount,dur:36}; this.cd4=now;
+      if(this.name==="grax"){
+        const healAmt=Math.floor(Math.random()*8)+8;
+        this.hp=Math.min(100,this.hp+healAmt);
+        if(dist<250) this._dealDmg(enemy,14,5,false); this._knockback(enemy,200);
+      }
+    }
     else if(
       now-this.cd5>12000 &&
       (diff==="hard"||diff==="medium") &&
@@ -2795,6 +2846,7 @@ class AttackOfZombies {
     this.fighter = new Fighter(frames, BASE_W/2, 800, this.playerChar, 1, "local");
     this.fighter.hp = 100;
     this.fighter._zombieMode = true; // ultra bloccata fino all'ultimo round
+    this.fighter._ownerZombies = this; // riferimento per meteore Yuke E
     this.startRound(1);
     showGamePad(isMobile);
   }

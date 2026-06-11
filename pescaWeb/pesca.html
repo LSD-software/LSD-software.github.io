@@ -638,6 +638,7 @@ function drawGame(now,dt){
 
 function drawRod(now){
   const {BX,BT,BB,bH,SH,eY}=ROD;
+  img("pesce-nascosto", "assets/ui/pesce.png");
   // fishing line
   ctx.save(); ctx.beginPath(); ctx.moveTo(VW*0.72,58);
   ctx.bezierCurveTo(VW*0.8,200,BX+5,BT-15,BX+5,eY);

@@ -15,9 +15,9 @@
     #rotateOverlay .icon{font-size:3.5rem;animation:rot 2s ease-in-out infinite}
     @keyframes rot{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
     @media(max-width:767px) and (orientation:portrait){#rotateOverlay{display:flex}#gameCanvas,#mobControls{display:none!important}}
-    #gameCanvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+    #gameCanvas{display:block;position:fixed;inset:0;width:100%;height:100%;z-index:1}
     /* ── HTML OVERLAYS ── */
-    .overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;padding:16px}
+    .overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;padding:16px}
     .overlay.hidden{display:none}
     .panel{background:linear-gradient(160deg,#0d001a,#1a0008);border:2px solid rgba(255,215,0,0.45);max-width:700px;width:100%;max-height:92vh;overflow-y:auto;padding:clamp(20px,4vw,40px);position:relative}
     .panel h2{font-family:'Cinzel',serif;color:#FFD700;letter-spacing:5px;text-align:center;font-size:clamp(1.1rem,3vw,1.6rem);margin-bottom:4px}
@@ -34,7 +34,8 @@
     .pbtn.danger:hover{background:#cc0000;color:#fff}
     .divider{border:none;border-top:1px solid rgba(255,215,0,0.15);margin:14px 0}
     /* Tutorial dots */
-    .tut-step{display:none}
+    .tut-step{ display:none !important }
+    .tut-step.active{ display:block !important }
     .tut-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
     .tut-dots{display:flex;gap:8px}
     .tut-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25);transition:background .2s}
@@ -114,7 +115,7 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .hidden{display:none!important}
     /* Catch badge */
-    #catchBadge{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);opacity:0;pointer-events:none;z-index:300;background:linear-gradient(160deg,#0d001a,#1a0008);border:3px solid #FFD700;padding:24px 32px;display:flex;align-items:center;gap:18px;min-width:280px;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .35s;box-shadow:0 0 40px rgba(255,215,0,.3)}
+    #catchBadge{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);opacity:0;pointer-events:none;z-index:600;background:linear-gradient(160deg,#0d001a,#1a0008);border:3px solid #FFD700;padding:24px 32px;display:flex;align-items:center;gap:18px;min-width:280px;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .35s;box-shadow:0 0 40px rgba(255,215,0,.3)}
     #catchBadge.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
     #catchBadge.rare{border-color:#4fc3f7;box-shadow:0 0 40px rgba(79,195,247,.4)}
     #catchBadge.mythic{border-color:#ce93d8;box-shadow:0 0 60px rgba(206,147,216,.6),0 0 20px rgba(206,147,216,.3)}
@@ -125,7 +126,7 @@
     #catchBadge .badge-text .badge-rarity{font-size:.68rem;letter-spacing:2px;text-transform:uppercase}
     #catchBadge .badge-text .badge-biome{font-size:.62rem;color:#666;letter-spacing:1px;margin-top:2px}
     /* Notification */
-    #notif{position:fixed;top:52px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.92);border:1px solid rgba(255,215,0,.35);color:#FFD700;font-size:.72rem;letter-spacing:1px;padding:7px 16px;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;max-width:300px;font-family:'Courier Prime',monospace}
+    #notif{position:fixed;top:52px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.92);border:1px solid rgba(255,215,0,.35);color:#FFD700;font-size:.72rem;letter-spacing:1px;padding:7px 16px;z-index:600;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;max-width:300px;font-family:'Courier Prime',monospace}
     #notif.show{opacity:1}
     /* Mobile buttons */
     #mobControls{display:none;position:fixed;right:10px;top:50%;transform:translateY(-50%);flex-direction:column;gap:6px;z-index:50}
@@ -947,6 +948,8 @@ canvas.addEventListener("mousemove",e=>{
   }
 });
 canvas.addEventListener("touchmove",e=>{
+  const anyOpen=[...document.querySelectorAll(".overlay")].some(el=>!el.classList.contains("hidden"));
+  if(anyOpen) return;
   e.preventDefault();
   const t=e.touches[0], v=toV(t.clientX,t.clientY); mouseVX=v.x; mouseVY=v.y;
   if(phase==="game"&&!ROD.captured){
@@ -987,7 +990,13 @@ function handleMobBtns(){
 
 // ── CLICK ─────────────────────────────────────────────────────
 canvas.addEventListener("click",e=>{const v=toV(e.clientX,e.clientY);handleClick(v.x,v.y);});
-canvas.addEventListener("touchend",e=>{e.preventDefault();const t=e.changedTouches[0],v=toV(t.clientX,t.clientY);handleClick(v.x,v.y);},{passive:false});
+canvas.addEventListener("touchend",e=>{
+  // Don't intercept if an overlay modal is open
+  const anyOpen=[...document.querySelectorAll(".overlay")].some(el=>!el.classList.contains("hidden"));
+  if(anyOpen) return;
+  e.preventDefault();
+  const t=e.changedTouches[0],v=toV(t.clientX,t.clientY);handleClick(v.x,v.y);
+},{passive:false});
 
 function handleClick(vx,vy){
   playClick();
@@ -1298,22 +1307,34 @@ function showAuthErr(id,msg){
 }
 
 // ── TUTORIAL ─────────────────────────────────────────────────
-let tutStep=0;
-const tutModal=document.getElementById("tutModal");
-const tutSteps=tutModal.querySelectorAll(".tut-step");
-const tutDotEls=tutModal.querySelectorAll(".tut-dot");
-function setTutStep(n){
-  tutStep=Math.max(0,Math.min(tutSteps.length-1,n));
-  tutSteps.forEach((s,i)=>{ s.style.display=i===tutStep?"block":"none"; });
-  tutDotEls.forEach((d,i)=>d.classList.toggle("active",i===tutStep));
-  document.getElementById("tutPrev").style.opacity=tutStep===0?"0.3":"1";
-  document.getElementById("tutNext").textContent=tutStep===tutSteps.length-1?"START FISHING →":"NEXT →";
+let tutStep = 0;
+const tutModal  = document.getElementById("tutModal");
+const tutSteps  = tutModal.querySelectorAll(".tut-step");
+const tutDotEls = tutModal.querySelectorAll(".tut-dot");
+
+function setTutStep(n) {
+  tutStep = Math.max(0, Math.min(tutSteps.length - 1, n));
+  tutSteps.forEach((s, i) => s.classList.toggle("active", i === tutStep));
+  tutDotEls.forEach((d, i) => d.classList.toggle("active", i === tutStep));
+  document.getElementById("tutPrev").style.opacity = tutStep === 0 ? "0.3" : "1";
+  document.getElementById("tutNext").textContent =
+    tutStep === tutSteps.length - 1 ? "START FISHING →" : "NEXT →";
 }
-document.getElementById("tutNext").onclick=function(){
-  if(tutStep>=tutSteps.length-1){ closeModal("tutModal"); localStorage.setItem("pesca_tut","1"); }
-  else setTutStep(tutStep+1);
-};
-document.getElementById("tutPrev").onclick=function(){ setTutStep(tutStep-1); };
+
+document.getElementById("tutNext").addEventListener("click", function() {
+  if (tutStep >= tutSteps.length - 1) {
+    closeModal("tutModal");
+    localStorage.setItem("pesca_tut", "1");
+  } else {
+    setTutStep(tutStep + 1);
+  }
+});
+
+document.getElementById("tutPrev").addEventListener("click", function() {
+  setTutStep(tutStep - 1);
+});
+
+// Init: make sure step 0 is active
 setTutStep(0);
 
 // ── SAVE HELPERS ──────────────────────────────────────────────

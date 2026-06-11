@@ -274,6 +274,9 @@
     if(dir > 0 && step >= steps.length-1){
       tut.style.display = "none";
       localStorage.setItem("pesca_tut","1");
+      // Re-enable canvas interactions
+      var cv = document.getElementById("gameCanvas");
+      if(cv) cv.style.pointerEvents = "auto";
     } else {
       show(Math.max(0, Math.min(steps.length-1, step+dir)));
     }
@@ -1439,7 +1442,14 @@ async function boot(){
   document.getElementById("setUser").textContent=Api.user()?.username||"Guest";
 
   // Tutorial
-  if(!localStorage.getItem("pesca_tut")){ document.getElementById("TUT").style.display="flex"; } else { document.getElementById("TUT").style.display="none"; syncCanvas(); }
+  if(!localStorage.getItem("pesca_tut")){
+    document.getElementById("TUT").style.display="flex";
+    // canvas stays pointer-events:none until user finishes tutorial
+    canvas.style.pointerEvents="none";
+  } else {
+    document.getElementById("TUT").style.display="none";
+    canvas.style.pointerEvents="auto";
+  }
 }
 
 boot();

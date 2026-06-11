@@ -1258,7 +1258,11 @@ class LSDAttackForceUE {
     if (this.socket) return;
     this.socket = io(API_URL+"/afue", {
       auth: { token: Auth.token, username: Auth.username() },
-      transports: ["websocket","polling"]
+      transports: ["polling","websocket"],   // polling first: connessione immediata
+      upgrade: true,
+      reconnectionDelay: 800,
+      reconnectionAttempts: 8,
+      timeout: 6000
     });
     this.socket.on("room_created",   d => { this.roomCode=d.code; this.playerIndex=0; this.waitingOpponent=true; });
     this.socket.on("opponent_joined",d => { this.waitingOpponent=false; this.opponentInfo=d; });
@@ -1428,7 +1432,23 @@ class LSDAttackForceUE {
       drawButton("⚔  LOCAL (2 Players)",BASE_W/2,370,400,85);
       drawButton("🤖  VS CPU",             BASE_W/2,490,400,85);
       drawButton("🌐  ONLINE",             BASE_W/2,610,400,85);
-      if(isButtonPressed(BASE_W/2,370,400,85)){ this.mode="local"; this.menuPhase="charSelect"; this.selectingFor=1; }
+      if(isButtonPressed(BASE_W/2,370,400,85)){
+        if(isMobile){
+          // Local non disponibile su mobile (richiede 2 tastiere fisiche)
+          this._localBlockMsg = millis();
+        } else {
+          this.mode="local"; this.menuPhase="charSelect"; this.selectingFor=1;
+        }
+      }
+      // Messaggio blocco local su mobile
+      if(this._localBlockMsg && millis()-this._localBlockMsg < 2500){
+        const alpha = Math.min(1,(millis()-this._localBlockMsg)/200);
+        ctx.save(); ctx.globalAlpha=alpha;
+        fillRoundRect(BASE_W/2-220,430,440,56,"#1a0000",1,10);
+        strokeRoundRect(BASE_W/2-220,430,440,56,"#cc2200",2,10);
+        fillText("⚠ LOCAL requires a physical keyboard",BASE_W/2,458,"#FF6644",18);
+        ctx.restore();
+      }
       if(isButtonPressed(BASE_W/2,490,400,85)){ this.mode="cpu";   this.menuPhase="cpuDiff"; }
       if(isButtonPressed(BASE_W/2,610,400,85)){
         if(!Auth.token){ showAuth(); return; }
@@ -1624,11 +1644,15 @@ class LSDAttackForceUE {
     drawImg(images.bg_fight,BASE_W/2,BASE_H/2);
     if(!this.fighter1||!this.fighter2) return;
 
-    // Online: invia i miei tasti e applica input ricevuto all'avversario
-    // playerIndex=0 (P1): locale=fighter1, avversario=fighter2
-    // playerIndex=1 (P2): locale=fighter2, avversario=fighter1
+    // Online: invia stato locale (throttled 30fps) e applica input avversario
     if(this.mode==="online"&&this.socket){
-      this.socket.emit("input", this._getLocalInput());
+      // Throttle: max 30 pacchetti/secondo per ridurre traffico e lag
+      const _now = Date.now();
+      if(!this._lastSend || _now-this._lastSend >= 33){
+        this._lastSend = _now;
+        this.socket.emit("input", this._getLocalInput());
+      }
+      // Applica input dell'avversario al suo fighter
       if(this.playerIndex===0){
         this.fighter2.applyNetworkInput(this.opponentInput);
       } else {
@@ -1647,8 +1671,12 @@ class LSDAttackForceUE {
     this._drawHUD();
 
     // ── VICTORY CHECK ─────────────────────────────────────
-    // fighter1 = LOCALE, fighter2 = AVVERSARIO (sempre)
-    // fighter1.hp<=0 → locale perde; fighter2.hp<=0 → locale vince
+    // Blocca subito se uno dei due ha 0 HP (anche durante ultra non ancora chiusa)
+    // Impedisce che si continuino ad applicare danni dopo la morte
+    if(!this._victoryRegistered){
+      if(this.fighter1) this.fighter1.hp = Math.max(0, this.fighter1.hp);
+      if(this.fighter2) this.fighter2.hp = Math.max(0, this.fighter2.hp);
+    }
     if(!this._victoryRegistered && !window._ultraPlaying){
       const p1Dead = this.fighter1.hp<=0; // P1 (sinistra) morto
       const p2Dead = this.fighter2.hp<=0; // P2 (destra) morto
@@ -1789,11 +1817,21 @@ class LSDAttackForceUE {
     fillRoundRect(80,50,300*hp1pct,44,hp1col,1,4);
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(80),sy(50),ss(300),ss(44)); ctx.restore();
 
-    // P1 ultra bar (red under HP)
-    const ult1pct = Math.min(1, (now - f1.cd5) / 12000);
+    // P1 ultra bar — si carica con la sequenza tasti (0→1)
+    const ult1pct = Math.min(1, f1._ultCharge||0);
+    const ult1ready = f1._ultCharge>=1;
     fillRoundRect(80,100,300,14,"#222",1,3);
-    fillRoundRect(80,100,300*ult1pct,14,ult1pct>=1?"#ff0000":"#880000",1,3);
-    if(ult1pct>=1) fillText("ULTRA READY!",230,107,"#ff0000",13);
+    if(ult1pct>0){
+      const ult1col = ult1ready ? "#FF0000" : (ult1pct>0.6?"#FF4400":"#AA0000");
+      fillRoundRect(80,100,300*ult1pct,14,ult1col,1,3);
+      // Glow quando piena
+      if(ult1ready){
+        ctx.save(); ctx.shadowColor="#FF0000"; ctx.shadowBlur=ss(12);
+        fillRoundRect(80,100,300,14,"#FF0000",0.3,3);
+        ctx.restore();
+        fillText("⚡ ULTRA!",230,107,"#FF0000",13);
+      }
+    }
 
     // ── P2 HP bar
     setFont(36,"right"); ctx.fillStyle=p2col; ctx.fillText(p2label,sx(BASE_W-80),sy(22));
@@ -1804,11 +1842,21 @@ class LSDAttackForceUE {
     fillRoundRect(BASE_W-380+(300-hp2w),50,hp2w,44,hp2col,1,4);
     ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(BASE_W-380),sy(50),ss(300),ss(44)); ctx.restore();
 
-    // P2 ultra bar
-    const ult2pct = Math.min(1, (now - f2.cd5) / 12000);
+    // P2 ultra bar — si carica con la sequenza tasti
+    const ult2pct = Math.min(1, f2._ultCharge||0);
+    const ult2ready = f2._ultCharge>=1;
     fillRoundRect(BASE_W-380,100,300,14,"#222",1,3);
-    fillRoundRect(BASE_W-380+(300*(1-ult2pct)),100,300*ult2pct,14,ult2pct>=1?"#ff0000":"#880000",1,3);
-    if(ult2pct>=1) fillText("ULTRA READY!",BASE_W-230,107,"#ff0000",13);
+    if(ult2pct>0){
+      const ult2col = ult2ready ? "#FF0000" : (ult2pct>0.6?"#FF4400":"#AA0000");
+      // P2 barra cresce da destra a sinistra
+      fillRoundRect(BASE_W-380+(300*(1-ult2pct)),100,300*ult2pct,14,ult2col,1,3);
+      if(ult2ready){
+        ctx.save(); ctx.shadowColor="#FF0000"; ctx.shadowBlur=ss(12);
+        fillRoundRect(BASE_W-380,100,300,14,"#FF0000",0.3,3);
+        ctx.restore();
+        fillText("⚡ ULTRA!",BASE_W-230,107,"#FF0000",13);
+      }
+    }
 
     // VS
     fillText("VS",BASE_W/2,55,"#a10000",72);
@@ -1924,23 +1972,29 @@ class Fighter {
 
   keyPress(k) {
     const ku = k.toLowerCase();
-    // Tasti che fanno parte di qualche combo — non resettare il tracker
     const comboKeys = new Set([...this.ultSeq, ...this.ultSeqAlt]);
 
-    // Ultra sequence check (main combo)
+    // ── Combo principale ──────────────────────────────────
     if(ku===this.ultSeq[this.ultIdx]){
       this.ultIdx++;
-      if(this.ultIdx>=this.ultSeq.length){ this._triggerUltra(); this.ultIdx=0; }
+      // Aggiorna barra carica visiva (0→1 in base ai passi completati)
+      this._ultCharge = this.ultIdx / this.ultSeq.length;
+      if(this.ultIdx>=this.ultSeq.length){
+        this._triggerUltra(); this.ultIdx=0; this._ultCharge=0;
+      }
     } else if(!comboKeys.has(ku)){
-      // Tasto estraneo alla combo: resetta
-      this.ultIdx=0;
+      this.ultIdx=0; this._ultCharge=0;
     } else if(ku===this.ultSeq[0]){
-      this.ultIdx=1;
+      this.ultIdx=1; this._ultCharge=1/this.ultSeq.length;
     }
-    // Alt combo
+
+    // ── Combo alternativa ─────────────────────────────────
     if(ku===this.ultSeqAlt[this.ultIdxAlt]){
       this.ultIdxAlt++;
-      if(this.ultIdxAlt>=this.ultSeqAlt.length){ this._triggerUltra(); this.ultIdxAlt=0; }
+      this._ultCharge = Math.max(this._ultCharge||0, this.ultIdxAlt/this.ultSeqAlt.length);
+      if(this.ultIdxAlt>=this.ultSeqAlt.length){
+        this._triggerUltra(); this.ultIdxAlt=0; this._ultCharge=0;
+      }
     } else if(!comboKeys.has(ku)){
       this.ultIdxAlt=0;
     } else if(ku===this.ultSeqAlt[0]){
@@ -1949,22 +2003,27 @@ class Fighter {
   }
 
   _triggerUltra(onDone) {
-    if(millis()-this.cd5 < 12000) return;
     if(window._ultraPlaying) return;
     if(this._zombieUltraLocked) return; // bloccata nei round 1-9 zombie mode
-    // NUOVA REGOLA: Ultra eseguibile SOLO se il nemico ha <50% HP
-    // _ownerAfue tiene il riferimento all'istanza LSDAfue
+    // Ultra eseguibile SOLO se il nemico ha ≤30% HP
+    let enemy = null;
     if(this._ownerAfue){
       const f1=this._ownerAfue.fighter1, f2=this._ownerAfue.fighter2;
-      const enemy = (f1===this) ? f2 : f1;
-      if(enemy && enemy.hp >= (enemy.maxHp||200)*0.5){
-        // Feedback visivo: lampeggio rosso "NOT YET"
-        if(!this._ultraBlockedMsg) this._ultraBlockedMsg=0;
-        this._ultraBlockedMsg = millis();
-        return;
-      }
+      enemy = (f1===this) ? f2 : f1;
+    } else if(this._ownerZombies){
+      // in zombie mode: il "nemico" più vicino
+      const zl = this._ownerZombies.zombieList;
+      if(zl && zl.length>0) enemy = zl.reduce((a,b)=>b.hp>0&&Math.abs(b.x-this.x)<Math.abs(a.x-this.x)?b:a, zl[0]);
     }
+    if(enemy && enemy.hp > (enemy.maxHp||100)*0.30){
+      this._ultraBlockedMsg = millis();
+      this._ultCharge = 0; this.ultIdx=0; this.ultIdxAlt=0;
+      return;
+    }
+    // Cooldown ultra: 20 secondi (raro, prezioso)
+    if(millis()-this.cd5 < 20000) return;
     this.ultActive=true; this.ultIdx=0; this.ultIdxAlt=0;
+    this._ultCharge=0;
     this.cd5=millis();
     window._ultraPlaying = true;
     // YouTube embed con autoplay — molto più affidabile di Drive
@@ -2051,18 +2110,22 @@ class Fighter {
   }
 
   applyNetworkInput(inp) {
-    if(!inp){ this._netKeys={}; return; }
-    // ARCHITETTURA ONLINE: riceviamo i tasti dell'avversario.
-    // Ogni client calcola HP autonomamente tramite _dealDmg locale.
-    // Non sincronizziamo HP dalla rete per evitare conflitti.
-    // Sincronizziamo solo: posizione X (movimento) e tasti (azioni).
+    if(!inp) return;
+    // Aggiorna i tasti ricevuti dalla rete (usati in update() per muovere il fighter)
     this._netKeys = inp;
-    // Sincronizza posizione X dell'avversario (source of truth del mittente)
+    // Correzione posizione: soft lerp verso X autorevole del mittente
+    // Evita teleport bruschi ma corregge deriva in ~3 frame
     if(inp.x !== null && inp.x !== undefined){
-      this.x = inp.x;
+      const diff = inp.x - this.x;
+      if(Math.abs(diff) > 80){
+        // Grande discrepanza: correggi subito (teletrasporto dietro ostacolo)
+        this.x = inp.x;
+      } else if(Math.abs(diff) > 2){
+        // Piccola discrepanza: lerp morbido
+        this.x += diff * 0.35;
+      }
     }
-    // HP NON sincronizzato — ogni client è authority per i danni subiti localmente.
-    // Sincronizza frame animazione (visuale fluidità)
+    // Sincronizza frame animazione per visuale fluida
     if(inp.fr !== undefined) this._remoteFrame = inp.fr;
     if(inp.an !== undefined) this._remoteAnim  = inp.an;
   }
@@ -2075,18 +2138,9 @@ class Fighter {
     // Aggiorna sempre il facing verso il nemico
     this.facing = (enemy.x > this.x) ? 1 : -1;
 
-    // Fighter di rete: la posizione X arriva da applyNetworkInput (source of truth).
-    // Facciamo girare il loop completo usando _netKeys ricevuti dalla rete,
-    // così le animazioni, proiettili e danni vengono simulati localmente.
-    // Il movimento fisico (x) è ignorato perché x viene sovrascritto da applyNetworkInput.
-    // Salviamo e ripristiniamo x dopo update per non lasciare che la simulazione locale
-    // sovrascriva la posizione autorevole del mittente.
-    if(this._isNetworkFighter){
-      const savedX = this.x; // posizione già aggiornata da applyNetworkInput
-      // Prosegue con il loop completo (vedi sotto) usando _netKeys
-      // Al termine usiamo savedX se non si è spostato da remoto nell'ultimo frame
-      this._networkSavedX = savedX;
-    }
+    // Fighter di rete: usa _netKeys ricevuti via rete per simulare il movimento
+    // localmente. La X viene corretta morbidamente da applyNetworkInput (lerp).
+    // Nessun blocco — il fighter di rete si muove esattamente come uno locale.
 
     if(this.mode==="cpu"&&this.playerNum===2){ this._cpuUpdate(enemy, now, t); return; }
 
@@ -2248,29 +2302,19 @@ class Fighter {
       specKey   = !!(keys["e"]||keys["E"]);
     }
 
-    // Movement (slower, more deliberate)
-    // Per il fighter di rete: la X è già aggiornata da applyNetworkInput (source of truth).
-    // Aggiorniamo solo il frame animazione per la visuale, senza spostare x localmente.
-    if(this._isNetworkFighter){
-      if(!this.anim){
-        if(rightKey) this.frame=t<15?1:2;
-        else if(leftKey) this.frame=t<=15?2:0;
-        else this.frame=0;
-      }
-      // Ripristina X autorevole (non lasciare che knockback o altro la sovrascriva)
-      if(this._networkSavedX !== undefined) this.x = this._networkSavedX;
-    } else {
-      if(!this.anim){
-        if(rightKey){ this.x=Math.min(this.x+3,BASE_W-80); this.frame=t<15?1:2; }
-        else if(leftKey){ this.x=Math.max(this.x-3,80); this.frame=t<=15?2:0; }
-        else this.frame=0;
-      }
+    // Movement — uguale per fighter locale e di rete
+    // Il fighter di rete usa _netKeys (ricevuti via socket) come leftKey/rightKey.
+    // La posizione X viene corretta morbidamente da applyNetworkInput ogni frame.
+    if(!this.anim){
+      if(rightKey){ this.x=Math.min(this.x+3,BASE_W-80); this.frame=t<15?1:2; }
+      else if(leftKey){ this.x=Math.max(this.x-3,80); this.frame=t<=15?2:0; }
+      else this.frame=0;
+    }
 
-      // Push-apart: impedisce sovrapposizione (solo fighter locale)
-      const overlap=100;
-      if(Math.abs(this.x-enemy.x)<overlap){
-        this.x += this.x<enemy.x ? -1 : +1;
-      }
+    // Push-apart: impedisce sovrapposizione
+    const overlap=100;
+    if(Math.abs(this.x-enemy.x)<overlap){
+      this.x += this.x<enemy.x ? -1 : +1;
     }
 
     this.blocking=blockKey; if(blockKey) this.frame=7;
@@ -2305,32 +2349,47 @@ class Fighter {
       }
       else { this._dealDmg(enemy,14,5,true); /* meteora launched in anim */ }
     }
-    // Ultra kill: applica 60 di danno all'avversario dopo il video
+    // Ultra: applica 40 di danno dopo il video
     if(this.ultKill && !window._ultraPlaying){
-      const ultraDmg=80;
-      enemy.hp=Math.max(0,enemy.hp-ultraDmg);
+      const ultraDmg = 40;
+      enemy.hp = Math.max(0, enemy.hp - ultraDmg);
       if(!enemy._dmgNumbers) enemy._dmgNumbers=[];
       enemy._dmgNumbers.push({ val:ultraDmg, x:enemy.x, y:enemy.y-200, vy:-3, alpha:1, life:0, maxLife:60, col:"#FF0000" });
       enemy._spawnHitParticles("special", ultraDmg);
-      this.ultKill=false;
-      // Forza check vittoria immediato dopo ultra
-      if(this._ownerAfue && enemy.hp<=0){
-        const afue = this._ownerAfue;
-        if(!afue.victory){
-          const p1Won = (this===afue.fighter1);
-          afue.victory=true;
-          afue.winner = p1Won ? (afue.fighter1.name.toUpperCase()) : (afue.fighter2.name.toUpperCase());
-          afue.localWon = (afue.mode==="online")
-            ? (afue.playerIndex===0 ? p1Won : !p1Won)
-            : p1Won;
-          if(!afue._victoryRegistered){
-            afue._victoryRegistered=true;
+      this.ultKill = false;
+
+      // Vittoria: solo se il nemico ha 0 HP. Vince CHI HA FATTO l'ultra.
+      if(enemy.hp <= 0){
+        // Zombie mode: gestione separata
+        if(this._ownerZombies){
+          // non applicabile qui — la vittoria zombie è gestita dal game loop
+        } else if(this._ownerAfue){
+          const afue = this._ownerAfue;
+          if(!afue.victory && !afue._victoryRegistered){
+            afue._victoryRegistered = true;
+            afue.victory = true;
+            // Chi ha fatto l'ultra? this è il fighter attaccante.
+            const attackerIsF1 = (this === afue.fighter1);
+            afue.winner = attackerIsF1
+              ? afue.fighter1.name.toUpperCase()
+              : afue.fighter2.name.toUpperCase();
+            // localWon: vince il giocatore che controlla questo fighter
+            if(afue.mode==="online"){
+              const localFighterIsF1 = (afue.playerIndex===0);
+              afue.localWon = (attackerIsF1 === localFighterIsF1);
+            } else {
+              // locale/cpu: P1 usa fighter1
+              afue.localWon = attackerIsF1;
+            }
+            if(afue.localWon && game) game.trophies[13]=true;
             if(afue.mode==="online" && afue.socket){
-              afue.socket.emit("round_result",{ winnerIndex: p1Won?0:1 });
+              const winnerIndex = attackerIsF1 ? 0 : 1;
+              afue.socket.emit("round_result", { winnerIndex });
             }
           }
         }
       }
+      // Se l'ultra non uccide: il combattimento continua normalmente
     }
   }
 
@@ -2860,7 +2919,7 @@ class AttackOfZombies {
     }
     // Ultra sbloccata solo all'ultimo round (round 10)
     if(this.fighter) {
-      this.fighter._zombieUltraLocked = (r < 10);
+      this.fighter._zombieUltraLocked = (r < 9); // ultra disponibile solo round 9 e 10
       // Reset proiettili attivi tra i round
       this.fighter.projActive  = false;
       this.fighter.proj2Active = false;
@@ -2887,6 +2946,23 @@ class AttackOfZombies {
 
     drawImg(images.bg_zombies, BASE_W/2, BASE_H/2);
 
+    // Chiazze di sangue persistenti a terra
+    if(this._bloodSplats){
+      this._bloodSplats = this._bloodSplats.filter(s=>{
+        s.life++;
+        s.alpha = Math.max(0, 0.55*(1-s.life/s.maxLife));
+        if(s.alpha<=0) return false;
+        ctx.save();
+        ctx.globalAlpha=s.alpha;
+        ctx.fillStyle="#660000";
+        ctx.beginPath();
+        ctx.ellipse(sx(s.x),sy(s.y),ss(s.r),ss(s.r*0.38),0,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        return true;
+      });
+    }
+
     // ── HUD — vita giocatore (stile AFUE) ─────────────────────
     this._drawHUD();
 
@@ -2895,7 +2971,7 @@ class AttackOfZombies {
     fillText(`Zombies: ${this.zombieList.length}`, BASE_W/2, 128, "#baa701", 22);
     // Ultra: sbloccata solo al round 10
     if(this.fighter && this.fighter._zombieUltraLocked){
-      fillText("⚡ ULTRA unlocks at Round 10", BASE_W/2, 158, "#555", 18);
+      fillText("⚡ ULTRA unlocks at Round 9", BASE_W/2, 158, "#555", 18);
     } else if(this.fighter && !this.fighter._zombieUltraLocked){
       fillText("⚡ ULTRA UNLOCKED!", BASE_W/2, 158, "#ff4400", 20);
     }
@@ -2980,21 +3056,83 @@ class AttackOfZombies {
         }
       }
       if(z.hp<=0){
-        this.zombieList.splice(i,1);
-        // Se non ci sono più zombie, avanza al round successivo
-        if(this.zombieList.length===0){
-          if(this.round>=10){
-            this.victory=true; this.winner=this.playerChar;
-            this.victoryTime=millis();
-            if(game) game.trophies[11]=true;
-          } else {
-            this.startRound(this.round+1);
+        // Animazione morte: sangue + vapore (rimane visibile qualche frame)
+        if(!z._dying){
+          z._dying = true;
+          z._dyingLife = 0;
+          z._dyingMaxLife = 42;
+          // Carica ultra del fighter
+          if(this.fighter){
+            this.fighter._ultCharge = Math.min(1,(this.fighter._ultCharge||0)+0.25);
+          }
+          // Particelle morte
+          if(!z._deathParticles) z._deathParticles=[];
+          // Sangue
+          for(let pi=0;pi<20;pi++){
+            const ang=Math.PI+(Math.random()-0.5)*Math.PI*1.2;
+            const spd=Math.random()*6+2;
+            z._deathParticles.push({
+              x:z.x+(Math.random()-0.5)*50, y:z.y-50,
+              vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-1,
+              r:Math.random()*9+4, alpha:1,
+              col:Math.random()<0.65?"#880000":"#cc2200",
+              life:0, maxLife:38+Math.floor(Math.random()*18)
+            });
+          }
+          // Vapore scuro
+          for(let pi=0;pi<10;pi++){
+            z._deathParticles.push({
+              x:z.x+(Math.random()-0.5)*40, y:z.y-80,
+              vx:(Math.random()-0.5)*1.8, vy:-(Math.random()*2.5+1),
+              r:Math.random()*16+8, alpha:0.65,
+              col:"#1a3300",
+              life:0, maxLife:42+Math.floor(Math.random()*14), vapor:true
+            });
+          }
+        }
+        // Anima e rimuovi dopo maxLife
+        if(z._dying){
+          z._dyingLife++;
+          // Disegna le particelle morte (senza il corpo)
+          if(z._deathParticles){
+            z._deathParticles = z._deathParticles.filter(p=>{
+              p.x+=p.vx; p.y+=p.vy; p.vy+=p.vapor?-0.05:0.3; p.life++;
+              p.alpha=1-p.life/p.maxLife;
+              if(p.alpha<=0) return false;
+              ctx.save();
+              ctx.globalAlpha=p.alpha;
+              if(p.vapor){ ctx.filter=`blur(${ss(4)}px)`; }
+              ctx.fillStyle=p.col;
+              ctx.beginPath(); ctx.arc(sx(p.x),sy(p.y),ss(p.r),0,Math.PI*2); ctx.fill();
+              if(p.vapor) ctx.filter="none";
+              ctx.restore();
+              return true;
+            });
+          }
+          if(z._dyingLife>=z._dyingMaxLife){
+            // Chiazza di sangue a terra (persistente)
+            if(!this._bloodSplats) this._bloodSplats=[];
+            this._bloodSplats.push({x:z.x, y:z.y, r:28+Math.random()*16, alpha:0.55, life:0, maxLife:300});
+            this.zombieList.splice(i,1);
+            // Se non ci sono più zombie vivi (o in dying)
+            const aliveOrDying = this.zombieList.filter(zz=>!zz._dying||zz._dyingLife<zz._dyingMaxLife);
+            if(this.zombieList.length===0){
+              if(this.round>=10){
+                this.victory=true; this.winner=this.playerChar;
+                this.victoryTime=millis();
+                if(game) game.trophies[11]=true;
+              } else {
+                this.startRound(this.round+1);
+              }
+            }
           }
         }
       }
     }
 
-    // Giocatore morto
+    // Clamp HP a 0 (no danni extra post-morte)
+    if(this.fighter) this.fighter.hp = Math.max(0, this.fighter.hp);
+    // Giocatore morto: game over immediato
     if(this.fighter && this.fighter.hp<=0 && !this.victory){
       this.victory=true; this.winner="Zombies"; this.victoryTime=millis();
     }

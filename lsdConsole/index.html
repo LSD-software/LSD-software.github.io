@@ -2394,43 +2394,93 @@ class Fighter {
   }
 
   _launchGraxCube(enemy) {
-    // Particle burst traveling to enemy
-    this.graxCubeActive=true;
-    this.graxCubeX=this.x+this.facing*80;
-    this.graxCubeY=this.y-120;
-    this._graxTarget={x:enemy.x, y:enemy.y-120};
-    this.graxCubeParts=[];
-    for(let i=0;i<12;i++){
+    this.graxCubeActive = true;
+    this.graxCubeX = this.x + this.facing*80;
+    this.graxCubeY = this.y - 120;
+    this._graxTarget = {x: enemy.x, y: (enemy.y||800)-120};
+    this.graxCubeParts = [];
+    // 3 sfere che orbitano attorno al centro — come in AFUE
+    for(let i=0;i<3;i++){
+      const ang = (i/3)*Math.PI*2;
       this.graxCubeParts.push({
-        ox:0, oy:0,
-        vx:(Math.random()-0.5)*6, vy:-(Math.random()*4+2),
-        r:Math.random()*16+6, alpha:1,
-        col:`hsl(${20+Math.random()*40},100%,${50+Math.random()*20}%)`
+        orbitAng: ang,
+        orbitR: 22,
+        orbitSpeed: 0.18,
+        r: 8 + Math.random()*4,
+        alpha: 1,
+        col: [`#FF6600`,`#FF3300`,`#FFAA00`][i]
       });
     }
-    this._graxCubeMoved=false;
-    this._graxCubeStart=millis();
-    this._graxEnemy=enemy;
+    // Particelle scia aggiuntive
+    for(let i=0;i<9;i++){
+      this.graxCubeParts.push({
+        ox:0, oy:0,
+        vx:(Math.random()-0.5)*5, vy:-(Math.random()*3+1),
+        r: Math.random()*7+3, alpha:1,
+        col:`hsl(${20+Math.random()*40},100%,${50+Math.random()*20}%)`,
+        trail:true
+      });
+    }
+    this._graxCubeMoved = false;
+    this._graxCubeStart = millis();
+    this._graxEnemy = enemy;
+    // In zombie mode: salva riferimento allo zombie target per la hit
+    this._graxZombieTarget = (this._ownerZombies && enemy.name==="zombie") ? enemy : null;
   }
   _updateGraxCube(enemy, now) {
-    const elapsed=(now-this._graxCubeStart)/1000;
-    const dur=0.7;
-    if(elapsed>=dur){
-      // On hit
+    const elapsed = (now-this._graxCubeStart)/1000;
+    const dur = 0.65;
+    if(elapsed >= dur){
       if(!this._graxCubeMoved){
-        this._graxCubeMoved=true;
-        if(!enemy.blocking) this._dealDmg(enemy,20,6,false); this._knockback(enemy,160);
+        this._graxCubeMoved = true;
+        // In zombie mode: colpisci lo zombie target direttamente
+        if(this._graxZombieTarget && this._ownerZombies){
+          const zt = this._graxZombieTarget;
+          if(zt.hp > 0){
+            zt.hp = Math.max(0, zt.hp - 20);
+            if(!zt.hitParticles) zt.hitParticles=[];
+            for(let pi=0;pi<16;pi++){
+              const ang=Math.random()*Math.PI*2, spd=Math.random()*5+2;
+              zt.hitParticles.push({
+                x:zt.x+(Math.random()-0.5)*50, y:zt.y-120+(Math.random()-0.5)*60,
+                vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd-3,
+                r:Math.random()*7+3, alpha:1,
+                col:["#FF6600","#FF3300","#FFAA00"][Math.floor(Math.random()*3)],
+                life:0, maxLife:22
+              });
+            }
+            zt._hitFlash = 8;
+            if(!zt.dmgTexts) zt.dmgTexts=[];
+            zt.dmgTexts.push({val:20, x:zt.x, y:zt.y-200, life:0, maxLife:40});
+          }
+        } else {
+          // Modalità normale AFUE
+          if(!enemy.blocking) this._dealDmg(enemy,20,6,false);
+          this._knockback(enemy,160);
+        }
       }
-      this.graxCubeActive=false;
+      this.graxCubeActive = false;
       return;
     }
-    const pct=elapsed/dur;
-    const tx=this._graxTarget.x, ty=this._graxTarget.y;
-    this.graxCubeX=this.x+this.facing*80+(tx-(this.x+this.facing*80))*pct;
-    this.graxCubeY=(this.y-120)+(ty-(this.y-120))*pct - Math.sin(pct*Math.PI)*80;
-    // Update particles
+    const pct = elapsed/dur;
+    const sx0 = this.x + this.facing*80;
+    const sy0 = this.y - 120;
+    const tx  = this._graxTarget.x;
+    const ty  = this._graxTarget.y;
+    // Traiettoria ad arco
+    this.graxCubeX = sx0 + (tx-sx0)*pct;
+    this.graxCubeY = sy0 + (ty-sy0)*pct - Math.sin(pct*Math.PI)*90;
+    // Aggiorna sfere orbitanti
     this.graxCubeParts.forEach(p=>{
-      p.ox+=p.vx; p.oy+=p.vy; p.vy+=0.3; p.alpha=1-pct;
+      if(p.trail){
+        p.ox+=p.vx; p.oy+=p.vy; p.vy+=0.25; p.alpha=Math.max(0,1-pct*1.4);
+      } else {
+        // Sfera orbitante: ruota attorno al centro
+        p.orbitAng += p.orbitSpeed;
+        p.ox = Math.cos(p.orbitAng) * p.orbitR;
+        p.oy = Math.sin(p.orbitAng) * p.orbitR * 0.5;
+        p.alpha = 1;
+      }
     });
   }
 
@@ -2729,26 +2779,29 @@ class Fighter {
       });
     }
 
-    // Grax: particle cube going to enemy
-    if (this.graxCubeActive) {
+    // Grax Q: sfere di fuoco orbitanti + core
+    if(this.graxCubeActive){
+      // Core centrale pulsante
+      ctx.save();
+      const pulse = 0.85 + 0.15*Math.sin(frameCount*0.25);
+      ctx.fillStyle="#FF8C00";
+      ctx.shadowColor="#FF4400"; ctx.shadowBlur=ss(24*pulse);
+      ctx.beginPath();
+      ctx.arc(sx(this.graxCubeX),sy(this.graxCubeY),ss(13*pulse),0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+      // Sfere orbitanti e scia
       this.graxCubeParts.forEach(p=>{
+        if(p.alpha<=0) return;
         ctx.save();
         ctx.globalAlpha=Math.max(0,p.alpha);
         ctx.fillStyle=p.col;
-        ctx.shadowColor=p.col; ctx.shadowBlur=ss(8);
+        ctx.shadowColor=p.col; ctx.shadowBlur=ss(p.trail?6:14);
         ctx.beginPath();
         ctx.arc(sx(this.graxCubeX+p.ox),sy(this.graxCubeY+p.oy),ss(p.r),0,Math.PI*2);
         ctx.fill();
         ctx.restore();
       });
-      // Core orb
-      ctx.save();
-      ctx.fillStyle="#FF8C00";
-      ctx.shadowColor="#FF4400"; ctx.shadowBlur=ss(20);
-      ctx.beginPath();
-      ctx.arc(sx(this.graxCubeX),sy(this.graxCubeY),ss(14),0,Math.PI*2);
-      ctx.fill();
-      ctx.restore();
     }
     // Blocking visual
     if(this.blocking){
@@ -2983,11 +3036,16 @@ class AttackOfZombies {
       }, null);
       // fakeEnemy: usiamo lo zombie più vicino come target del fighter
       // x impostato lontano così i proiettili volano liberamente e colpiti dal loop sopra
+      // fakeEnemy punta allo zombie più vicino — usato da _launchGraxCube
+      // per sapere dove tirare e per _graxZombieTarget (hit diretta)
       const fakeEnemy = nearestZ
-        ? {x:nearestZ.x, hp:nearestZ.hp, blocking:false, name:"zombie",
-           facing:nearestZ.facing, cd4:0, cd5:0, hp:100}
-        : {x:this.fighter.facing>0 ? BASE_W+200 : -200,
+        ? {x:nearestZ.x, y:nearestZ.y||800, hp:nearestZ.hp, blocking:false,
+           name:"zombie", facing:nearestZ.facing, cd4:0, cd5:0,
+           _zombieRef: nearestZ}   // riferimento reale per la hit
+        : {x:this.fighter.facing>0 ? BASE_W+200 : -200, y:800,
            hp:100, blocking:false, name:"zombie", facing:1, cd4:0, cd5:0};
+      // Passa il riferimento reale allo zombie per la hit del cubo
+      if(nearestZ) this.fighter._graxZombieTarget = nearestZ;
       this.fighter.update(fakeEnemy);
       this.fighter.drawChar(1);
     }

@@ -156,61 +156,132 @@
 </div>
 <div id="notif"></div>
 
-<!-- ══ TUTORIAL ══ -->
-<div id="tutModal" class="overlay">
-  <div class="panel" style="max-width:640px">
-    <h2>P-E-S-C-A</h2>
-    <div class="sub">LSD Software Fishing Game</div>
-    <div class="tut-step active" data-step="0">
-      <p>Welcome to <strong style="color:#FFD700">LSD P-E-S-C-A</strong>, the retro fishing simulator by LSD Software. Cast your line, catch fish across 4 biomes, and climb the global leaderboard.</p>
-      <ul>
-        <li><span>◈ Dobloni</span> — in-game currency earned by selling fish</li>
-        <li><span>4 Biomes</span> — River (free), Sea (10◈), Ocean (20◈), Arctic (50◈)</li>
-        <li><span>Leaderboard</span> — ranked by total fish caught</li>
+<!-- ══ TUTORIAL — standalone, no game JS dependency ══ -->
+<div id="TUT" style="
+  position:fixed;inset:0;z-index:9000;
+  background:rgba(0,0,0,0.93);
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  font-family:'Courier Prime',monospace;
+">
+  <div style="
+    background:linear-gradient(160deg,#0d001a,#1a0008);
+    border:2px solid rgba(255,215,0,0.5);
+    max-width:600px;width:100%;
+    max-height:88vh;overflow-y:auto;
+    padding:32px 28px;
+    position:relative;
+  ">
+    <h2 style="font-family:'Cinzel',serif;color:#FFD700;letter-spacing:5px;text-align:center;font-size:1.4rem;margin-bottom:4px">P-E-S-C-A</h2>
+    <div style="color:#800000;text-align:center;font-size:0.7rem;letter-spacing:3px;margin-bottom:20px;text-transform:uppercase">LSD Software Fishing Game</div>
+
+    <!-- Step 0 -->
+    <div id="TS0">
+      <p style="color:#ccc;font-size:0.85rem;line-height:1.7;margin-bottom:10px">Welcome to <strong style="color:#FFD700">LSD P-E-S-C-A</strong>, the retro fishing simulator by LSD Software. Cast your line, catch fish across 4 biomes, and climb the global leaderboard.</p>
+      <ul style="color:#ccc;font-size:0.82rem;line-height:1.9;padding-left:18px;margin-bottom:14px">
+        <li><strong style="color:#FFD700">◈ Dobloni</strong> — in-game currency earned by selling fish</li>
+        <li><strong style="color:#FFD700">4 Biomes</strong> — River (free), Sea (10◈), Ocean (20◈), Arctic (50◈)</li>
+        <li><strong style="color:#FFD700">Leaderboard</strong> — ranked by total fish caught</li>
       </ul>
-      <p style="font-size:.78rem;color:#888">Playing as guest? Progress is saved in your browser. <strong style="color:#FFD700">Log in</strong> from the Settings menu at any time to sync it to your account permanently.</p>
+      <p style="font-size:.78rem;color:#888;line-height:1.6">Playing as guest? Progress saves in your browser. <strong style="color:#FFD700">Log in</strong> from Settings to sync to your account permanently.</p>
     </div>
-    <div class="tut-step" data-step="1">
-      <p><strong style="color:#FFD700">HOW TO FISH</strong></p>
-      <p>A vertical fishing bar appears on the right side of the screen. A fish icon moves up and down — keep your <span style="color:#ff4444;font-weight:700">red slider</span> overlapping it for <strong>3 seconds</strong> to catch it.</p>
-      <ul>
-        <li><span>↑ / ↓  or  W / S</span> — move slider (keyboard)</li>
-        <li><span>Mouse / Touch</span> — drag slider to position</li>
-        <li><span>▲ ▼ buttons</span> — mobile on-screen controls</li>
+
+    <!-- Step 1 -->
+    <div id="TS1" style="display:none">
+      <p style="color:#FFD700;font-weight:700;font-size:0.9rem;margin-bottom:10px">HOW TO FISH</p>
+      <p style="color:#ccc;font-size:0.85rem;line-height:1.7;margin-bottom:10px">A vertical fishing bar appears on the right. A fish moves up and down — keep your <span style="color:#ff4444;font-weight:700">red slider</span> overlapping it for <strong style="color:#fff">3 seconds</strong> to catch it.</p>
+      <ul style="color:#ccc;font-size:0.82rem;line-height:1.9;padding-left:18px;margin-bottom:14px">
+        <li><strong style="color:#FFD700">↑ / ↓ or W / S</strong> — move slider (keyboard)</li>
+        <li><strong style="color:#FFD700">Mouse / Touch drag</strong> — drag slider to position</li>
+        <li><strong style="color:#FFD700">▲ ▼ buttons</strong> — mobile on-screen controls</li>
       </ul>
-      <p>Rarer fish move faster and more unpredictably. Common fish bounce simply; Rare fish add sudden bursts; Mythic fish use erratic sine-wave patterns.</p>
+      <p style="color:#ccc;font-size:0.82rem;line-height:1.7">Rarer fish move faster and more unpredictably.</p>
     </div>
-    <div class="tut-step" data-step="2">
-      <p><strong style="color:#FFD700">FISH RARITIES & SPAWN RATES</strong></p>
-      <ul>
-        <li><span style="color:#aaa">● Common</span> — fish 1–6 · 60% chance · sell for 1◈ each</li>
-        <li><span style="color:#4fc3f7">◆ Rare</span> — fish 7–9 · 28% chance · sell for 5◈ each</li>
-        <li><span style="color:#ce93d8">★ Mythic</span> — fish 10 · 8% chance · sell for 10◈ each</li>
-        <li><span style="color:#FFD700">📼 VHS Tape</span> — mysterious object · 4% chance · one per biome</li>
+
+    <!-- Step 2 -->
+    <div id="TS2" style="display:none">
+      <p style="color:#FFD700;font-weight:700;font-size:0.9rem;margin-bottom:10px">FISH RARITIES & SPAWN RATES</p>
+      <ul style="font-size:0.85rem;line-height:2;padding-left:18px;margin-bottom:14px">
+        <li style="color:#aaa">● <strong>Common</strong> — fish 1–6 · 60% chance · sell for 1◈</li>
+        <li style="color:#4fc3f7">◆ <strong>Rare</strong> — fish 7–9 · 28% chance · sell for 5◈</li>
+        <li style="color:#ce93d8">★ <strong>Mythic</strong> — fish 10 · 8% chance · sell for 10◈</li>
+        <li style="color:#FFD700">📼 <strong>VHS Tape</strong> — mysterious · 4% chance · one per biome</li>
       </ul>
-      <p>Every species you catch is logged in your <strong style="color:#FFD700">Field Log</strong> (backpack icon in Shop).</p>
+      <p style="color:#ccc;font-size:0.82rem;line-height:1.7">Every species you catch is logged in your <strong style="color:#FFD700">Field Log</strong>.</p>
     </div>
-    <div class="tut-step" data-step="3">
-      <p><strong style="color:#FFD700">SHOP, MAP & SAVING</strong></p>
-      <ul>
-        <li>Go to <span>SHOP</span> → sell your fish for Dobloni</li>
-        <li>Go to <span>MAP</span> → spend Dobloni to unlock new biomes</li>
-        <li>Progress is <span>auto-saved</span> every 30 seconds and on every catch</li>
-        <li>Use <span>Settings (⚙)</span> to manage audio, account, or reset progress</li>
+
+    <!-- Step 3 -->
+    <div id="TS3" style="display:none">
+      <p style="color:#FFD700;font-weight:700;font-size:0.9rem;margin-bottom:10px">SHOP, MAP & SAVING</p>
+      <ul style="color:#ccc;font-size:0.85rem;line-height:2;padding-left:18px;margin-bottom:14px">
+        <li>Go to <strong style="color:#FFD700">SHOP</strong> → sell your fish for Dobloni</li>
+        <li>Go to <strong style="color:#FFD700">MAP</strong> → spend Dobloni to unlock new biomes</li>
+        <li>Progress is <strong style="color:#FFD700">auto-saved</strong> every 30s and on every catch</li>
+        <li>Use <strong style="color:#FFD700">Settings ⚙</strong> to manage audio, account or reset</li>
       </ul>
     </div>
-    <div class="tut-nav">
-      <div class="tut-dots" id="tutDots">
-        <div class="tut-dot active"></div><div class="tut-dot"></div>
-        <div class="tut-dot"></div><div class="tut-dot"></div>
+
+    <!-- Navigation -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:22px">
+      <div id="TDOTS" style="display:flex;gap:8px">
+        <div style="width:8px;height:8px;border-radius:50%;background:#FFD700"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25)"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25)"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25)"></div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="pbtn outline" style="margin:0;padding:8px 14px;width:auto" id="tutPrev">← PREV</button>
-        <button class="pbtn" style="margin:0;padding:8px 18px;width:auto" id="tutNext">NEXT →</button>
+        <button id="TPREV" onclick="tutNav(-1)" style="
+          background:transparent;border:2px solid rgba(255,215,0,0.4);color:rgba(255,215,0,0.7);
+          font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:2px;
+          padding:10px 16px;cursor:pointer;opacity:0.3;
+        ">← PREV</button>
+        <button id="TNEXT" onclick="tutNav(1)" style="
+          background:linear-gradient(145deg,#800000,#4a0000);border:2px solid #FFD700;color:#FFD700;
+          font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:2px;
+          padding:10px 20px;cursor:pointer;
+        ">NEXT →</button>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+// Tutorial — fully standalone, runs before anything else
+(function(){
+  var step = 0;
+  var steps = [
+    document.getElementById("TS0"),
+    document.getElementById("TS1"),
+    document.getElementById("TS2"),
+    document.getElementById("TS3")
+  ];
+  var dots = document.getElementById("TDOTS").children;
+  var prev = document.getElementById("TPREV");
+  var next = document.getElementById("TNEXT");
+  var tut  = document.getElementById("TUT");
+
+  function show(n){
+    step = n;
+    steps.forEach(function(s,i){ s.style.display = i===step ? "block" : "none"; });
+    for(var i=0;i<dots.length;i++){
+      dots[i].style.background = i===step ? "#FFD700" : "rgba(255,215,0,0.25)";
+    }
+    prev.style.opacity = step === 0 ? "0.3" : "1";
+    next.textContent   = step === steps.length-1 ? "START FISHING →" : "NEXT →";
+  }
+
+  window.tutNav = function(dir){
+    if(dir > 0 && step >= steps.length-1){
+      tut.style.display = "none";
+      localStorage.setItem("pesca_tut","1");
+    } else {
+      show(Math.max(0, Math.min(steps.length-1, step+dir)));
+    }
+  };
+
+  show(0);
+})();
+</script>
 
 <!-- ══ SHOP ══ -->
 <div id="shopModal" class="overlay hidden">
@@ -940,17 +1011,18 @@ function drawMappa(){
 
 // ── MOUSE / TOUCH ─────────────────────────────────────────────
 let mouseVX=0, mouseVY=0;
-canvas.addEventListener("mousemove",e=>{
+
+document.addEventListener("mousemove",e=>{
   const v=toV(e.clientX,e.clientY); mouseVX=v.x; mouseVY=v.y;
+  if(anyModalOpen()) return;
   if(phase==="game"&&!ROD.captured){
-    const barH2=ROD.BAR_BOT-ROD.BAR_TOP-ROD.SLIDER_H;
     if(mouseVY>=ROD.BAR_TOP&&mouseVY<=ROD.BAR_BOT)
       ROD.y=Math.max(ROD.BAR_TOP,Math.min(ROD.BAR_BOT-ROD.SLIDER_H,mouseVY-ROD.SLIDER_H/2));
   }
 });
-canvas.addEventListener("touchmove",e=>{
-  const anyOpen=[...document.querySelectorAll(".overlay")].some(el=>!el.classList.contains("hidden"));
-  if(anyOpen) return;
+
+document.addEventListener("touchmove",e=>{
+  if(anyModalOpen()) return; // let modal scroll freely
   e.preventDefault();
   const t=e.touches[0], v=toV(t.clientX,t.clientY); mouseVX=v.x; mouseVY=v.y;
   if(phase==="game"&&!ROD.captured){
@@ -990,13 +1062,15 @@ function handleMobBtns(){
 }
 
 // ── CLICK ─────────────────────────────────────────────────────
-canvas.addEventListener("click",e=>{const v=toV(e.clientX,e.clientY);handleClick(v.x,v.y);});
-canvas.addEventListener("touchend",e=>{
-  // Don't intercept if an overlay modal is open
-  const anyOpen=[...document.querySelectorAll(".overlay")].some(el=>!el.classList.contains("hidden"));
-  if(anyOpen) return;
+document.addEventListener("click",e=>{
+  if(anyModalOpen()) return; // modals handle their own clicks natively
+  const v=toV(e.clientX,e.clientY); handleClick(v.x,v.y);
+});
+
+document.addEventListener("touchend",e=>{
+  if(anyModalOpen()) return; // modals handle their own touches natively
   e.preventDefault();
-  const t=e.changedTouches[0],v=toV(t.clientX,t.clientY);handleClick(v.x,v.y);
+  const t=e.changedTouches[0], v=toV(t.clientX,t.clientY); handleClick(v.x,v.y);
 },{passive:false});
 
 function handleClick(vx,vy){
@@ -1058,6 +1132,8 @@ function loop(now){
 
 // ── HTML MODAL HELPERS ────────────────────────────────────────
 function anyModalOpen(){
+  const tut = document.getElementById("TUT");
+  if(tut && tut.style.display !== "none") return true;
   return [...document.querySelectorAll(".overlay")].some(el=>!el.classList.contains("hidden"));
 }
 function syncCanvas(){
@@ -1319,36 +1395,7 @@ function showAuthErr(id,msg){
   el.classList.toggle("hidden",!msg);
 }
 
-// ── TUTORIAL ─────────────────────────────────────────────────
-let tutStep = 0;
-const tutModal  = document.getElementById("tutModal");
-const tutSteps  = tutModal.querySelectorAll(".tut-step");
-const tutDotEls = tutModal.querySelectorAll(".tut-dot");
-
-function setTutStep(n) {
-  tutStep = Math.max(0, Math.min(tutSteps.length - 1, n));
-  tutSteps.forEach((s, i) => s.classList.toggle("active", i === tutStep));
-  tutDotEls.forEach((d, i) => d.classList.toggle("active", i === tutStep));
-  document.getElementById("tutPrev").style.opacity = tutStep === 0 ? "0.3" : "1";
-  document.getElementById("tutNext").textContent =
-    tutStep === tutSteps.length - 1 ? "START FISHING →" : "NEXT →";
-}
-
-document.getElementById("tutNext").addEventListener("click", function() {
-  if (tutStep >= tutSteps.length - 1) {
-    closeModal("tutModal");
-    localStorage.setItem("pesca_tut", "1");
-  } else {
-    setTutStep(tutStep + 1);
-  }
-});
-
-document.getElementById("tutPrev").addEventListener("click", function() {
-  setTutStep(tutStep - 1);
-});
-
-// Init: make sure step 0 is active
-setTutStep(0);
+// ── TUTORIAL handled by inline script above ───────────────────
 
 // ── SAVE HELPERS ──────────────────────────────────────────────
 function saveNow(){
@@ -1392,7 +1439,7 @@ async function boot(){
   document.getElementById("setUser").textContent=Api.user()?.username||"Guest";
 
   // Tutorial
-  if(!localStorage.getItem("pesca_tut")){ openModal("tutModal"); } else { syncCanvas(); }
+  if(!localStorage.getItem("pesca_tut")){ document.getElementById("TUT").style.display="flex"; } else { document.getElementById("TUT").style.display="none"; syncCanvas(); }
 }
 
 boot();

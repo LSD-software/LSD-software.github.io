@@ -5,1456 +5,1026 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <link rel="icon" type="image/png" href="../img/icon.png">
   <title>LSD P-E-S-C-A</title>
-  <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:'Courier Prime',monospace;user-select:none;-webkit-user-select:none}
-
-    #rotateOverlay{display:none;position:fixed;inset:0;z-index:9999;background:#000;flex-direction:column;align-items:center;justify-content:center;color:#FFD700;font-size:1.1rem;text-align:center;gap:16px}
-    #rotateOverlay .icon{font-size:3.5rem;animation:rot 2s ease-in-out infinite}
-    @keyframes rot{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
-    @media(max-width:767px) and (orientation:portrait){#rotateOverlay{display:flex}#gameCanvas,#mobControls{display:none!important}}
+    html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:'Courier Prime',monospace}
+    /* ── ROTATE ── */
+    #rotateOverlay{display:none;position:fixed;inset:0;z-index:99999;background:#000;
+      flex-direction:column;align-items:center;justify-content:center;
+      color:#FFD700;font-size:1.1rem;text-align:center;gap:16px}
+    #rotateOverlay span{font-size:3rem;animation:rot 2s ease-in-out infinite}
+    @keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
+    @media(max-width:767px) and (orientation:portrait){
+      #rotateOverlay{display:flex!important}
+      #gameCanvas,#mobControls{display:none!important}
+    }
+    /* ── CANVAS ── */
     #gameCanvas{display:block;position:fixed;inset:0;width:100%;height:100%;z-index:1;touch-action:none}
-    /* ── HTML OVERLAYS ── */
-    .overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;padding:16px;touch-action:auto}
-    .overlay.hidden{display:none}
-    .panel{background:linear-gradient(160deg,#0d001a,#1a0008);border:2px solid rgba(255,215,0,0.45);max-width:700px;width:100%;max-height:92vh;overflow-y:auto;padding:clamp(20px,4vw,40px);position:relative;touch-action:auto}
-    .panel h2{font-family:'Cinzel',serif;color:#FFD700;letter-spacing:5px;text-align:center;font-size:clamp(1.1rem,3vw,1.6rem);margin-bottom:4px}
-    .panel .sub{color:#800000;text-align:center;font-size:0.7rem;letter-spacing:3px;margin-bottom:20px;text-transform:uppercase}
-    .panel p{color:#ccc;font-size:0.85rem;line-height:1.7;margin-bottom:10px}
-    .panel ul{color:#ccc;font-size:0.82rem;line-height:1.9;padding-left:18px;margin-bottom:14px}
-    .panel ul li span{color:#FFD700;font-weight:700}
-    .pclose{position:absolute;top:12px;right:14px;background:none;border:none;color:#FFD700;font-size:1.4rem;cursor:pointer}
-    .pbtn{display:block;width:100%;background:linear-gradient(145deg,#800000,#4a0000);border:2px solid #FFD700;color:#FFD700;font-family:'Cinzel',serif;font-size:0.9rem;letter-spacing:3px;text-transform:uppercase;padding:13px;cursor:pointer;transition:all .2s;margin-top:8px;touch-action:auto}
-    .pbtn:hover{background:#FFD700;color:#800000}
-    .pbtn.outline{background:transparent;border-color:rgba(255,215,0,0.35);color:rgba(255,215,0,0.7);font-size:0.75rem;padding:9px}
-    .pbtn.outline:hover{background:rgba(255,215,0,0.07);color:#FFD700}
-    .pbtn.danger{background:#1a0000;border-color:#cc0000;color:#ff4444;font-size:0.75rem;padding:9px}
-    .pbtn.danger:hover{background:#cc0000;color:#fff}
-    .divider{border:none;border-top:1px solid rgba(255,215,0,0.15);margin:14px 0}
-    /* Tutorial dots */
-    .tut-step{ display:none !important }
-    .tut-step.active{ display:block !important }
-    .tut-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
-    .tut-dots{display:flex;gap:8px}
-    .tut-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25);transition:background .2s}
-    .tut-dot.active{background:#FFD700}
-    /* Shop HTML panel */
-    .shop-section-title{color:#FFD700;font-size:0.68rem;letter-spacing:3px;text-transform:uppercase;margin:14px 0 8px;font-family:'Cinzel',serif}
-    .sell-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid rgba(255,215,0,0.18);margin-bottom:6px;background:rgba(255,255,255,0.02)}
-    .sell-row .sr-label{font-size:0.82rem;color:#ccc}
-    .sell-row .sr-price{font-size:0.75rem;color:#aaa}
-    .sell-row .sr-count{font-weight:700}
-    .sell-btn{background:linear-gradient(145deg,#800000,#4a0000);border:1px solid #FFD700;color:#FFD700;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px;padding:6px 14px;cursor:pointer;transition:all .2s}
-    .sell-btn:hover:not(:disabled){background:#FFD700;color:#800000}
-    .sell-btn:disabled{opacity:.35;cursor:not-allowed}
-    /* Inventory / Encyclopedia */
-    .biome-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
-    .biome-tab{background:transparent;border:1px solid rgba(255,215,0,0.25);color:#777;font-family:'Cinzel',serif;font-size:0.65rem;padding:6px 11px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
-    .biome-tab.active{border-color:#FFD700;color:#FFD700;background:rgba(255,215,0,0.07)}
-    .enci-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:4px}
-    .enci-slot{aspect-ratio:1;border:1px solid rgba(255,215,0,0.18);display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,0.02);position:relative;overflow:hidden;cursor:default}
-    .enci-slot img{width:82%;height:82%;object-fit:contain;image-rendering:pixelated}
-    .enci-slot.locked{filter:brightness(0) opacity(0.4)}
-    .enci-slot .rarity-pip{position:absolute;top:3px;left:3px;width:7px;height:7px;border-radius:50%}
-    .enci-slot .slot-num{position:absolute;bottom:2px;right:4px;font-size:0.5rem;color:rgba(255,215,0,0.35)}
-    .vhs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
-    .vhs-slot{aspect-ratio:.72;border:1px solid rgba(255,215,0,0.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,0.02)}
-    .vhs-slot.found{border-color:#FFD700;background:rgba(255,215,0,0.04)}
-    .vhs-slot img{width:60%;opacity:.18;filter:grayscale(1)}
-    .vhs-slot.found img{opacity:1;filter:none}
-    .vhs-slot .vhs-lbl{color:#444;font-size:0.58rem;letter-spacing:1px;text-transform:uppercase}
-    .vhs-slot.found .vhs-lbl{color:#FFD700}
-    /* Leaderboard */
-    .lb-table{width:100%;border-collapse:collapse;font-size:0.78rem;margin-top:10px}
-    .lb-table th{color:#FFD700;text-align:left;padding:7px 8px;border-bottom:1px solid rgba(255,215,0,0.2);font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px}
-    .lb-table td{color:#ccc;padding:8px;border-bottom:1px solid rgba(255,255,255,0.05)}
-    .lb-table tr.is-me td{color:#FFD700;font-weight:700}
-    .lb-table .rk{color:#800000;font-weight:700;font-family:'Cinzel',serif}
-    .lb-table tr:nth-child(1) .rk{color:#FFD700}
-    .lb-table tr:nth-child(2) .rk{color:#C0C0C0}
-    .lb-table tr:nth-child(3) .rk{color:#CD7F32}
-    .lb-loading{color:#666;text-align:center;padding:24px;font-size:.8rem;letter-spacing:2px}
-    /* Podium */
-    .podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:12px 0 18px}
-    .podium-block{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:10px 8px 14px;border:2px solid;min-width:120px;gap:4px;text-align:center}
-    .podium-medal{font-size:1.6rem}
-    .podium-name{color:#fff;font-size:0.72rem;letter-spacing:1px;word-break:break-all}
-    .podium-val{font-size:0.68rem;color:#aaa}
-    /* Settings: toggle */
-    .set-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,215,0,0.1);color:#ccc;font-size:0.82rem}
-    .set-row:last-child{border-bottom:none}
-    .toggle{width:40px;height:22px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:11px;cursor:pointer;position:relative;transition:background .2s}
-    .toggle.on{background:#800000;border-color:#FFD700}
-    .toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#666;transition:left .2s,background .2s}
-    .toggle.on::after{left:21px;background:#FFD700}
-    /* Auth inline panel */
-    #authPanel{max-width:420px}
-    #tabBar{display:flex;gap:4px;margin-bottom:20px;background:rgba(0,0,0,.3);border-radius:6px;padding:4px}
-    .tab{flex:1;padding:9px;background:none;border:none;color:rgba(255,255,255,.5);font-family:'Cinzel',serif;font-size:.78rem;font-weight:700;letter-spacing:1px;cursor:pointer;border-radius:4px;transition:all .2s}
-    .tab.active{background:linear-gradient(145deg,#800000,#4a0000);color:#FFD700}
-    .auth-form{display:flex;flex-direction:column;gap:14px}
-    .auth-form.hidden{display:none}
-    .field{display:flex;flex-direction:column;gap:5px}
-    .field label{font-size:0.7rem;color:rgba(255,215,0,.8);letter-spacing:1px;text-transform:uppercase}
-    .field input{background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-family:'Courier Prime',monospace;font-size:.9rem;padding:11px 13px;width:100%;transition:border-color .2s}
-    .field input:focus{outline:none;border-color:rgba(255,215,0,.6)}
-    .field input::placeholder{color:rgba(255,255,255,.25)}
-    .pw-wrap{position:relative}
-    .pw-wrap input{padding-right:40px}
-    .pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:.9rem;color:rgba(255,255,255,.45)}
-    .form-error{background:rgba(200,0,0,.15);border:1px solid rgba(200,0,0,.5);border-radius:4px;padding:9px 13px;color:#ff6666;font-size:.78rem;text-align:center}
-    .form-success{background:rgba(0,180,0,.15);border:1px solid rgba(0,180,0,.4);border-radius:4px;padding:9px 13px;color:#66ff88;font-size:.78rem;text-align:center}
-    .divider-or{display:flex;align-items:center;gap:10px;margin:16px 0;color:rgba(255,255,255,.2);font-size:.8rem}
-    .divider-or::before,.divider-or::after{content:'';flex:1;border-top:1px solid rgba(255,255,255,.1)}
-    .guest-btn{width:100%;padding:12px;background:rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.15);border-radius:6px;color:rgba(255,255,255,.7);font-family:'Cinzel',serif;font-size:.82rem;font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s}
-    .guest-btn:hover{border-color:rgba(255,255,255,.4);color:#fff}
-    .guest-note{font-size:.62rem;color:rgba(255,255,255,.3);letter-spacing:.5px;font-weight:400;text-transform:none}
-    .spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,215,0,.3);border-top-color:#FFD700;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+    /* ── MODALS ── */
+    .M{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.9);
+       display:flex;align-items:center;justify-content:center;padding:16px}
+    .M.H{display:none!important}
+    .P{background:linear-gradient(160deg,#0d001a,#1a0008);border:2px solid rgba(255,215,0,.5);
+       max-width:660px;width:100%;max-height:90vh;overflow-y:auto;
+       padding:28px 24px;position:relative}
+    .P h2{font-family:'Cinzel',serif;color:#FFD700;letter-spacing:4px;text-align:center;
+           font-size:clamp(1rem,3vw,1.5rem);margin-bottom:4px}
+    .P .sub{color:#800000;text-align:center;font-size:.68rem;letter-spacing:3px;margin-bottom:18px}
+    .P p{color:#ccc;font-size:.84rem;line-height:1.7;margin-bottom:10px}
+    .P ul{color:#ccc;font-size:.82rem;line-height:1.9;padding-left:18px;margin-bottom:12px}
+    .Xbtn{position:absolute;top:10px;right:12px;background:none;border:none;
+           color:#FFD700;font-size:1.3rem;cursor:pointer;line-height:1}
+    .btn{display:block;width:100%;background:linear-gradient(145deg,#800000,#4a0000);
+         border:2px solid #FFD700;color:#FFD700;font-family:'Cinzel',serif;
+         font-size:.88rem;letter-spacing:3px;text-transform:uppercase;
+         padding:12px;cursor:pointer;transition:all .2s;margin-top:8px}
+    .btn:hover{background:#FFD700;color:#800000}
+    .btn.O{background:transparent;border-color:rgba(255,215,0,.3);color:rgba(255,215,0,.7);
+            font-size:.72rem;padding:8px}
+    .btn.O:hover{background:rgba(255,215,0,.08);color:#FFD700}
+    .btn.D{background:#1a0000;border-color:#cc0000;color:#ff4444;font-size:.72rem;padding:8px}
+    .btn.D:hover{background:#cc0000;color:#fff}
+    .hr{border:none;border-top:1px solid rgba(255,215,0,.15);margin:12px 0}
+    /* ── SELL ── */
+    .srow{display:flex;align-items:center;justify-content:space-between;
+          padding:9px 12px;border:1px solid rgba(255,215,0,.18);margin-bottom:5px;
+          background:rgba(255,255,255,.02)}
+    .srow span{font-size:.8rem;color:#ccc}
+    .srow small{font-size:.72rem;color:#888}
+    .sbtn{background:linear-gradient(145deg,#800000,#4a0000);border:1px solid #FFD700;
+          color:#FFD700;font-family:'Cinzel',serif;font-size:.62rem;padding:5px 12px;cursor:pointer}
+    .sbtn:hover:not(:disabled){background:#FFD700;color:#800000}
+    .sbtn:disabled{opacity:.3;cursor:not-allowed}
+    /* ── ENCI ── */
+    .btabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+    .btab{background:transparent;border:1px solid rgba(255,215,0,.25);color:#666;
+          font-family:'Cinzel',serif;font-size:.62rem;padding:5px 10px;cursor:pointer;
+          letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+    .btab.A{border-color:#FFD700;color:#FFD700;background:rgba(255,215,0,.07)}
+    .egrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .eslot{aspect-ratio:1;border:1px solid rgba(255,215,0,.18);
+           display:flex;flex-direction:column;align-items:center;justify-content:center;
+           background:rgba(255,255,255,.02);position:relative;overflow:hidden}
+    .eslot img{width:80%;height:80%;object-fit:contain;image-rendering:pixelated}
+    .eslot.lk{filter:brightness(0) opacity(.35)}
+    .eslot .rp{position:absolute;top:2px;left:2px;width:6px;height:6px;border-radius:50%}
+    .eslot .sn{position:absolute;bottom:2px;right:3px;font-size:.48rem;color:rgba(255,215,0,.3)}
+    /* ── VHS ── */
+    .vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}
+    .vslot{aspect-ratio:.72;border:1px solid rgba(255,215,0,.2);
+           display:flex;flex-direction:column;align-items:center;justify-content:center;
+           gap:4px;background:rgba(255,255,255,.02)}
+    .vslot.F{border-color:#FFD700;background:rgba(255,215,0,.04)}
+    .vslot img{width:55%;opacity:.15;filter:grayscale(1)}
+    .vslot.F img{opacity:1;filter:none}
+    .vslot small{color:#444;font-size:.56rem;letter-spacing:1px;text-transform:uppercase}
+    .vslot.F small{color:#FFD700}
+    /* ── LEADERBOARD ── */
+    .lbt{width:100%;border-collapse:collapse;font-size:.76rem;margin-top:8px}
+    .lbt th{color:#FFD700;text-align:left;padding:6px 7px;
+            border-bottom:1px solid rgba(255,215,0,.2);font-family:'Cinzel',serif;
+            font-size:.62rem;letter-spacing:1px}
+    .lbt td{color:#ccc;padding:7px;border-bottom:1px solid rgba(255,255,255,.05)}
+    .lbt tr.me td{color:#FFD700;font-weight:700}
+    .lbt .rk{color:#800000;font-weight:700;font-family:'Cinzel',serif}
+    .podwrap{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:10px 0 16px}
+    .podblk{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+            padding:8px 6px 12px;border:2px solid;min-width:110px;gap:3px;text-align:center}
+    .podblk .pm{font-size:1.4rem}.podblk .pn{color:#fff;font-size:.68rem;word-break:break-all}
+    .podblk .pv{font-size:.64rem;color:#aaa}
+    /* ── SETTINGS ── */
+    .setrow{display:flex;align-items:center;justify-content:space-between;
+            padding:9px 0;border-bottom:1px solid rgba(255,215,0,.1);
+            color:#ccc;font-size:.8rem}
+    .setrow:last-child{border-bottom:none}
+    .tog{width:38px;height:20px;background:rgba(255,255,255,.1);
+         border:1px solid rgba(255,215,0,.3);border-radius:10px;
+         cursor:pointer;position:relative;transition:background .2s}
+    .tog.on{background:#800000;border-color:#FFD700}
+    .tog::after{content:'';position:absolute;top:3px;left:3px;
+                width:12px;height:12px;border-radius:50%;background:#666;
+                transition:left .2s,background .2s}
+    .tog.on::after{left:19px;background:#FFD700}
+    /* ── AUTH ── */
+    .tabbar{display:flex;gap:3px;margin-bottom:18px;background:rgba(0,0,0,.3);border-radius:5px;padding:3px}
+    .atab{flex:1;padding:8px;background:none;border:none;color:rgba(255,255,255,.45);
+          font-family:'Cinzel',serif;font-size:.74rem;font-weight:700;letter-spacing:1px;
+          cursor:pointer;border-radius:4px;transition:all .2s}
+    .atab.A{background:linear-gradient(145deg,#800000,#4a0000);color:#FFD700}
+    .aform{display:flex;flex-direction:column;gap:12px}
+    .aform.H{display:none!important}
+    .fld{display:flex;flex-direction:column;gap:4px}
+    .fld label{font-size:.66rem;color:rgba(255,215,0,.8);letter-spacing:1px;text-transform:uppercase}
+    .fld input{background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.15);
+               border-radius:5px;color:#fff;font-family:'Courier Prime',monospace;
+               font-size:.88rem;padding:10px 12px;width:100%;transition:border-color .2s}
+    .fld input:focus{outline:none;border-color:rgba(255,215,0,.6)}
+    .fld input::placeholder{color:rgba(255,255,255,.22)}
+    .pww{position:relative}
+    .pww input{padding-right:38px}
+    .pwt{position:absolute;right:9px;top:50%;transform:translateY(-50%);
+         background:none;border:none;cursor:pointer;font-size:.88rem;color:rgba(255,255,255,.4)}
+    .ferr{background:rgba(200,0,0,.15);border:1px solid rgba(200,0,0,.5);border-radius:4px;
+          padding:8px 12px;color:#ff6666;font-size:.76rem;text-align:center}
+    .dor{display:flex;align-items:center;gap:8px;margin:14px 0;
+         color:rgba(255,255,255,.2);font-size:.78rem}
+    .dor::before,.dor::after{content:'';flex:1;border-top:1px solid rgba(255,255,255,.1)}
+    .gbtn{width:100%;padding:11px;background:rgba(0,0,0,.4);
+          border:1.5px solid rgba(255,255,255,.15);border-radius:5px;
+          color:rgba(255,255,255,.65);font-family:'Cinzel',serif;font-size:.78rem;
+          font-weight:700;letter-spacing:1px;cursor:pointer;
+          display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .2s}
+    .gbtn:hover{border-color:rgba(255,255,255,.4);color:#fff}
+    .gbtn small{font-size:.58rem;color:rgba(255,255,255,.28);font-weight:400;text-transform:none}
+    .sp{display:inline-block;width:11px;height:11px;border:2px solid rgba(255,215,0,.3);
+        border-top-color:#FFD700;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .hidden{display:none!important}
-    /* Catch badge */
-    #catchBadge{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);opacity:0;pointer-events:none;z-index:600;background:linear-gradient(160deg,#0d001a,#1a0008);border:3px solid #FFD700;padding:24px 32px;display:flex;align-items:center;gap:18px;min-width:280px;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .35s;box-shadow:0 0 40px rgba(255,215,0,.3)}
-    #catchBadge.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-    #catchBadge.rare{border-color:#4fc3f7;box-shadow:0 0 40px rgba(79,195,247,.4)}
-    #catchBadge.mythic{border-color:#ce93d8;box-shadow:0 0 60px rgba(206,147,216,.6),0 0 20px rgba(206,147,216,.3)}
-    #catchBadge.vhs{border-color:#FFD700;box-shadow:0 0 50px rgba(255,215,0,.5)}
-    #catchBadge .badge-img{width:80px;height:80px;object-fit:contain;image-rendering:pixelated}
-    #catchBadge .badge-text .badge-title{font-family:'Cinzel',serif;color:#FFD700;font-size:.72rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px}
-    #catchBadge .badge-text .badge-name{color:#fff;font-size:1.05rem;font-weight:700;font-family:'Cinzel',serif;margin-bottom:4px}
-    #catchBadge .badge-text .badge-rarity{font-size:.68rem;letter-spacing:2px;text-transform:uppercase}
-    #catchBadge .badge-text .badge-biome{font-size:.62rem;color:#666;letter-spacing:1px;margin-top:2px}
-    /* Notification */
-    #notif{position:fixed;top:52px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.92);border:1px solid rgba(255,215,0,.35);color:#FFD700;font-size:.72rem;letter-spacing:1px;padding:7px 16px;z-index:600;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;max-width:300px;font-family:'Courier Prime',monospace}
+    /* ── CATCH BADGE ── */
+    #badge{position:fixed;top:50%;left:50%;z-index:2000;pointer-events:none;
+           transform:translate(-50%,-50%) scale(.5);opacity:0;
+           background:linear-gradient(160deg,#0d001a,#1a0008);border:3px solid #FFD700;
+           padding:22px 28px;display:flex;align-items:center;gap:16px;min-width:260px;
+           transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+           box-shadow:0 0 40px rgba(255,215,0,.3)}
+    #badge.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    #badge.rare{border-color:#4fc3f7;box-shadow:0 0 40px rgba(79,195,247,.4)}
+    #badge.mythic{border-color:#ce93d8;box-shadow:0 0 60px rgba(206,147,216,.6)}
+    #badge.vhs{border-color:#FFD700;box-shadow:0 0 50px rgba(255,215,0,.5)}
+    #badge img{width:72px;height:72px;object-fit:contain;image-rendering:pixelated}
+    #badge .bt{font-family:'Cinzel',serif;color:#FFD700;font-size:.68rem;letter-spacing:3px;margin-bottom:3px}
+    #badge .bn{color:#fff;font-size:1rem;font-weight:700;font-family:'Cinzel',serif;margin-bottom:3px}
+    #badge .br{font-size:.64rem;letter-spacing:2px;text-transform:uppercase}
+    #badge .bb{font-size:.58rem;color:#666;letter-spacing:1px;margin-top:2px}
+    /* ── NOTIF ── */
+    #notif{position:fixed;top:50px;left:50%;transform:translateX(-50%);z-index:3000;
+           background:rgba(0,0,0,.92);border:1px solid rgba(255,215,0,.35);
+           color:#FFD700;font-size:.7rem;letter-spacing:1px;padding:6px 14px;
+           opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;
+           max-width:280px;white-space:nowrap}
     #notif.show{opacity:1}
-    /* Mobile buttons */
-    #mobControls{display:none;position:fixed;right:10px;top:50%;transform:translateY(-50%);flex-direction:column;gap:6px;z-index:50}
+    /* ── MOBILE BUTTONS ── */
+    #mobControls{display:none;position:fixed;right:8px;top:50%;
+                 transform:translateY(-50%);flex-direction:column;gap:5px;z-index:500}
     @media(hover:none){#mobControls{display:flex}}
-    .mobBtn{width:54px;height:54px;background:rgba(128,0,0,.8);border:2px solid #FFD700;color:#FFD700;font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:4px}
-    .mobBtn:active{background:rgba(255,215,0,.2)}
-    /* Scrollbar */
-    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#000}::-webkit-scrollbar-thumb{background:#800000}
+    .mb{width:52px;height:52px;background:rgba(128,0,0,.8);border:2px solid #FFD700;
+        color:#FFD700;font-size:1.4rem;display:flex;align-items:center;justify-content:center;
+        cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:4px;
+        touch-action:none}
+    .mb:active{background:rgba(255,215,0,.2)}
+    /* ── LOADING TEXT ── */
+    .lbl{color:#FFD700;font-size:.66rem;letter-spacing:2px;text-transform:uppercase;
+         margin:12px 0 6px;font-family:'Cinzel',serif}
+    ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#000}
+    ::-webkit-scrollbar-thumb{background:#800000}
+    .H{display:none!important}
   </style>
 </head>
 <body>
 
-<div id="rotateOverlay"><div class="icon">📱</div><div>Rotate your device<br>to play LSD P-E-S-C-A</div></div>
+<div id="rotateOverlay"><span>📱</span><div>Rotate your device<br>to play LSD P-E-S-C-A</div></div>
 <canvas id="gameCanvas"></canvas>
-<div id="mobControls"><div class="mobBtn" id="mobUp">▲</div><div class="mobBtn" id="mobDown">▼</div></div>
+<div id="mobControls"><div class="mb" id="mobUp">▲</div><div class="mb" id="mobDown">▼</div></div>
 
-<!-- ── CATCH BADGE ── -->
-<div id="catchBadge">
-  <img class="badge-img" id="badgeImg" src="" alt="">
-  <div class="badge-text">
-    <div class="badge-title" id="badgeTitle">CAUGHT!</div>
-    <div class="badge-name"  id="badgeName"></div>
-    <div class="badge-rarity" id="badgeRarity"></div>
-    <div class="badge-biome"  id="badgeBiome"></div>
-  </div>
-</div>
+<!-- CATCH BADGE -->
+<div id="badge"><img id="bImg" src="" alt=""><div><div class="bt" id="bTitle">CAUGHT!</div><div class="bn" id="bName"></div><div class="br" id="bRar"></div><div class="bb" id="bBio"></div></div></div>
 <div id="notif"></div>
 
-<!-- ══ TUTORIAL — standalone, no game JS dependency ══ -->
-<div id="TUT" style="
-  position:fixed;inset:0;z-index:9000;
-  background:rgba(0,0,0,0.93);
-  display:flex;align-items:center;justify-content:center;
-  padding:16px;
-  font-family:'Courier Prime',monospace;
-">
-  <div style="
-    background:linear-gradient(160deg,#0d001a,#1a0008);
-    border:2px solid rgba(255,215,0,0.5);
-    max-width:600px;width:100%;
-    max-height:88vh;overflow-y:auto;
-    padding:32px 28px;
-    position:relative;
-  ">
-    <h2 style="font-family:'Cinzel',serif;color:#FFD700;letter-spacing:5px;text-align:center;font-size:1.4rem;margin-bottom:4px">P-E-S-C-A</h2>
-    <div style="color:#800000;text-align:center;font-size:0.7rem;letter-spacing:3px;margin-bottom:20px;text-transform:uppercase">LSD Software Fishing Game</div>
-
-    <!-- Step 0 -->
+<!-- TUTORIAL -->
+<div id="tutOverlay" class="M" style="z-index:9999">
+  <div class="P" style="max-width:600px">
     <div id="TS0">
-      <p style="color:#ccc;font-size:0.85rem;line-height:1.7;margin-bottom:10px">Welcome to <strong style="color:#FFD700">LSD P-E-S-C-A</strong>, the retro fishing simulator by LSD Software. Cast your line, catch fish across 4 biomes, and climb the global leaderboard.</p>
-      <ul style="color:#ccc;font-size:0.82rem;line-height:1.9;padding-left:18px;margin-bottom:14px">
-        <li><strong style="color:#FFD700">◈ Dobloni</strong> — in-game currency earned by selling fish</li>
+      <h2>P-E-S-C-A</h2><div class="sub">LSD SOFTWARE FISHING GAME</div>
+      <p>Welcome to <strong style="color:#FFD700">LSD P-E-S-C-A</strong> — the retro fishing simulator by LSD Software. Cast your line, catch fish across 4 biomes, and climb the global leaderboard.</p>
+      <ul>
+        <li><strong style="color:#FFD700">◈ Dobloni</strong> — in-game currency, earned by selling fish</li>
         <li><strong style="color:#FFD700">4 Biomes</strong> — River (free), Sea (10◈), Ocean (20◈), Arctic (50◈)</li>
-        <li><strong style="color:#FFD700">Leaderboard</strong> — ranked by total fish caught</li>
+        <li><strong style="color:#FFD700">Leaderboard</strong> — global ranking by total fish caught</li>
       </ul>
-      <p style="font-size:.78rem;color:#888;line-height:1.6">Playing as guest? Progress saves in your browser. <strong style="color:#FFD700">Log in</strong> from Settings to sync to your account permanently.</p>
+      <p style="font-size:.76rem;color:#888">Playing as guest? Progress saves in your browser. Log in from <strong style="color:#FFD700">Settings</strong> to sync permanently to your account.</p>
     </div>
-
-    <!-- Step 1 -->
     <div id="TS1" style="display:none">
-      <p style="color:#FFD700;font-weight:700;font-size:0.9rem;margin-bottom:10px">HOW TO FISH</p>
-      <p style="color:#ccc;font-size:0.85rem;line-height:1.7;margin-bottom:10px">A vertical fishing bar appears on the right. A fish moves up and down — keep your <span style="color:#ff4444;font-weight:700">red slider</span> overlapping it for <strong style="color:#fff">3 seconds</strong> to catch it.</p>
-      <ul style="color:#ccc;font-size:0.82rem;line-height:1.9;padding-left:18px;margin-bottom:14px">
+      <h2>HOW TO FISH</h2><div class="sub" style="margin-bottom:14px">FISHING MECHANICS</div>
+      <p>A vertical bar appears on the right side of the screen. A <strong style="color:#FFD700">fish icon</strong> moves up and down — keep your <strong style="color:#ff4444">red slider</strong> overlapping it for <strong style="color:#fff">3 seconds</strong> to catch it.</p>
+      <ul>
         <li><strong style="color:#FFD700">↑ / ↓ or W / S</strong> — move slider (keyboard)</li>
-        <li><strong style="color:#FFD700">Mouse / Touch drag</strong> — drag slider to position</li>
-        <li><strong style="color:#FFD700">▲ ▼ buttons</strong> — mobile on-screen controls</li>
+        <li><strong style="color:#FFD700">Mouse / Touch drag</strong> — drag slider on the bar</li>
+        <li><strong style="color:#FFD700">▲ ▼ buttons</strong> — on-screen mobile controls</li>
       </ul>
-      <p style="color:#ccc;font-size:0.82rem;line-height:1.7">Rarer fish move faster and more unpredictably.</p>
+      <p>Rarer fish move faster and unpredictably — common fish bounce simply, rare fish burst sideways, mythic fish use erratic patterns.</p>
     </div>
-
-    <!-- Step 2 -->
     <div id="TS2" style="display:none">
-      <p style="color:#FFD700;font-weight:700;font-size:0.9rem;margin-bottom:10px">FISH RARITIES & SPAWN RATES</p>
-      <ul style="font-size:0.85rem;line-height:2;padding-left:18px;margin-bottom:14px">
-        <li style="color:#aaa">● <strong>Common</strong> — fish 1–6 · 60% chance · sell for 1◈</li>
-        <li style="color:#4fc3f7">◆ <strong>Rare</strong> — fish 7–9 · 28% chance · sell for 5◈</li>
-        <li style="color:#ce93d8">★ <strong>Mythic</strong> — fish 10 · 8% chance · sell for 10◈</li>
+      <h2>RARITIES & RATES</h2><div class="sub" style="margin-bottom:14px">FISH SPAWN SYSTEM</div>
+      <ul style="line-height:2.1">
+        <li style="color:#aaa">● <strong>Common</strong> — fish 1–6 · 60% chance · sell for 1◈ each</li>
+        <li style="color:#4fc3f7">◆ <strong>Rare</strong> — fish 7–9 · 28% chance · sell for 5◈ each</li>
+        <li style="color:#ce93d8">★ <strong>Mythic</strong> — fish 10 · 8% chance · sell for 10◈ each</li>
         <li style="color:#FFD700">📼 <strong>VHS Tape</strong> — mysterious · 4% chance · one per biome</li>
       </ul>
-      <p style="color:#ccc;font-size:0.82rem;line-height:1.7">Every species you catch is logged in your <strong style="color:#FFD700">Field Log</strong>.</p>
+      <p>Every species you catch is recorded in your <strong style="color:#FFD700">Field Log</strong>, accessible from the Shop.</p>
     </div>
-
-    <!-- Step 3 -->
     <div id="TS3" style="display:none">
-      <p style="color:#FFD700;font-weight:700;font-size:0.9rem;margin-bottom:10px">SHOP, MAP & SAVING</p>
-      <ul style="color:#ccc;font-size:0.85rem;line-height:2;padding-left:18px;margin-bottom:14px">
-        <li>Go to <strong style="color:#FFD700">SHOP</strong> → sell your fish for Dobloni</li>
-        <li>Go to <strong style="color:#FFD700">MAP</strong> → spend Dobloni to unlock new biomes</li>
-        <li>Progress is <strong style="color:#FFD700">auto-saved</strong> every 30s and on every catch</li>
-        <li>Use <strong style="color:#FFD700">Settings ⚙</strong> to manage audio, account or reset</li>
+      <h2>SHOP & MAP</h2><div class="sub" style="margin-bottom:14px">PROGRESSION SYSTEM</div>
+      <ul style="line-height:2.1">
+        <li><strong style="color:#FFD700">SHOP</strong> — sell fish for Dobloni, view your Field Log</li>
+        <li><strong style="color:#FFD700">MAP</strong> — spend Dobloni to unlock new biomes</li>
+        <li><strong style="color:#FFD700">Auto-save</strong> — every 30 seconds and on every catch</li>
+        <li><strong style="color:#FFD700">Settings ⚙</strong> — audio, account login, reset progress</li>
       </ul>
     </div>
-
-    <!-- Navigation -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:22px">
-      <div id="TDOTS" style="display:flex;gap:8px">
-        <div style="width:8px;height:8px;border-radius:50%;background:#FFD700"></div>
-        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25)"></div>
-        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25)"></div>
-        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25)"></div>
+    <!-- Nav -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px">
+      <div id="tutDots" style="display:flex;gap:7px">
+        <div style="width:7px;height:7px;border-radius:50%;background:#FFD700" class="td"></div>
+        <div style="width:7px;height:7px;border-radius:50%;background:rgba(255,215,0,.22)" class="td"></div>
+        <div style="width:7px;height:7px;border-radius:50%;background:rgba(255,215,0,.22)" class="td"></div>
+        <div style="width:7px;height:7px;border-radius:50%;background:rgba(255,215,0,.22)" class="td"></div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button id="TPREV" onclick="tutNav(-1)" style="
-          background:transparent;border:2px solid rgba(255,215,0,0.4);color:rgba(255,215,0,0.7);
-          font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:2px;
-          padding:10px 16px;cursor:pointer;opacity:0.3;
-        ">← PREV</button>
-        <button id="TNEXT" onclick="tutNav(1)" style="
-          background:linear-gradient(145deg,#800000,#4a0000);border:2px solid #FFD700;color:#FFD700;
-          font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:2px;
-          padding:10px 20px;cursor:pointer;
-        ">NEXT →</button>
+      <div style="display:flex;gap:7px">
+        <button id="tutPrev" style="background:transparent;border:2px solid rgba(255,215,0,.35);color:rgba(255,215,0,.6);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:2px;padding:9px 14px;cursor:pointer;opacity:.3">← PREV</button>
+        <button id="tutNext" style="background:linear-gradient(145deg,#800000,#4a0000);border:2px solid #FFD700;color:#FFD700;font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:2px;padding:9px 18px;cursor:pointer">NEXT →</button>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-// Tutorial — fully standalone, runs before anything else
-(function(){
-  var step = 0;
-  var steps = [
-    document.getElementById("TS0"),
-    document.getElementById("TS1"),
-    document.getElementById("TS2"),
-    document.getElementById("TS3")
-  ];
-  var dots = document.getElementById("TDOTS").children;
-  var prev = document.getElementById("TPREV");
-  var next = document.getElementById("TNEXT");
-  var tut  = document.getElementById("TUT");
-
-  function show(n){
-    step = n;
-    steps.forEach(function(s,i){ s.style.display = i===step ? "block" : "none"; });
-    for(var i=0;i<dots.length;i++){
-      dots[i].style.background = i===step ? "#FFD700" : "rgba(255,215,0,0.25)";
-    }
-    prev.style.opacity = step === 0 ? "0.3" : "1";
-    next.textContent   = step === steps.length-1 ? "START FISHING →" : "NEXT →";
-  }
-
-  window.tutNav = function(dir){
-    if(dir > 0 && step >= steps.length-1){
-      tut.style.display = "none";
-      localStorage.setItem("pesca_tut","1");
-      // Re-enable canvas interactions
-      var cv = document.getElementById("gameCanvas");
-      if(cv) cv.style.pointerEvents = "auto";
-    } else {
-      show(Math.max(0, Math.min(steps.length-1, step+dir)));
-    }
-  };
-
-  show(0);
-})();
-</script>
-
-<!-- ══ SHOP ══ -->
-<div id="shopModal" class="overlay hidden">
-  <div class="panel" style="max-width:660px">
-    <button class="pclose" id="shopClose">✕</button>
-    <h2>SHOP</h2><div class="sub">Sell fish · Buy biomes · View field log</div>
-
-    <div id="shopSellTab">
-      <div class="shop-section-title">Sell Fish</div>
-      <div class="sell-row">
-        <div class="sr-label">● <span style="color:#aaa">Common</span> — <span class="sr-count" id="sc_comuni" style="color:#aaa">×0</span></div>
-        <div class="sr-price">+1 ◈ each</div>
-        <button class="sell-btn" id="sellComuniBtn">SELL ALL</button>
-      </div>
-      <div class="sell-row">
-        <div class="sr-label">◆ <span style="color:#4fc3f7">Rare</span> — <span class="sr-count" id="sc_rari" style="color:#4fc3f7">×0</span></div>
-        <div class="sr-price">+5 ◈ each</div>
-        <button class="sell-btn" id="sellRariBtn">SELL ALL</button>
-      </div>
-      <div class="sell-row">
-        <div class="sr-label">★ <span style="color:#ce93d8">Mythic</span> — <span class="sr-count" id="sc_mitici" style="color:#ce93d8">×0</span></div>
-        <div class="sr-price">+10 ◈ each</div>
-        <button class="sell-btn" id="sellMiticiBtn">SELL ALL</button>
-      </div>
-
-      <div class="shop-section-title" style="margin-top:18px">VHS Collection</div>
-      <div class="vhs-grid" id="shopVhsGrid"></div>
-    </div>
-
-    <hr class="divider">
-    <button class="pbtn outline" id="openEnciBtn">📖 OPEN FIELD LOG</button>
-
-    <div id="shopEnciTab" class="hidden">
-      <hr class="divider">
-      <div class="shop-section-title">Field Log — Species Registry</div>
-      <div class="biome-tabs" id="enciTabs"></div>
-      <div class="enci-grid" id="enciGrid"></div>
-      <button class="pbtn outline" style="margin-top:12px" id="closeEnciBtn">← BACK TO SHOP</button>
+<!-- SHOP -->
+<div id="shopModal" class="M H">
+  <div class="P">
+    <button class="Xbtn" id="shopX">✕</button>
+    <h2>SHOP</h2><div class="sub">Sell fish · Field Log</div>
+    <div class="lbl">Sell Fish</div>
+    <div class="srow"><span>● <span style="color:#aaa">Common</span> <strong id="sc_c" style="color:#aaa">×0</strong></span><small>+1◈ each</small><button class="sbtn" id="btnSellC">SELL ALL</button></div>
+    <div class="srow"><span>◆ <span style="color:#4fc3f7">Rare</span> <strong id="sc_r" style="color:#4fc3f7">×0</strong></span><small>+5◈ each</small><button class="sbtn" id="btnSellR">SELL ALL</button></div>
+    <div class="srow"><span>★ <span style="color:#ce93d8">Mythic</span> <strong id="sc_m" style="color:#ce93d8">×0</strong></span><small>+10◈ each</small><button class="sbtn" id="btnSellM">SELL ALL</button></div>
+    <div class="lbl" style="margin-top:14px">VHS Collection</div>
+    <div class="vgrid" id="vhsGrid"></div>
+    <div class="hr"></div>
+    <button class="btn O" id="btnOpenLog">📖 OPEN FIELD LOG</button>
+    <div id="logPanel" class="H">
+      <div class="hr"></div>
+      <div class="lbl">Field Log — Species Registry</div>
+      <div class="btabs" id="enciTabs"></div>
+      <div class="egrid" id="enciGrid"></div>
+      <button class="btn O" style="margin-top:10px" id="btnCloseLog">← BACK</button>
     </div>
   </div>
 </div>
 
-<!-- ══ LEADERBOARD ══ -->
-<div id="lbModal" class="overlay hidden">
-  <div class="panel" style="max-width:620px">
-    <button class="pclose" onclick="closeModal('lbModal')">✕</button>
+<!-- LEADERBOARD -->
+<div id="lbModal" class="M H">
+  <div class="P" style="max-width:600px">
+    <button class="Xbtn" onclick="closeM('lbModal')">✕</button>
     <h2>LEADERBOARD</h2><div class="sub">P-E-S-C-A Global Rankings</div>
-    <div id="lbContent" class="lb-loading">Loading…</div>
+    <div id="lbContent" style="color:#666;text-align:center;padding:20px;font-size:.78rem;letter-spacing:2px">Loading…</div>
   </div>
 </div>
 
-<!-- ══ SETTINGS ══ -->
-<div id="settingsModal" class="overlay hidden">
-  <div class="panel" style="max-width:500px">
-    <button class="pclose" onclick="closeModal('settingsModal')">✕</button>
+<!-- SETTINGS -->
+<div id="settingsModal" class="M H">
+  <div class="P" style="max-width:480px">
+    <button class="Xbtn" onclick="closeM('settingsModal')">✕</button>
     <h2>SETTINGS</h2><div class="sub">Game options</div>
-    <div class="set-row"><span>Music</span><div class="toggle on" id="toggleMusic" onclick="toggleAudio()"></div></div>
-    <div class="set-row"><span>Logged in as</span><span id="setUser" style="color:#FFD700;font-size:.82rem">—</span></div>
-    <hr class="divider">
-    <button class="pbtn outline" id="openAuthBtn">👤 SIGN IN / SWITCH ACCOUNT</button>
-    <hr class="divider">
-    <button class="pbtn outline" onclick="openModal('lbModal');loadLeaderboard()">🏆 VIEW LEADERBOARD</button>
-    <hr class="divider">
-    <button class="pbtn danger" id="resetBtn">⚠ RESET PESCA PROGRESS</button>
-    <div id="resetConfirmDiv" class="hidden" style="margin-top:10px">
-      <p style="color:#ff4444;font-size:.78rem;margin-bottom:8px">This will erase all your Pesca data. Are you sure?</p>
-      <div style="display:flex;gap:8px">
-        <button class="pbtn danger" style="padding:8px" onclick="executeReset()">YES, RESET</button>
-        <button class="pbtn outline" style="padding:8px" onclick="document.getElementById('resetConfirmDiv').classList.add('hidden')">CANCEL</button>
+    <div class="setrow"><span>Music</span><div class="tog on" id="togMusic" onclick="toggleAudio()"></div></div>
+    <div class="setrow"><span>Account</span><span id="setUser" style="color:#FFD700;font-size:.78rem">—</span></div>
+    <div class="hr"></div>
+    <button class="btn O" id="btnOpenAuth">👤 SIGN IN / SWITCH ACCOUNT</button>
+    <div class="hr"></div>
+    <button class="btn O" onclick="openM('lbModal');loadLB()">🏆 VIEW LEADERBOARD</button>
+    <div class="hr"></div>
+    <button class="btn D" id="btnReset">⚠ RESET PESCA PROGRESS</button>
+    <div id="resetConfirm" class="H" style="margin-top:8px">
+      <p style="color:#ff4444;font-size:.76rem;margin-bottom:7px">This will erase all Pesca data. Sure?</p>
+      <div style="display:flex;gap:7px">
+        <button class="btn D" style="padding:7px" onclick="doReset()">YES, RESET</button>
+        <button class="btn O" style="padding:7px" onclick="document.getElementById('resetConfirm').classList.add('H')">CANCEL</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ AUTH INLINE ══ -->
-<div id="authModal" class="overlay hidden">
-  <div class="panel" id="authPanel">
-    <button class="pclose" onclick="closeModal('authModal')">✕</button>
-    <h2 style="margin-bottom:16px">LSD P-E-S-C-A</h2>
-    <div id="tabBar">
-      <button class="tab active" data-tab="login">SIGN IN</button>
-      <button class="tab" data-tab="register">REGISTER</button>
+<!-- AUTH -->
+<div id="authModal" class="M H">
+  <div class="P" style="max-width:400px">
+    <button class="Xbtn" onclick="closeM('authModal')">✕</button>
+    <h2 style="margin-bottom:14px">LSD P-E-S-C-A</h2>
+    <div class="tabbar">
+      <button class="atab A" data-t="login">SIGN IN</button>
+      <button class="atab" data-t="register">REGISTER</button>
     </div>
-    <form id="loginForm" class="auth-form">
-      <div class="field"><label>Username or Email</label><input type="text" id="loginId" autocomplete="username" placeholder="username or email" required></div>
-      <div class="field"><label>Password</label><div class="pw-wrap"><input type="password" id="loginPw" autocomplete="current-password" placeholder="••••••••" required><button type="button" class="pw-toggle" data-target="loginPw">👁</button></div></div>
-      <div id="loginErr" class="form-error hidden"></div>
-      <button type="submit" class="pbtn" id="loginBtn">SIGN IN</button>
+    <form id="loginForm" class="aform">
+      <div class="fld"><label>Username or Email</label><input id="loginId" type="text" autocomplete="username" placeholder="username or email" required></div>
+      <div class="fld"><label>Password</label><div class="pww"><input id="loginPw" type="password" autocomplete="current-password" placeholder="••••••••" required><button type="button" class="pwt" data-pw="loginPw">👁</button></div></div>
+      <div id="loginErr" class="ferr H"></div>
+      <button type="submit" class="btn" id="loginBtn">SIGN IN</button>
     </form>
-    <form id="registerForm" class="auth-form hidden">
-      <div class="field"><label>Username</label><input type="text" id="regUser" autocomplete="username" placeholder="CoolAngler99" required minlength="3" maxlength="20"></div>
-      <div class="field"><label>Email</label><input type="email" id="regEmail" autocomplete="email" placeholder="you@example.com" required></div>
-      <div class="field"><label>Password</label><div class="pw-wrap"><input type="password" id="regPw" autocomplete="new-password" placeholder="••••••••" required minlength="8"><button type="button" class="pw-toggle" data-target="regPw">👁</button></div></div>
-      <div id="regErr" class="form-error hidden"></div>
-      <button type="submit" class="pbtn" id="registerBtn">CREATE ACCOUNT</button>
+    <form id="regForm" class="aform H">
+      <div class="fld"><label>Username</label><input id="regUser" type="text" autocomplete="username" placeholder="CoolAngler99" required minlength="3" maxlength="20"></div>
+      <div class="fld"><label>Email</label><input id="regEmail" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+      <div class="fld"><label>Password</label><div class="pww"><input id="regPw" type="password" autocomplete="new-password" placeholder="••••••••" required minlength="8"><button type="button" class="pwt" data-pw="regPw">👁</button></div></div>
+      <div id="regErr" class="ferr H"></div>
+      <button type="submit" class="btn" id="regBtn">CREATE ACCOUNT</button>
     </form>
-    <div class="divider-or"><span>or</span></div>
-    <button id="guestBtn2" class="guest-btn">🎲 PLAY AS GUEST<span class="guest-note">Progress saved in browser only</span></button>
-    <div id="authGlobalErr" class="form-error hidden" style="margin-top:10px;text-align:center"></div>
+    <div class="dor"><span>or</span></div>
+    <button class="gbtn" id="guestBtn">🎲 PLAY AS GUEST<small>Progress saved in browser only</small></button>
+    <div id="authErr" class="ferr H" style="margin-top:8px"></div>
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-//  LSD P-E-S-C-A — Full Web Game
-// ══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+//  LSD P-E-S-C-A  —  complete game  v3
+// ════════════════════════════════════════════════
+const API = "https://lsd-backend-4phu.onrender.com";
+const LSK = "pesca_guest_state";
 
-const API_URL = "https://lsd-backend-4phu.onrender.com";
-const LS_KEY  = "pesca_guest_state";
-
-// ── CANVAS ──────────────────────────────────────────────────
-const canvas = document.getElementById("gameCanvas");
-const ctx    = canvas.getContext("2d");
-const VW = 1920, VH = 1080;
-let scale=1, offX=0, offY=0;
-
-function resizeCanvas() {
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const sw = canvas.width/VW, sh = canvas.height/VH;
-  scale = Math.min(sw,sh);
-  offX  = (canvas.width  - VW*scale)/2;
-  offY  = (canvas.height - VH*scale)/2;
+// ── CANVAS ──────────────────────────────────────
+const cv  = document.getElementById("gameCanvas");
+const ctx = cv.getContext("2d");
+const VW  = 1920, VH = 1080;
+let sc=1, ox=0, oy=0;
+function resize(){
+  cv.width=innerWidth; cv.height=innerHeight;
+  const sw=cv.width/VW, sh=cv.height/VH;
+  sc=Math.min(sw,sh); ox=(cv.width-VW*sc)/2; oy=(cv.height-VH*sc)/2;
 }
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-function toV(sx,sy){ return {x:(sx-offX)/scale, y:(sy-offY)/scale}; }
+window.addEventListener("resize", resize); resize();
+function toV(sx,sy){ return {x:(sx-ox)/sc, y:(sy-oy)/sc}; }
 
-// ── FULLSCREEN ───────────────────────────────────────────────
-(function initFS(){
-  const tryFS = () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-  };
-  document.addEventListener("click",    tryFS, {once:true});
-  document.addEventListener("touchstart",tryFS, {once:true});
-  // On load attempt
-  window.addEventListener("load", ()=>{ setTimeout(tryFS,500); });
-})();
+// ── FULLSCREEN ───────────────────────────────────
+function tryFS(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); }
+window.addEventListener("load",()=>setTimeout(tryFS,400));
+document.addEventListener("click", tryFS, {once:true});
+document.addEventListener("touchstart", tryFS, {once:true});
 
-// ── API ──────────────────────────────────────────────────────
-const Api = {
-  token(){ return localStorage.getItem("lsd_token"); },
-  user() { return JSON.parse(localStorage.getItem("lsd_user")||"null"); },
-  isGuest(){ const u=this.user(); return !u||u.isGuest===true; },
-  saveSession(t,u){ localStorage.setItem("lsd_token",t); localStorage.setItem("lsd_user",JSON.stringify(u)); },
-  clearSession(){ localStorage.removeItem("lsd_token"); localStorage.removeItem("lsd_user"); },
-  async req(path,method="GET",body=null){
+// ── MODAL SYSTEM ────────────────────────────────
+// Modals are pure HTML; canvas click/touch are guarded by anyOpen()
+function anyOpen(){
+  if(TUT_OPEN) return true;
+  return !![...document.querySelectorAll(".M")].find(el=>!el.classList.contains("H"));
+}
+function openM(id){ document.getElementById(id).classList.remove("H"); }
+function closeM(id){ document.getElementById(id).classList.add("H"); }
+
+// ── API ──────────────────────────────────────────
+const Api={
+  tok(){ return localStorage.getItem("lsd_token"); },
+  usr(){ return JSON.parse(localStorage.getItem("lsd_user")||"null"); },
+  guest(){ const u=this.usr(); return !u||u.isGuest===true; },
+  save(t,u){ localStorage.setItem("lsd_token",t); localStorage.setItem("lsd_user",JSON.stringify(u)); },
+  async req(p,m="GET",b=null){
     const h={"Content-Type":"application/json"};
-    if(this.token()) h["Authorization"]="Bearer "+this.token();
-    const r=await fetch(API_URL+path,{method,headers:h,body:body?JSON.stringify(body):undefined});
-    const txt=await r.text();
-    let d; try{d=JSON.parse(txt);}catch(e){throw new Error("Non-JSON response");}
+    if(this.tok()) h.Authorization="Bearer "+this.tok();
+    const r=await fetch(API+p,{method:m,headers:h,body:b?JSON.stringify(b):undefined});
+    const d=await r.json();
     if(!r.ok) throw new Error(d.error||"HTTP "+r.status);
     return d;
   },
-  loadState()   { return this.req("/pesca/state"); },
-  saveState(s)  { return this.req("/pesca/save","POST",s); },
-  resetState()  { return this.req("/pesca/reset","POST"); },
-  leaderboard() { return this.req("/pesca/leaderboard"); },
-  async login(id,pw)    { const d=await this.req("/auth/login","POST",{identifier:id,password:pw}); this.saveSession(d.token,d.user); return d; },
-  async register(u,e,p) { const d=await this.req("/auth/register","POST",{username:u,email:e,password:p}); this.saveSession(d.token,d.user); return d; },
-  async guest()         { const d=await this.req("/auth/guest","POST"); this.saveSession(d.token,d.user); return d; }
+  loadState(){ return this.req("/pesca/state"); },
+  saveState(s){ return this.req("/pesca/save","POST",s); },
+  resetState(){ return this.req("/pesca/reset","POST"); },
+  lb(){ return this.req("/pesca/leaderboard"); },
+  async login(id,pw){ const d=await this.req("/auth/login","POST",{identifier:id,password:pw}); this.save(d.token,d.user); return d; },
+  async register(u,e,p){ const d=await this.req("/auth/register","POST",{username:u,email:e,password:p}); this.save(d.token,d.user); return d; },
+  async doGuest(){ const d=await this.req("/auth/guest","POST"); this.save(d.token,d.user); return d; }
 };
 
-// ── ASSETS ───────────────────────────────────────────────────
+// ── ASSETS ──────────────────────────────────────
 const IMG={};
-let assetsLoaded=0, assetsTotal=0;
-function loadImg(key,src){
-  assetsTotal++;
-  const img=new Image();
-  img.onload=()=>assetsLoaded++;
-  img.onerror=()=>assetsLoaded++;
-  img.src=src; IMG[key]=img; return img;
+let aL=0,aT=0;
+function img(k,s){
+  aT++;
+  const i=new Image();
+  i.onload=i.onerror=()=>aL++;
+  i.src=s; IMG[k]=i; return i;
 }
-function allLoaded(){ return assetsLoaded>=assetsTotal; }
+function ready(){ return aL>=aT; }
+img("logo","assets/ui/logo.png");
+img("canna","assets/ui/canna_da_pesca.png");
+img("mappa","assets/ui/mappa.png");
+img("vhs","assets/ui/cassettaVHS.png");
+for(let i=1;i<=4;i++) img("s"+i,"assets/schermate/schermata"+i+".png");
+for(let i=0;i<4;i++) img("b"+i,"assets/biomi/bioma"+i+".png");
+const BK=["fiume","mare","oceano","artico"];
+const BP=["pesci/fiume","pesci/mare","pesci/oceano","pesci/artico"];
+const FI={fiume:[null],mare:[null],oceano:[null],artico:[null]};
+BK.forEach((k,bi)=>{ for(let i=1;i<=10;i++) FI[k].push(img(k+i,"assets/"+BP[bi]+"/"+i+".png")); });
 
-loadImg("logo","assets/ui/logo.png");
-loadImg("canna","assets/ui/canna_da_pesca.png");
-loadImg("mappa","assets/ui/mappa.png");
-loadImg("cassetta","assets/ui/cassettaVHS.png");
-for(let i=1;i<=4;i++) loadImg("schermata"+i,"assets/schermate/schermata"+i+".png");
-for(let i=0;i<4;i++) loadImg("bioma"+i,"assets/biomi/bioma"+i+".png");
-
-const BKEYS  = ["fiume","mare","oceano","artico"];
-const BPATHS = ["pesci/fiume","pesci/mare","pesci/oceano","pesci/artico"];
-const FISH   = {fiume:[null],mare:[null],oceano:[null],artico:[null]};
-BKEYS.forEach((k,bi)=>{
-  for(let i=1;i<=10;i++){
-    FISH[k].push(loadImg(`${k}_${i}`,`assets/${BPATHS[bi]}/${i}.png`));
-  }
-});
-
-// ── FISH DATA ────────────────────────────────────────────────
-const BIOME_NAMES = ["River","Sea","Ocean","Arctic"];
-const BIOME_COSTS = [0,10,20,50];
-const BIOME_SPEEDS= [1.2,2.4,4.8,9.6]; // base speed per biome
-
-const FISH_NAMES = {
-  fiume:  ["Brown Trout","Common Carp","European Perch","Northern Pike","Roach","Common Bream","Chub","Barbel","Wels Catfish","River Dragon"],
-  mare:   ["Atlantic Mackerel","European Sea Bass","Striped Mullet","Mahi-Mahi","Bluefin Tuna","Dusky Grouper","Greater Amberjack","Broadbill Swordfish","Bull Shark","Sea Leviathan"],
-  oceano: ["Clownfish","Anglerfish","Giant Manta Ray","Oarfish","Colossal Squid","Pacific Viperfish","Megamouth Shark","Goblin Shark","Coelacanth","Abyssal Titan"],
-  artico: ["Capelin","Arctic Char","Pacific Halibut","Alaska Pollock","Narwhal","Weddell Seal","Orca","Polar Cod","Greenland Shark","Frost Colossus"]
+// ── FISH DATA ────────────────────────────────────
+const BN=["River","Sea","Ocean","Arctic"];
+const BC=[0,10,20,50];
+const BS=[1.2,2.4,4.8,9.6];
+const FN={
+  fiume:["Brown Trout","Common Carp","European Perch","Northern Pike","Roach","Common Bream","Chub","Barbel","Wels Catfish","River Dragon"],
+  mare:["Atlantic Mackerel","Sea Bass","Striped Mullet","Mahi-Mahi","Bluefin Tuna","Grouper","Amberjack","Swordfish","Bull Shark","Sea Leviathan"],
+  oceano:["Clownfish","Anglerfish","Giant Manta","Oarfish","Colossal Squid","Viperfish","Megamouth Shark","Goblin Shark","Coelacanth","Abyssal Titan"],
+  artico:["Capelin","Arctic Char","Halibut","Alaska Pollock","Narwhal","Weddell Seal","Orca","Polar Cod","Greenland Shark","Frost Colossus"]
 };
-
-// Rarity thresholds: 1-6 comune, 7-9 raro, 10 mitico, 11 VHS
-function getRarity(idx){
-  if(idx===11) return {label:"MYSTERIOUS",cls:"vhs",color:"#FFD700",sell:0};
-  if(idx===10) return {label:"MYTHIC",cls:"mythic",color:"#ce93d8",sell:10};
-  if(idx>=7)   return {label:"RARE",cls:"rare",color:"#4fc3f7",sell:5};
-  return {label:"COMMON",cls:"common",color:"#aaa",sell:1};
+function rar(idx){
+  if(idx===11) return {l:"MYSTERIOUS",c:"vhs",col:"#FFD700",s:0};
+  if(idx===10) return {l:"MYTHIC",c:"mythic",col:"#ce93d8",s:10};
+  if(idx>=7)   return {l:"RARE",c:"rare",col:"#4fc3f7",s:5};
+  return {l:"COMMON",c:"common",col:"#aaa",s:1};
+}
+function spawnIdx(vhsDone){
+  const r=Math.random()*100;
+  if(!vhsDone&&r<4) return 11;
+  if(r<(vhsDone?8:12)) return 10;
+  if(r<(vhsDone?36:40)) return 7+Math.floor(Math.random()*3);
+  return 1+Math.floor(Math.random()*6);
 }
 
-// Weighted spawn: Common 60%, Rare 28%, Mythic 8%, VHS 4%
-function spawnRandom(vhsAlreadyFound){
-  const r = Math.random()*100;
-  if(!vhsAlreadyFound && r<4)  return 11;       // VHS 4%
-  if(r<(vhsAlreadyFound?8:12)) return 10;       // Mythic 8%
-  if(r<(vhsAlreadyFound?36:40)) return 7+Math.floor(Math.random()*3); // Rare 28% → 7,8,9
-  return 1+Math.floor(Math.random()*6);          // Common 60% → 1-6
-}
-
-// ── AUDIO ────────────────────────────────────────────────────
-let audioCtx=null, masterGain=null, audioMuted=false;
+// ── AUDIO ────────────────────────────────────────
+let AC=null,MG=null,muted=false;
 function initAudio(){
-  if(audioCtx) return;
-  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-  masterGain=audioCtx.createGain(); masterGain.gain.value=0.14;
-  masterGain.connect(audioCtx.destination);
-  playAmbient();
+  if(AC) return;
+  AC=new(window.AudioContext||window.webkitAudioContext)();
+  MG=AC.createGain(); MG.gain.value=0.13; MG.connect(AC.destination);
+  ambient();
 }
 document.addEventListener("click",initAudio,{once:true});
 document.addEventListener("touchstart",initAudio,{once:true});
-
-function playAmbient(){
-  if(!audioCtx) return;
-  const notes=[130.81,146.83,164.81,174.61,196,220,246.94];
-  const seq=[0,2,4,2,4,7,4,2,0,4,2,7,4,2,4,0];
-  const now=audioCtx.currentTime;
-  seq.forEach((n,i)=>{
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type="sine"; o.frequency.value=notes[n%notes.length]*0.5;
-    g.gain.setValueAtTime(0,now+i*1.2); g.gain.linearRampToValueAtTime(0.09,now+i*1.2+0.4);
+function ambient(){
+  if(!AC) return;
+  const ns=[130.81,146.83,164.81,174.61,196,220,246.94];
+  const sq=[0,2,4,2,4,7,4,2,0,4,2,7,4,2,4,0];
+  const now=AC.currentTime;
+  sq.forEach((n,i)=>{
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type="sine"; o.frequency.value=ns[n%ns.length]*0.5;
+    g.gain.setValueAtTime(0,now+i*1.2); g.gain.linearRampToValueAtTime(0.08,now+i*1.2+0.4);
     g.gain.exponentialRampToValueAtTime(0.001,now+i*1.2+2.2);
-    o.connect(g);g.connect(masterGain);o.start(now+i*1.2);o.stop(now+i*1.2+2.3);
-    if(i%4===0){const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
-      o2.type="triangle";o2.frequency.value=notes[(n+2)%notes.length]*0.25;
-      g2.gain.setValueAtTime(0.03,now+i*1.2);g2.gain.exponentialRampToValueAtTime(0.001,now+i*1.2+3.5);
-      o2.connect(g2);g2.connect(masterGain);o2.start(now+i*1.2);o2.stop(now+i*1.2+3.6);}
+    o.connect(g); g.connect(MG); o.start(now+i*1.2); o.stop(now+i*1.2+2.3);
   });
-  setTimeout(playAmbient,(seq.length*1.2-0.4)*1000);
+  setTimeout(ambient,(sq.length*1.2-0.4)*1000);
 }
-
-function playCatch(rarity){
-  if(!audioCtx||audioMuted) return;
-  const now=audioCtx.currentTime;
-  const configs={
-    common:  {freqs:[392,494,587],type:"square",gain:0.15,dt:0.08},
-    rare:    {freqs:[440,554,659,880],type:"triangle",gain:0.18,dt:0.09},
-    mythic:  {freqs:[523,659,784,1047,1319],type:"triangle",gain:0.22,dt:0.1},
-    vhs:     {freqs:[261,329,392,523,659,784],type:"sine",gain:0.2,dt:0.08}
-  };
-  const c=configs[rarity]||configs.common;
-  c.freqs.forEach((f,i)=>{
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.frequency.value=f; o.type=c.type;
-    g.gain.setValueAtTime(c.gain,now+i*c.dt);
-    g.gain.exponentialRampToValueAtTime(0.001,now+i*c.dt+0.5);
-    o.connect(g);g.connect(masterGain);o.start(now+i*c.dt);o.stop(now+i*c.dt+0.6);
-  });
+function sfxCatch(rc){
+  if(!AC||muted) return;
+  const now=AC.currentTime;
+  const cfgs={common:{f:[392,494,587],t:"square",g:0.14,d:0.08},rare:{f:[440,554,659,880],t:"triangle",g:0.17,d:0.09},mythic:{f:[523,659,784,1047,1319],t:"triangle",g:0.21,d:0.1},vhs:{f:[261,329,392,523,659,784],t:"sine",g:0.19,d:0.08}};
+  const c=cfgs[rc]||cfgs.common;
+  c.f.forEach((f,i)=>{ const o=AC.createOscillator(),g=AC.createGain(); o.frequency.value=f; o.type=c.t; g.gain.setValueAtTime(c.g,now+i*c.d); g.gain.exponentialRampToValueAtTime(0.001,now+i*c.d+0.5); o.connect(g); g.connect(MG); o.start(now+i*c.d); o.stop(now+i*c.d+0.6); });
 }
-function playClick(){
-  if(!audioCtx||audioMuted) return;
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.frequency.value=440;o.type="square";
-  g.gain.setValueAtTime(0.06,audioCtx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.06);
-  o.connect(g);g.connect(masterGain);o.start();o.stop(audioCtx.currentTime+0.07);
+function sfxClick(){
+  if(!AC||muted) return;
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.frequency.value=440; o.type="square";
+  g.gain.setValueAtTime(0.05,AC.currentTime); g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+0.06);
+  o.connect(g); g.connect(MG); o.start(); o.stop(AC.currentTime+0.07);
 }
 function toggleAudio(){
-  audioMuted=!audioMuted;
-  if(masterGain) masterGain.gain.value=audioMuted?0:0.14;
-  document.getElementById("toggleMusic").classList.toggle("on",!audioMuted);
+  muted=!muted;
+  if(MG) MG.gain.value=muted?0:0.13;
+  document.getElementById("togMusic").classList.toggle("on",!muted);
 }
 
-// ── STATE ────────────────────────────────────────────────────
-const S = {
+// ── STATE ────────────────────────────────────────
+const S={
   dobloni:0, comuni:0, rari:0, mitici:0,
   biomaBool:[true,false,false,false],
-  selezionato:[true,false,false,false],
+  sel:[true,false,false,false],
   enci:{fiume:new Array(10).fill(false),mare:new Array(10).fill(false),oceano:new Array(10).fill(false),artico:new Array(10).fill(false)},
   vhs:[false,false,false,false],
-  // session deltas for leaderboard
-  _pescaDelta:0, _miticiDelta:0, _vhsDelta:0,
-  get biomeIdx(){ return this.selezionato.findIndex(v=>v); },
-  get biomeKey() { return BKEYS[this.biomeIdx]; },
-  toPayload(){
-    return {
-      dobloni:this.dobloni, comuni:this.comuni, rari:this.rari, mitici:this.mitici,
-      biomiSbloccati:this.biomaBool, biomaSelezionato:this.biomeIdx,
+  _pd:0,_md:0,_vd:0,
+  get bi(){ return this.sel.findIndex(v=>v); },
+  get bk(){ return BK[this.bi]; },
+  pay(){
+    return {dobloni:this.dobloni,comuni:this.comuni,rari:this.rari,mitici:this.mitici,
+      biomiSbloccati:this.biomaBool,biomaSelezionato:this.bi,
       enciclopedia:{fiume:this.enci.fiume,mare:this.enci.mare,oceano:this.enci.oceano,artico:this.enci.artico},
-      vhs:this.vhs,
-      pescaTotaliDelta:this._pescaDelta, pescaMiticiDelta:this._miticiDelta, vhsDelta:this._vhsDelta
-    };
+      vhs:this.vhs,pescaTotaliDelta:this._pd,pescaMiticiDelta:this._md,vhsDelta:this._vd};
   },
-  fromServer(d){
+  fromSrv(d){
     if(!d) return;
     this.dobloni=d.dobloni??0; this.comuni=d.comuni??0; this.rari=d.rari??0; this.mitici=d.mitici??0;
     this.biomaBool=d.biomiSbloccati??[true,false,false,false];
-    this.selezionato=[false,false,false,false]; this.selezionato[d.biomaSelezionato??0]=true;
+    this.sel=[false,false,false,false]; this.sel[d.biomaSelezionato??0]=true;
     this.vhs=d.vhs??[false,false,false,false];
-    if(d.enciclopedia){
-      this.enci.fiume =d.enciclopedia.fiume ||new Array(10).fill(false);
-      this.enci.mare  =d.enciclopedia.mare  ||new Array(10).fill(false);
-      this.enci.oceano=d.enciclopedia.oceano||new Array(10).fill(false);
-      this.enci.artico=d.enciclopedia.artico||new Array(10).fill(false);
-    }
-    this._pescaDelta=0; this._miticiDelta=0; this._vhsDelta=0;
+    if(d.enciclopedia){ BK.forEach(k=>{ this.enci[k]=d.enciclopedia[k]||new Array(10).fill(false); }); }
+    this._pd=0; this._md=0; this._vd=0;
   },
-  toLocal(){ localStorage.setItem(LS_KEY, JSON.stringify(this.toPayload())); },
-  fromLocal(){
+  saveLS(){ localStorage.setItem(LSK,JSON.stringify(this.pay())); },
+  loadLS(){
     try{
-      const d=JSON.parse(localStorage.getItem(LS_KEY)||"null");
-      if(!d) return false;
+      const d=JSON.parse(localStorage.getItem(LSK)||"null"); if(!d) return false;
       this.dobloni=d.dobloni??0; this.comuni=d.comuni??0; this.rari=d.rari??0; this.mitici=d.mitici??0;
       this.biomaBool=d.biomiSbloccati??[true,false,false,false];
-      this.selezionato=[false,false,false,false]; this.selezionato[d.biomaSelezionato??0]=true;
+      this.sel=[false,false,false,false]; this.sel[d.biomaSelezionato??0]=true;
       this.vhs=d.vhs??[false,false,false,false];
-      if(d.enciclopedia){
-        this.enci.fiume=d.enciclopedia.fiume||new Array(10).fill(false);
-        this.enci.mare=d.enciclopedia.mare||new Array(10).fill(false);
-        this.enci.oceano=d.enciclopedia.oceano||new Array(10).fill(false);
-        this.enci.artico=d.enciclopedia.artico||new Array(10).fill(false);
-      }
+      if(d.enciclopedia){ BK.forEach(k=>{ this.enci[k]=d.enciclopedia[k]||new Array(10).fill(false); }); }
       return true;
-    }catch(e){return false;}
+    }catch(e){ return false; }
   }
 };
 
-// ── FISHING ROD ──────────────────────────────────────────────
-// Dynamic fish movement: sine waves, bursts, pattern changes per rarity
-const ROD = {
-  // Player
-  y: 580, speed: 4,
-  // Fish
-  yF: 580, baseSpeed: 1, velF: 0,
-  dir: 1,
-  // Fish motion pattern
-  sinePhase: 0, sineAmp: 0, sineFreq: 0,
-  burstTimer: 0, burstInterval: 0,
-  // Catch state
-  inZone: false, catchStart: 0, catchRequired: 3000,
-  captured: false, captureTime: 0,
-  counter: false,
-  // Current fish
-  fishIdx: 1, fishRarity: "common",
-  // Rod bar dimensions (virtual coords)
-  BAR_X: 1855, BAR_TOP: 390, BAR_BOT: 790,
-  SLIDER_H: 56,
-
-  get barH(){ return this.BAR_BOT - this.BAR_TOP; },
-
-  spawnFish(){
-    const bi = S.biomeIdx;
-    const fishIdx = spawnRandom(S.vhs[bi]);
-    this.fishIdx = fishIdx;
-    const r = getRarity(fishIdx);
-    this.fishRarity = r.cls;
-    this.catchRequired = fishIdx===10 ? 4000 : fishIdx>=7 ? 3500 : 3000;
-
-    // Speed & motion based on rarity + biome
-    const biomeSpeedMult = BIOME_SPEEDS[bi];
-    if(r.cls==="common"){
-      this.baseSpeed = biomeSpeedMult * (0.7 + Math.random()*0.4);
-      this.sineAmp=0; this.sineFreq=0;
-      this.burstInterval=0;
-    } else if(r.cls==="rare"){
-      this.baseSpeed = biomeSpeedMult * (1.0 + Math.random()*0.5);
-      this.sineAmp = 30 + Math.random()*30;
-      this.sineFreq = 0.002 + Math.random()*0.002;
-      this.burstInterval = 2500 + Math.random()*1500;
-    } else if(r.cls==="mythic"){
-      this.baseSpeed = biomeSpeedMult * (1.5 + Math.random()*0.8);
-      this.sineAmp = 60 + Math.random()*50;
-      this.sineFreq = 0.004 + Math.random()*0.003;
-      this.burstInterval = 1200 + Math.random()*800;
-    } else { // VHS
-      this.baseSpeed = biomeSpeedMult * (1.2 + Math.random()*0.6);
-      this.sineAmp = 20 + Math.random()*40;
-      this.sineFreq = 0.003;
-      this.burstInterval = 3000;
-    }
-
-    this.velF = this.baseSpeed * (Math.random()<0.5?1:-1);
-    this.sinePhase = Math.random()*Math.PI*2;
-    this.burstTimer = 0;
-    this.yF = this.BAR_TOP + this.barH * (0.2 + Math.random()*0.6);
-    this.y  = this.BAR_TOP + this.barH * 0.5;
-    this.inZone=false; this.catchStart=0;
-    this.captured=false; this.captureTime=0; this.counter=false;
+// ── ROD / FISHING ────────────────────────────────
+const ROD={
+  y:580, spd:4,
+  yF:580, vF:0,
+  sinP:0, sinA:0, sinF:0,
+  burstT:0, burstI:0,
+  inZ:false, cStart:0, cReq:3000,
+  capt:false, captT:0, counted:false,
+  fIdx:1, fRar:"common",
+  BX:1855, BT:390, BB:790, SH:56,
+  get bH(){ return this.BB-this.BT; },
+  get eY(){ return this._eY??this.yF; },
+  spawn(){
+    const bi=S.bi, fi=spawnIdx(S.vhs[bi]);
+    this.fIdx=fi; const r=rar(fi); this.fRar=r.c;
+    this.cReq=fi===10?4000:fi>=7?3500:3000;
+    const bsm=BS[bi];
+    if(r.c==="common"){ this.vF=bsm*(0.7+Math.random()*0.4)*(Math.random()<.5?1:-1); this.sinA=0; this.sinF=0; this.burstI=0; }
+    else if(r.c==="rare"){ this.vF=bsm*(1.0+Math.random()*0.5)*(Math.random()<.5?1:-1); this.sinA=30+Math.random()*30; this.sinF=0.002+Math.random()*0.002; this.burstI=2500+Math.random()*1500; }
+    else if(r.c==="mythic"){ this.vF=bsm*(1.5+Math.random()*0.8)*(Math.random()<.5?1:-1); this.sinA=60+Math.random()*50; this.sinF=0.004+Math.random()*0.003; this.burstI=1200+Math.random()*800; }
+    else{ this.vF=bsm*(1.2+Math.random()*0.6)*(Math.random()<.5?1:-1); this.sinA=20+Math.random()*40; this.sinF=0.003; this.burstI=3000; }
+    this.sinP=Math.random()*Math.PI*2; this.burstT=0;
+    this.yF=this.BT+this.bH*(0.2+Math.random()*0.6);
+    this.y=this.BT+this.bH*0.5;
+    this.inZ=false; this.cStart=0; this.capt=false; this.captT=0; this.counted=false;
   },
-
-  update(now, dt){
-    if(this.captured) return;
-
-    // Move fish
-    this.sinePhase += this.sineFreq * dt;
-    const sineOff = this.sineAmp * Math.sin(this.sinePhase);
-
-    // Burst: occasional direction flip for rare+
-    if(this.burstInterval>0){
-      this.burstTimer += dt;
-      if(this.burstTimer >= this.burstInterval){
-        this.velF *= -(0.8 + Math.random()*0.6);
-        this.burstTimer = 0;
-        this.burstInterval = this.burstInterval * (0.7 + Math.random()*0.6);
-        if(this.burstInterval < 600) this.burstInterval = 600;
-      }
-    }
-
-    this.yF += this.velF * (dt/16);
-
-    // Bounce off walls
-    const minY = this.BAR_TOP + 5;
-    const maxY = this.BAR_BOT - 5;
-    if(this.yF < minY){ this.yF=minY; this.velF=Math.abs(this.velF)*(0.8+Math.random()*0.4); }
-    if(this.yF > maxY){ this.yF=maxY; this.velF=-Math.abs(this.velF)*(0.8+Math.random()*0.4); }
-
-    // Effective fish center (with sine)
-    const effY = Math.max(minY, Math.min(maxY, this.yF + sineOff));
-
-    // Hitbox: fish ±18px, slider from y to y+SLIDER_H
-    const fishTop = effY - 18, fishBot = effY + 18;
-    const sliderTop = this.y, sliderBot = this.y + this.SLIDER_H;
-    const overlap = fishTop < sliderBot && fishBot > sliderTop;
-
-    if(overlap){
-      if(!this.inZone){ this.catchStart=now; this.inZone=true; }
-    } else {
-      this.inZone=false; this.catchStart=0;
-    }
-
-    if(this.inZone && (now - this.catchStart) >= this.catchRequired){
-      this.captured=true; this.captureTime=now;
-    }
-
-    this._effY = effY; // store for drawing
-  },
-
-  get effY(){ return this._effY ?? this.yF; }
+  update(now,dt){
+    if(this.capt) return;
+    this.sinP+=this.sinF*dt;
+    if(this.burstI>0){ this.burstT+=dt; if(this.burstT>=this.burstI){ this.vF*=-(0.8+Math.random()*0.6); this.burstT=0; this.burstI=Math.max(600,this.burstI*(0.7+Math.random()*0.6)); } }
+    this.yF+=this.vF*(dt/16);
+    const mn=this.BT+5, mx=this.BB-5;
+    if(this.yF<mn){ this.yF=mn; this.vF=Math.abs(this.vF)*(0.8+Math.random()*0.4); }
+    if(this.yF>mx){ this.yF=mx; this.vF=-Math.abs(this.vF)*(0.8+Math.random()*0.4); }
+    const eY=Math.max(mn,Math.min(mx,this.yF+this.sinA*Math.sin(this.sinP)));
+    this._eY=eY;
+    const ov=eY-18<this.y+this.SH && eY+18>this.y;
+    if(ov){ if(!this.inZ){ this.cStart=now; this.inZ=true; } }
+    else  { this.inZ=false; this.cStart=0; }
+    if(this.inZ&&now-this.cStart>=this.cReq){ this.capt=true; this.captT=now; }
+  }
 };
 
-// ── GAME PHASES ──────────────────────────────────────────────
-let phase = "loading";
-const SLIDE = {idx:0, last:0, interval:9000};
-let infoOpen = false;
-let lastNow = 0;
+// ── PHASE & SLIDE ────────────────────────────────
+let phase="loading";
+const SL={i:0,t:0,int:9000};
+let lastT=0;
+let mouseX=0,mouseY=0;
 
-// ── DRAW HELPERS ─────────────────────────────────────────────
-function dI(key,x,y,w,h){ const img=IMG[key]; if(!img||!img.complete) return; if(w!=null) ctx.drawImage(img,x,y,w,h); else ctx.drawImage(img,x,y); }
-function txt(s,x,y,sz,color,align="left",font="'Courier Prime',monospace"){
-  ctx.save(); ctx.font=`${sz}px ${font}`; ctx.fillStyle=color; ctx.textAlign=align; ctx.fillText(s,x,y); ctx.restore();
-}
-function rct(x,y,w,h,color){ ctx.save(); ctx.fillStyle=color; ctx.fillRect(x,y,w,h); ctx.restore(); }
-function hV(x,y,w,h){ return mouseVX>=x&&mouseVX<=x+w&&mouseVY>=y&&mouseVY<=y+h; }
-function hC(cx,cy,r){ const dx=mouseVX-cx,dy=mouseVY-cy; return dx*dx+dy*dy<=r*r; }
+// ── DRAW HELPERS ─────────────────────────────────
+function di(k,x,y,w,h){ const i=IMG[k]; if(!i||!i.complete) return; w!=null?ctx.drawImage(i,x,y,w,h):ctx.drawImage(i,x,y); }
+function tx(s,x,y,sz,col,al="left",fnt="'Courier Prime',monospace"){ ctx.save(); ctx.font=sz+"px "+fnt; ctx.fillStyle=col; ctx.textAlign=al; ctx.fillText(s,x,y); ctx.restore(); }
+function rc(x,y,w,h,col){ ctx.save(); ctx.fillStyle=col; ctx.fillRect(x,y,w,h); ctx.restore(); }
+function hv(x,y,w,h){ return mouseX>=x&&mouseX<=x+w&&mouseY>=y&&mouseY<=y+h; }
+function hc(cx,cy,r){ const dx=mouseX-cx,dy=mouseY-cy; return dx*dx+dy*dy<=r*r; }
 
-// ── DRAW LOADING ─────────────────────────────────────────────
+// ── LOADING / SLIDESHOW ──────────────────────────
 function drawLoading(now){
-  if(!SLIDE.last) SLIDE.last=now;
-  if(now-SLIDE.last>=SLIDE.interval){ SLIDE.idx=(SLIDE.idx+1)%4; SLIDE.last=now; }
-  dI("schermata"+(SLIDE.idx+1),0,0,VW,VH);
-  // Loading bar
-  rct(VW/2-150,VH-60,300,6,"rgba(255,215,0,0.12)");
-  const pct=allLoaded()?1:assetsLoaded/Math.max(1,assetsTotal);
-  rct(VW/2-150,VH-60,300*pct,6,"rgba(255,215,0,0.7)");
-  txt("LOADING…",VW/2,VH-30,22,"rgba(255,215,0,0.5)","center");
+  if(!SL.t) SL.t=now;
+  if(now-SL.t>=SL.int){ SL.i=(SL.i+1)%4; SL.t=now; }
+  di("s"+(SL.i+1),0,0,VW,VH);
+  rc(VW/2-140,VH-52,280,5,"rgba(255,215,0,.1)");
+  const pct=ready()?1:aL/Math.max(1,aT);
+  rc(VW/2-140,VH-52,280*pct,5,"rgba(255,215,0,.65)");
+  tx("LOADING…",VW/2,VH-26,20,"rgba(255,215,0,.45)","center");
 }
 
-// ── DRAW MENU ─────────────────────────────────────────────────
+// ── MENU ─────────────────────────────────────────
+const MITEMS=[
+  {l:"▶  PLAY",k:"play"},{l:"🗺  MAP",k:"map"},
+  {l:"🏪  SHOP",k:"shop"},{l:"🏆  RANK",k:"rank"},
+  {l:"⚙   SETTINGS",k:"set"},{l:"✕   EXIT",k:"exit"}
+];
+const MMX=30,MMY=()=>VH-390,MMW=250,MMH=50,MMG=5;
+
 function drawMenu(now){
-  drawLoading(now);
-  // Logo area
-  ctx.save(); ctx.fillStyle="rgba(0,0,0,0.38)"; ctx.fillRect(0,50,580,200); ctx.restore();
-  dI("logo",28,58);
-
-  // Menu panel bottom-left — cleaner UX
-  const menuItems = [
-    {label:"▶  PLAY",    key:"play"},
-    {label:"🗺  MAP",     key:"map"},
-    {label:"🏪  SHOP",   key:"shop"},
-    {label:"🏆  RANK",   key:"rank"},
-    {label:"⚙   SETTINGS",key:"set"},
-    {label:"✕   EXIT",   key:"exit"}
-  ];
-  const MX=30, MY=VH-380, MW=240, MH=48, GAP=6;
+  drawLoading(now); // sliding backgrounds
+  // logo panel
+  ctx.save(); ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,46,560,195); ctx.restore();
+  di("logo",26,54);
+  // username top right
+  const uname=Api.usr()?.username||"Guest";
+  tx("⚙  "+uname, VW-22, 38, 24, "#FFD700","right","'Cinzel',serif");
+  // dobloni
+  tx("◈ "+S.dobloni, VW-22, 62, 18,"rgba(255,215,0,.5)","right");
+  // menu box
+  const MY=MMY(), rows=MITEMS.length;
   ctx.save();
-  ctx.fillStyle="rgba(0,0,0,0.72)";
-  ctx.fillRect(MX-12, MY-16, MW+24, menuItems.length*(MH+GAP)+24);
-  ctx.strokeStyle="rgba(255,215,0,0.22)";
-  ctx.lineWidth=1; ctx.strokeRect(MX-12,MY-16,MW+24,menuItems.length*(MH+GAP)+24);
+  ctx.fillStyle="rgba(0,0,0,.75)";
+  ctx.fillRect(MMX-14,MY-14,MMW+28,rows*(MMH+MMG)+20);
+  ctx.strokeStyle="rgba(255,215,0,.2)"; ctx.lineWidth=1;
+  ctx.strokeRect(MMX-14,MY-14,MMW+28,rows*(MMH+MMG)+20);
   ctx.restore();
-
-  menuItems.forEach((item,i)=>{
-    const iy=MY+i*(MH+GAP);
-    const hov=hV(MX,iy,MW,MH);
-    ctx.save();
-    if(hov){
-      ctx.fillStyle="rgba(255,215,0,0.12)";
-      ctx.fillRect(MX,iy,MW,MH);
-      ctx.strokeStyle="rgba(255,215,0,0.5)";
-      ctx.lineWidth=1; ctx.strokeRect(MX,iy,MW,MH);
-    }
-    ctx.font=`bold 22px 'Cinzel',serif`;
-    ctx.fillStyle=hov?"#FFD700":"rgba(255,255,255,0.8)";
-    ctx.textAlign="left";
-    ctx.fillText(item.label, MX+14, iy+MH/2+8);
-    ctx.restore();
+  MITEMS.forEach((item,i)=>{
+    const iy=MY+i*(MMH+MMG);
+    const hov=hv(MMX,iy,MMW,MMH);
+    if(hov){ rc(MMX,iy,MMW,MMH,"rgba(255,215,0,.1)"); ctx.save(); ctx.strokeStyle="rgba(255,215,0,.45)"; ctx.lineWidth=1; ctx.strokeRect(MMX,iy,MMW,MMH); ctx.restore(); }
+    tx(item.l, MMX+14, iy+MMH/2+8, 22, hov?"#FFD700":"rgba(255,255,255,.82)","left","'Cinzel',serif");
   });
-
-  // Dobloni top right
-  txt("◈ "+S.dobloni, VW-20, 42, 34, "#FFD700", "right", "'Cinzel',serif");
-  txt("Logged in: "+(Api.user()?.username||"Guest"), VW-20, 70, 18, "rgba(255,215,0,0.45)", "right");
 }
 
-const MENU_KEYS=["play","map","shop","rank","set","exit"];
-const MENU_MY_BASE = ()=>VH-380;
-const MENU_MH=48, MENU_GAP=6, MENU_MX=30, MENU_MW=240;
-
-// ── DRAW GAME ─────────────────────────────────────────────────
+// ── GAME ─────────────────────────────────────────
 function drawGame(now,dt){
-  dI("bioma"+S.biomeIdx,0,0,VW,VH);
-
-  // HUD top bar
-  ctx.save();
-  ctx.fillStyle="rgba(0,0,0,0.55)";
-  ctx.fillRect(0,0,VW,56);
-  ctx.restore();
-
-  // Home / settings buttons — drawn as clean SVG-style icons
-  drawIconBtn(50,28,"⌂","HOME", hV(14,6,72,46));
-  drawIconBtn(VW-50,28,"⚙","SETTINGS", hV(VW-86,6,72,46));
-
-  txt("◈ "+S.dobloni, VW/2, 38, 32, "#FFD700", "center", "'Cinzel',serif");
-  txt("C:"+S.comuni+"  R:"+S.rari+"  M:"+S.mitici, VW/2, 54, 16, "rgba(255,255,255,0.5)", "center");
-  txt(BIOME_NAMES[S.biomeIdx].toUpperCase(), 160, 36, 18, "rgba(255,215,0,0.5)", "left","'Cinzel',serif");
-
+  di("b"+S.bi,0,0,VW,VH);
+  rc(0,0,VW,54,"rgba(0,0,0,.55)");
+  // home btn
+  const hH=hv(12,4,68,46);
+  ctx.save(); ctx.font="24px 'Courier Prime',monospace"; ctx.fillStyle=hH?"#FFD700":"rgba(255,255,255,.7)"; ctx.textAlign="center"; ctx.textBaseline="middle"; if(hH){ctx.beginPath();ctx.arc(46,27,22,0,Math.PI*2);ctx.fillStyle="rgba(255,215,0,.13)";ctx.fill();ctx.font="24px 'Courier Prime',monospace";ctx.fillStyle="#FFD700";ctx.textBaseline="middle";} ctx.fillText("⌂",46,27); ctx.restore();
+  // settings btn
+  const hS=hv(VW-78,4,68,46);
+  ctx.save(); if(hS){ctx.beginPath();ctx.arc(VW-42,27,22,0,Math.PI*2);ctx.fillStyle="rgba(255,215,0,.13)";ctx.fill();} ctx.font="22px 'Courier Prime',monospace"; ctx.fillStyle=hS?"#FFD700":"rgba(255,255,255,.7)"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⚙",VW-42,27); ctx.restore();
+  tx("◈ "+S.dobloni,VW/2,35,30,"#FFD700","center","'Cinzel',serif");
+  tx("C:"+S.comuni+" R:"+S.rari+" M:"+S.mitici,VW/2,52,14,"rgba(255,255,255,.45)","center");
+  tx(BN[S.bi].toUpperCase(),150,34,16,"rgba(255,215,0,.5)","left","'Cinzel',serif");
   drawRod(now);
 }
 
-function drawIconBtn(cx,cy,icon,label,hov){
-  ctx.save();
-  if(hov){ ctx.fillStyle="rgba(255,215,0,0.15)"; ctx.beginPath(); ctx.arc(cx,cy,26,0,Math.PI*2); ctx.fill(); }
-  ctx.font="24px 'Courier Prime',monospace";
-  ctx.fillStyle=hov?"#FFD700":"rgba(255,255,255,0.75)";
-  ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.fillText(icon,cx,cy);
-  ctx.restore();
-}
-
-// ── DRAW ROD ─────────────────────────────────────────────────
 function drawRod(now){
-  const {BAR_X,BAR_TOP,BAR_BOT,barH,SLIDER_H} = ROD;
-  const effY = ROD.effY;
-
-  // Fishing line
-  ctx.save();
-  ctx.beginPath(); ctx.moveTo(VW*0.72, 65);
-  ctx.bezierCurveTo(VW*0.8,200,BAR_X+5,BAR_TOP-20,BAR_X+5,effY);
-  ctx.strokeStyle="rgba(255,255,255,0.3)"; ctx.lineWidth=1.5;
-  ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
-  ctx.restore();
-
-  // Rod image
-  dI("canna",BAR_X-80,BAR_TOP-30);
-
-  // Bar background
-  ctx.save();
-  ctx.fillStyle="rgba(0,0,0,0.65)";
-  ctx.fillRect(BAR_X-2,BAR_TOP,20,barH);
-  ctx.strokeStyle="rgba(255,215,0,0.25)"; ctx.lineWidth=1;
-  ctx.strokeRect(BAR_X-2,BAR_TOP,20,barH);
-  ctx.restore();
-
-  // Fish icon on bar
-  const r=getRarity(ROD.fishIdx);
-  const fishImg = ROD.fishIdx<=10 ? FISH[S.biomeKey][ROD.fishIdx] : null;
-  if(fishImg&&fishImg.complete){
+  const {BX,BT,BB,bH,SH,eY}=ROD;
+  // fishing line
+  ctx.save(); ctx.beginPath(); ctx.moveTo(VW*0.72,58);
+  ctx.bezierCurveTo(VW*0.8,200,BX+5,BT-15,BX+5,eY);
+  ctx.strokeStyle="rgba(255,255,255,.28)"; ctx.lineWidth=1.5; ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+  // rod image
+  di("canna",BX-82,BT-28);
+  // bar bg
+  rc(BX-2,BT,20,bH,"rgba(0,0,0,.65)");
+  ctx.save(); ctx.strokeStyle="rgba(255,215,0,.22)"; ctx.lineWidth=1; ctx.strokeRect(BX-2,BT,20,bH); ctx.restore();
+  // fish
+  const r=rar(ROD.fIdx);
+  const fi=ROD.fIdx<=10?FI[S.bk][ROD.fIdx]:null;
+  if(fi&&fi.complete){
     ctx.save();
-    // Glow for rarer fish
-    if(ROD.fishRarity==="mythic"){ ctx.shadowColor="#ce93d8"; ctx.shadowBlur=14; }
-    else if(ROD.fishRarity==="rare"){ ctx.shadowColor="#4fc3f7"; ctx.shadowBlur=8; }
-    ctx.drawImage(fishImg, BAR_X-10, effY-14, 28, 28);
-    ctx.restore();
-  } else {
-    // VHS or fallback
-    if(ROD.fishIdx===11) dI("cassetta",BAR_X-10,effY-14,28,28);
-    else { rct(BAR_X-2,effY-4,16,8,r.color); }
-  }
-
-  // Player slider
-  const sliderInZone = ROD.inZone;
+    if(ROD.fRar==="mythic"){ctx.shadowColor="#ce93d8";ctx.shadowBlur=12;}
+    else if(ROD.fRar==="rare"){ctx.shadowColor="#4fc3f7";ctx.shadowBlur=7;}
+    ctx.drawImage(fi,BX-11,eY-14,28,28); ctx.restore();
+  } else if(ROD.fIdx===11){ di("vhs",BX-11,eY-14,28,28); }
+  else{ rc(BX,eY-4,16,8,r.col); }
+  // slider
+  const inZ=ROD.inZ;
   ctx.save();
-  ctx.fillStyle=sliderInZone?"rgba(80,200,80,0.9)":"rgba(200,30,30,0.88)";
-  ctx.fillRect(BAR_X-2,ROD.y,20,SLIDER_H);
-  ctx.strokeStyle=sliderInZone?"#4EC600":"#FFD700";
-  ctx.lineWidth=2; ctx.strokeRect(BAR_X-2,ROD.y,20,SLIDER_H);
+  ctx.fillStyle=inZ?"rgba(70,200,70,.9)":"rgba(200,30,30,.88)";
+  ctx.fillRect(BX-2,ROD.y,20,SH);
+  ctx.strokeStyle=inZ?"#4EC600":"#FFD700"; ctx.lineWidth=2; ctx.strokeRect(BX-2,ROD.y,20,SH);
   ctx.restore();
-
-  // Capture progress arc
-  if(ROD.inZone && !ROD.captured){
-    const elapsed = performance.now()-ROD.catchStart;
-    const pct = Math.min(1,elapsed/ROD.catchRequired);
-    const cx2=BAR_X+8, cy2=ROD.y+SLIDER_H/2;
-    ctx.save();
-    ctx.beginPath(); ctx.arc(cx2,cy2,14,−Math.PI/2,-Math.PI/2+pct*Math.PI*2);
-    ctx.strokeStyle=`hsl(${120-pct*120},100%,55%)`; ctx.lineWidth=3;
-    ctx.stroke();
-    ctx.restore();
+  // progress arc
+  if(inZ&&!ROD.capt){
+    const pct=Math.min(1,(now-ROD.cStart)/ROD.cReq);
+    ctx.save(); ctx.beginPath();
+    ctx.arc(BX+8,ROD.y+SH/2,13,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);
+    ctx.strokeStyle="hsl("+(120-pct*120)+",100%,55%)"; ctx.lineWidth=3; ctx.stroke(); ctx.restore();
   }
-
-  // Caught overlay
-  if(ROD.captured){
-    const elapsed = performance.now()-ROD.captureTime;
-    if(!ROD.counter){ processCatch(); ROD.counter=true; }
-    if(elapsed>3500){ ROD.spawnFish(); }
+  // catch handling
+  if(ROD.capt){
+    if(!ROD.counted){ doCatch(); ROD.counted=true; }
+    if(now-ROD.captT>3400){ ROD.spawn(); }
   }
 }
 
-// ── PROCESS CATCH ────────────────────────────────────────────
-function processCatch(){
-  const idx=ROD.fishIdx, bi=S.biomeIdx, bk=S.biomeKey;
-  const r=getRarity(idx);
-
+// ── CATCH ────────────────────────────────────────
+let bdgT=null;
+function doCatch(){
+  const idx=ROD.fIdx, bi=S.bi, bk=S.bk, r=rar(idx);
   if(idx<=10){
-    if(idx<=6)     S.comuni++;
-    else if(idx<=9)S.rari++;
-    else           S.mitici++;
-    S.enci[bk][idx-1]=true;
-    S._pescaDelta++;
-    if(idx===10) S._miticiDelta++;
-    playCatch(r.cls);
+    if(idx<=6) S.comuni++; else if(idx<=9) S.rari++; else S.mitici++;
+    S.enci[bk][idx-1]=true; S._pd++; if(idx===10) S._md++;
+    sfxCatch(r.c);
   } else {
-    S.vhs[bi]=true;
-    S._vhsDelta++;
-    S._pescaDelta++;
-    playCatch("vhs");
+    S.vhs[bi]=true; S._vd++; S._pd++; sfxCatch("vhs");
   }
-
-  // Show catch badge
-  showCatchBadge(idx, bk, bi, r);
-
-  // Save
-  if(!Api.isGuest()){
-    Api.saveState(S.toPayload()).catch(()=>{});
-    S._pescaDelta=0; S._miticiDelta=0; S._vhsDelta=0;
-  } else {
-    S.toLocal();
-  }
+  // badge
+  const bd=document.getElementById("badge");
+  const fi=idx<=10?FI[bk][idx]:null;
+  document.getElementById("bImg").src=fi?.src||IMG["vhs"]?.src||"";
+  document.getElementById("bTitle").textContent=idx===11?"MYSTERIOUS OBJECT!":"FISH CAUGHT!";
+  document.getElementById("bName").textContent=idx===11?"VHS Tape":(FN[bk]?.[idx-1]||"Unknown");
+  const br=document.getElementById("bRar"); br.textContent=r.l; br.style.color=r.col;
+  document.getElementById("bBio").textContent=BN[bi]+" Biome";
+  bd.className=""; void bd.offsetHeight; bd.classList.add("show",r.c==="vhs"?"vhs":r.c);
+  clearTimeout(bdgT); bdgT=setTimeout(()=>bd.classList.remove("show"),3000);
+  // save
+  if(!Api.guest()){ Api.saveState(S.pay()).then(()=>{S._pd=0;S._md=0;S._vd=0;}).catch(()=>{}); }
+  else S.saveLS();
 }
 
-// ── CATCH BADGE ──────────────────────────────────────────────
-let badgeTimer=null;
-function showCatchBadge(idx,bk,bi,r){
-  const badge=document.getElementById("catchBadge");
-  const fishImg=idx<=10?FISH[bk][idx]:null;
-  document.getElementById("badgeImg").src=(fishImg?.src)||IMG["cassetta"]?.src||"";
-  document.getElementById("badgeTitle").textContent=idx===11?"MYSTERIOUS OBJECT!":"FISH CAUGHT!";
-  document.getElementById("badgeName").textContent=idx===11?"VHS Tape":(FISH_NAMES[bk]?.[idx-1]||"Unknown");
-  const rar=document.getElementById("badgeRarity");
-  rar.textContent=r.label; rar.style.color=r.color;
-  document.getElementById("badgeBiome").textContent=BIOME_NAMES[bi]+" Biome";
-  badge.className=""; // reset
-  badge.classList.add(r.cls==="vhs"?"vhs":r.cls);
-  // Force reflow
-  badge.offsetHeight;
-  badge.classList.add("show");
-  clearTimeout(badgeTimer);
-  badgeTimer=setTimeout(()=>badge.classList.remove("show"),3200);
-}
-
-// ── DRAW SHOP ─────────────────────────────────────────────────
-function drawShop(){
-  dI("bioma"+S.biomeIdx,0,0,VW,VH);
-  ctx.save(); ctx.fillStyle="rgba(0,0,0,0.6)"; ctx.fillRect(0,0,VW,VH); ctx.restore();
-  // just a dark backdrop; real shop UI is HTML overlay
-}
-
-// ── DRAW MAP ──────────────────────────────────────────────────
-function drawMappa(){
-  dI("mappa",0,0,VW,VH);
-  ctx.save(); ctx.fillStyle="rgba(0,0,0,0.2)"; ctx.fillRect(0,0,VW,56); ctx.restore();
-  drawIconBtn(50,28,"⌂","HOME",hV(14,6,72,46));
-  txt("◈ "+S.dobloni,VW-20,42,34,"#FFD700","right","'Cinzel',serif");
-
-  const POINTS=[
-    {cx:135,cy:590,i:0},{cx:648,cy:705,i:1},
-    {cx:480,cy:330,i:2},{cx:1311,cy:160,i:3}
-  ];
-  POINTS.forEach(({cx,cy,i})=>{
-    const unlocked=S.biomaBool[i], selected=S.selezionato[i];
-    const hov=hC(cx,cy,32);
-    // Pulse ring for selected
-    if(selected){
-      ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,38,0,Math.PI*2);
-      ctx.strokeStyle="rgba(255,0,0,0.5)"; ctx.lineWidth=2; ctx.stroke(); ctx.restore();
-    }
-    ctx.save();
-    ctx.beginPath(); ctx.arc(cx,cy,28,0,Math.PI*2);
-    ctx.fillStyle=selected?"#ff2222":unlocked?"#E58115":"#333";
-    ctx.fill();
+// ── MAP ──────────────────────────────────────────
+const MPTS=[{cx:135,cy:590,i:0},{cx:648,cy:705,i:1},{cx:480,cy:330,i:2},{cx:1311,cy:160,i:3}];
+function drawMap(){
+  di("mappa",0,0,VW,VH);
+  rc(0,0,VW,54,"rgba(0,0,0,.2)");
+  const hH=hv(12,4,68,46);
+  ctx.save(); ctx.font="24px 'Courier Prime',monospace"; ctx.fillStyle=hH?"#FFD700":"rgba(255,255,255,.7)"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⌂",46,27); ctx.restore();
+  tx("◈ "+S.dobloni,VW-22,38,30,"#FFD700","right","'Cinzel',serif");
+  MPTS.forEach(({cx,cy,i})=>{
+    const un=S.biomaBool[i], sel=S.sel[i], hov=hc(cx,cy,30);
+    if(sel){ ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,36,0,Math.PI*2); ctx.strokeStyle="rgba(255,80,80,.5)"; ctx.lineWidth=2; ctx.stroke(); ctx.restore(); }
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,26,0,Math.PI*2);
+    ctx.fillStyle=sel?"#ff2222":un?"#E58115":"#2a2a2a"; ctx.fill();
     if(hov){ctx.strokeStyle="#FFD700";ctx.lineWidth=2;ctx.stroke();}
-    ctx.fillStyle="#fff"; ctx.font="bold 14px 'Cinzel',serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
-    ctx.fillText(BIOME_NAMES[i][0],cx,cy);
-    ctx.restore();
-
-    if(selected){
-      txt("▶ "+BIOME_NAMES[i].toUpperCase(),cx,cy+46,20,"#FFD700","center","'Cinzel',serif");
-    } else if(hov){
-      const lbl=unlocked?"→ SELECT":`${BIOME_COSTS[i]} ◈ to unlock`;
-      txt(lbl,cx,cy-46,18,unlocked?"#fff":"#FFD700","center");
-    }
+    ctx.fillStyle="#fff"; ctx.font="bold 13px 'Cinzel',serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText(BN[i][0],cx,cy); ctx.restore();
+    if(sel) tx("▶ "+BN[i],cx,cy+44,18,"#FFD700","center","'Cinzel',serif");
+    else if(hov){ const l=un?"→ SELECT":BC[i]+"◈ to unlock"; tx(l,cx,cy-44,16,un?"#fff":"#FFD700","center"); }
   });
 }
 
-// ── DRAW INFO / SETTINGS (canvas layer when infoOpen=true) ───
-// We handle settings via HTML modal, so infoOpen not used
+// ── NOTIF ────────────────────────────────────────
+let nT=null;
+function notif(msg){ const e=document.getElementById("notif"); e.textContent=msg; e.classList.add("show"); clearTimeout(nT); nT=setTimeout(()=>e.classList.remove("show"),2500); }
 
-// ── MOUSE / TOUCH ─────────────────────────────────────────────
-let mouseVX=0, mouseVY=0;
-
+// ── INPUT ────────────────────────────────────────
 document.addEventListener("mousemove",e=>{
-  const v=toV(e.clientX,e.clientY); mouseVX=v.x; mouseVY=v.y;
-  if(anyModalOpen()) return;
-  if(phase==="game"&&!ROD.captured){
-    if(mouseVY>=ROD.BAR_TOP&&mouseVY<=ROD.BAR_BOT)
-      ROD.y=Math.max(ROD.BAR_TOP,Math.min(ROD.BAR_BOT-ROD.SLIDER_H,mouseVY-ROD.SLIDER_H/2));
-  }
+  const v=toV(e.clientX,e.clientY); mouseX=v.x; mouseY=v.y;
+  if(anyOpen()) return;
+  if(phase==="game"&&!ROD.capt&&mouseY>=ROD.BT&&mouseY<=ROD.BB)
+    ROD.y=Math.max(ROD.BT,Math.min(ROD.BB-ROD.SH,mouseY-ROD.SH/2));
 });
-
 document.addEventListener("touchmove",e=>{
-  if(anyModalOpen()) return; // let modal scroll freely
+  if(anyOpen()) return;
   e.preventDefault();
-  const t=e.touches[0], v=toV(t.clientX,t.clientY); mouseVX=v.x; mouseVY=v.y;
-  if(phase==="game"&&!ROD.captured){
-    if(mouseVY>=ROD.BAR_TOP&&mouseVY<=ROD.BAR_BOT)
-      ROD.y=Math.max(ROD.BAR_TOP,Math.min(ROD.BAR_BOT-ROD.SLIDER_H,mouseVY-ROD.SLIDER_H/2));
-  }
+  const t=e.touches[0],v=toV(t.clientX,t.clientY); mouseX=v.x; mouseY=v.y;
+  if(phase==="game"&&!ROD.capt&&mouseY>=ROD.BT&&mouseY<=ROD.BB)
+    ROD.y=Math.max(ROD.BT,Math.min(ROD.BB-ROD.SH,mouseY-ROD.SH/2));
 },{passive:false});
 
-// ── KEYBOARD ──────────────────────────────────────────────────
-const keys={};
-document.addEventListener("keydown",e=>{
-  keys[e.key]=true;
-  if(["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)&&phase==="game") e.preventDefault();
-});
-document.addEventListener("keyup",e=>{keys[e.key]=false;});
-function handleKeys(){
-  if(phase!=="game"||ROD.captured) return;
-  const spd=ROD.speed;
-  if(keys["ArrowUp"]||keys["w"]||keys["W"])   ROD.y=Math.max(ROD.BAR_TOP,ROD.y-spd);
-  if(keys["ArrowDown"]||keys["s"]||keys["S"]) ROD.y=Math.min(ROD.BAR_BOT-ROD.SLIDER_H,ROD.y+spd);
-}
+const K={};
+document.addEventListener("keydown",e=>{ K[e.key]=true; if(["ArrowUp","ArrowDown","w","s","W","S"].includes(e.key)&&phase==="game") e.preventDefault(); });
+document.addEventListener("keyup",  e=>{ K[e.key]=false; });
+function handleKeys(){ if(phase!=="game"||ROD.capt) return; if(K.ArrowUp||K.w||K.W) ROD.y=Math.max(ROD.BT,ROD.y-ROD.spd); if(K.ArrowDown||K.s||K.S) ROD.y=Math.min(ROD.BB-ROD.SH,ROD.y+ROD.spd); }
 
-// Mobile buttons
-const mobUp=document.getElementById("mobUp"), mobDown=document.getElementById("mobDown");
-let mobUpH=false, mobDownH=false;
-mobUp.addEventListener("touchstart",e=>{e.preventDefault();mobUpH=true;},{passive:false});
-mobUp.addEventListener("touchend",()=>mobUpH=false);
-mobDown.addEventListener("touchstart",e=>{e.preventDefault();mobDownH=true;},{passive:false});
-mobDown.addEventListener("touchend",()=>mobDownH=false);
-mobUp.addEventListener("mousedown",()=>mobUpH=true); mobUp.addEventListener("mouseup",()=>mobUpH=false);
-mobDown.addEventListener("mousedown",()=>mobDownH=true); mobDown.addEventListener("mouseup",()=>mobDownH=false);
+let mUH=false,mDH=false;
+const mU=document.getElementById("mobUp"),mD=document.getElementById("mobDown");
+mU.addEventListener("touchstart",e=>{e.preventDefault();mUH=true;},{passive:false}); mU.addEventListener("touchend",()=>mUH=false);
+mD.addEventListener("touchstart",e=>{e.preventDefault();mDH=true;},{passive:false}); mD.addEventListener("touchend",()=>mDH=false);
+mU.addEventListener("mousedown",()=>mUH=true); mU.addEventListener("mouseup",()=>mUH=false);
+mD.addEventListener("mousedown",()=>mDH=true); mD.addEventListener("mouseup",()=>mDH=false);
+function handleMob(){ if(phase!=="game"||ROD.capt) return; if(mUH) ROD.y=Math.max(ROD.BT,ROD.y-ROD.spd); if(mDH) ROD.y=Math.min(ROD.BB-ROD.SH,ROD.y+ROD.spd); }
 
-function handleMobBtns(){
-  if(phase!=="game"||ROD.captured) return;
-  if(mobUpH)   ROD.y=Math.max(ROD.BAR_TOP,ROD.y-ROD.speed);
-  if(mobDownH) ROD.y=Math.min(ROD.BAR_BOT-ROD.SLIDER_H,ROD.y+ROD.speed);
-}
-
-// ── CLICK ─────────────────────────────────────────────────────
+// ── CLICK (canvas/game only — modals handle their own) ───────
 document.addEventListener("click",e=>{
-  if(anyModalOpen()) return; // modals handle their own clicks natively
-  const v=toV(e.clientX,e.clientY); handleClick(v.x,v.y);
+  if(anyOpen()) return;
+  sfxClick();
+  const v=toV(e.clientX,e.clientY);
+  clickGame(v.x,v.y);
 });
-
 document.addEventListener("touchend",e=>{
-  if(anyModalOpen()) return; // modals handle their own touches natively
+  if(anyOpen()) return;
   e.preventDefault();
-  const t=e.changedTouches[0], v=toV(t.clientX,t.clientY); handleClick(v.x,v.y);
+  sfxClick();
+  const t=e.changedTouches[0],v=toV(t.clientX,t.clientY);
+  clickGame(v.x,v.y);
 },{passive:false});
 
-function handleClick(vx,vy){
-  playClick();
+function clickGame(vx,vy){
   if(phase==="game"){
-    if(hV(14,6,72,46)){ phase="menu"; return; }   // home
-    if(hV(VW-86,6,72,46)){ openSettings(); return; } // settings
-    return;
+    if(hv(12,4,68,46)){ phase="menu"; return; }
+    if(hv(VW-78,4,68,46)){ openSettings(); return; }
   }
   if(phase==="menu"){
-    const MY=MENU_MY_BASE(), items=MENU_KEYS;
-    items.forEach((key,i)=>{
-      const iy=MY+i*(MENU_MH+MENU_GAP);
-      if(hV(MENU_MX,iy,MENU_MW,MENU_MH)){
-        if(key==="play"){ phase="game"; ROD.spawnFish(); }
-        else if(key==="map")  phase="mappa";
-        else if(key==="shop") openShop();
-        else if(key==="rank") { openModal("lbModal"); loadLeaderboard(); }
-        else if(key==="set")  openSettings();
-        else if(key==="exit") window.location.href="https://lsd-software.github.io/project.html";
+    const MY=MMY();
+    MITEMS.forEach((item,i)=>{
+      const iy=MY+i*(MMH+MMG);
+      if(vx>=MMX&&vx<=MMX+MMW&&vy>=iy&&vy<=iy+MMH){
+        if(item.k==="play"){ phase="game"; ROD.spawn(); }
+        else if(item.k==="map")  phase="mappa";
+        else if(item.k==="shop") openShop();
+        else if(item.k==="rank"){ openM("lbModal"); loadLB(); }
+        else if(item.k==="set")  openSettings();
+        else if(item.k==="exit") location.href="https://lsd-software.github.io/project.html";
       }
     });
-    return;
   }
   if(phase==="mappa"){
-    if(hV(14,6,72,46)){ phase="menu"; return; }
-    const POINTS=[{cx:135,cy:590,i:0},{cx:648,cy:705,i:1},{cx:480,cy:330,i:2},{cx:1311,cy:160,i:3}];
-    POINTS.forEach(({cx,cy,i})=>{
-      if(hC(cx,cy,36)){
-        if(!S.biomaBool[i]&&S.dobloni>=BIOME_COSTS[i]){
-          S.dobloni-=BIOME_COSTS[i]; S.biomaBool[i]=true;
-          S.selezionato=[false,false,false,false]; S.selezionato[i]=true;
-          notify(BIOME_NAMES[i]+" unlocked!");
-          Api.saveState(S.toPayload()).catch(()=>{});
-        } else if(S.biomaBool[i]){
-          S.selezionato=[false,false,false,false]; S.selezionato[i]=true;
-          notify("Switched to "+BIOME_NAMES[i]);
-        } else {
-          notify("Need "+BIOME_COSTS[i]+"◈ to unlock "+BIOME_NAMES[i]);
-        }
+    if(hv(12,4,68,46)){ phase="menu"; return; }
+    MPTS.forEach(({cx,cy,i})=>{
+      if(hc(cx,cy,34)){
+        if(!S.biomaBool[i]&&S.dobloni>=BC[i]){ S.dobloni-=BC[i]; S.biomaBool[i]=true; S.sel=[false,false,false,false]; S.sel[i]=true; notif(BN[i]+" unlocked!"); saveNow(); }
+        else if(S.biomaBool[i]){ S.sel=[false,false,false,false]; S.sel[i]=true; notif("Switched to "+BN[i]); }
+        else notif("Need "+BC[i]+"◈ to unlock "+BN[i]);
       }
     });
   }
 }
 
-// ── MAIN LOOP ─────────────────────────────────────────────────
+// ── MAIN LOOP ────────────────────────────────────
 function loop(now){
   requestAnimationFrame(loop);
-  const dt=Math.min(50,now-(lastNow||now)); lastNow=now;
-  handleKeys(); handleMobBtns();
-
-  ctx.save(); ctx.translate(offX,offY); ctx.scale(scale,scale);
+  const dt=Math.min(50,now-(lastT||now)); lastT=now;
+  handleKeys(); handleMob();
+  ctx.save(); ctx.translate(ox,oy); ctx.scale(sc,sc);
   if(phase==="loading") drawLoading(now);
   else if(phase==="menu")  drawMenu(now);
-  else if(phase==="game")  { drawGame(now,dt); ROD.update(now,dt); }
-  else if(phase==="mappa") drawMappa();
+  else if(phase==="game"){ drawGame(now,dt); ROD.update(now,dt); }
+  else if(phase==="mappa") drawMap();
   ctx.restore();
 }
 
-// ── HTML MODAL HELPERS ────────────────────────────────────────
-function anyModalOpen(){
-  const tut = document.getElementById("TUT");
-  if(tut && tut.style.display !== "none") return true;
-  return [...document.querySelectorAll(".overlay")].some(el=>!el.classList.contains("hidden"));
-}
-function syncCanvas(){
-  canvas.style.pointerEvents = anyModalOpen() ? "none" : "auto";
-}
-function openModal(id){
-  document.getElementById(id).classList.remove("hidden");
-  syncCanvas();
-}
-function closeModal(id){
-  document.getElementById(id).classList.add("hidden");
-  syncCanvas();
-}
-
-function notify(msg){
-  const el=document.getElementById("notif");
-  el.textContent=msg; el.classList.add("show");
-  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),2600);
-}
-
-// ── SHOP HTML ─────────────────────────────────────────────────
+// ── SHOP ─────────────────────────────────────────
 function openShop(){
-  refreshShopUI();
-  openModal("shopModal");
-  document.getElementById("shopSellTab").style.display="block";
-  document.getElementById("shopEnciTab").classList.add("hidden");
-  document.getElementById("openEnciBtn").classList.remove("hidden");
+  refreshShop();
+  closeM("logPanel"); openM("shopModal");
+  document.getElementById("logPanel").classList.add("H");
+  document.getElementById("btnOpenLog").classList.remove("H");
 }
-
-function refreshShopUI(){
-  document.getElementById("sc_comuni").textContent="×"+S.comuni;
-  document.getElementById("sc_rari").textContent="×"+S.rari;
-  document.getElementById("sc_mitici").textContent="×"+S.mitici;
-  document.getElementById("sellComuniBtn").disabled=S.comuni===0;
-  document.getElementById("sellRariBtn").disabled=S.rari===0;
-  document.getElementById("sellMiticiBtn").disabled=S.mitici===0;
-  // VHS grid
-  const vg=document.getElementById("shopVhsGrid"); vg.innerHTML="";
-  BIOME_NAMES.forEach((nm,i)=>{
-    const found=S.vhs[i];
-    const slot=document.createElement("div"); slot.className="vhs-slot"+(found?" found":"");
-    slot.innerHTML=`<img src="${IMG["cassetta"]?.src||""}" alt="VHS"><div class="vhs-lbl">${nm}</div>`;
-    vg.appendChild(slot);
+function refreshShop(){
+  document.getElementById("sc_c").textContent="×"+S.comuni;
+  document.getElementById("sc_r").textContent="×"+S.rari;
+  document.getElementById("sc_m").textContent="×"+S.mitici;
+  document.getElementById("btnSellC").disabled=S.comuni===0;
+  document.getElementById("btnSellR").disabled=S.rari===0;
+  document.getElementById("btnSellM").disabled=S.mitici===0;
+  const vg=document.getElementById("vhsGrid"); vg.innerHTML="";
+  BN.forEach((nm,i)=>{
+    const f=S.vhs[i], d=document.createElement("div");
+    d.className="vslot"+(f?" F":"");
+    d.innerHTML=`<img src="${IMG["vhs"]?.src||""}" alt="VHS"><small>${nm}</small>`;
+    vg.appendChild(d);
   });
 }
+document.getElementById("shopX").onclick=()=>closeM("shopModal");
+document.getElementById("btnSellC").onclick=()=>{ if(!S.comuni) return; const e=S.comuni; S.dobloni+=e; S.comuni=0; refreshShop(); notif("+"+e+" ◈"); saveNow(); };
+document.getElementById("btnSellR").onclick=()=>{ if(!S.rari) return;   const e=S.rari*5;   S.dobloni+=e; S.rari=0;   refreshShop(); notif("+"+e+" ◈"); saveNow(); };
+document.getElementById("btnSellM").onclick=()=>{ if(!S.mitici) return; const e=S.mitici*10; S.dobloni+=e; S.mitici=0; refreshShop(); notif("+"+e+" ◈"); saveNow(); };
+document.getElementById("btnOpenLog").onclick=()=>{ document.getElementById("logPanel").classList.remove("H"); document.getElementById("btnOpenLog").classList.add("H"); buildEnciTabs(); renderEnci(0); };
+document.getElementById("btnCloseLog").onclick=()=>{ document.getElementById("logPanel").classList.add("H"); document.getElementById("btnOpenLog").classList.remove("H"); };
 
-document.getElementById("sellComuniBtn").onclick=()=>{ if(S.comuni<=0) return; const earned=S.comuni*1; S.dobloni+=earned; S.comuni=0; refreshShopUI(); notify("+"+earned+" ◈"); saveNow(); };
-document.getElementById("sellRariBtn").onclick  =()=>{ if(S.rari<=0) return;   const earned=S.rari*5;   S.dobloni+=earned; S.rari=0;   refreshShopUI(); notify("+"+earned+" ◈"); saveNow(); };
-document.getElementById("sellMiticiBtn").onclick =()=>{ if(S.mitici<=0) return; const earned=S.mitici*10;S.dobloni+=earned; S.mitici=0; refreshShopUI(); notify("+"+earned+" ◈"); saveNow(); };
-document.getElementById("shopClose").onclick=()=>closeModal("shopModal");
-
-// Encyclopedia
-let enciTab=0;
-document.getElementById("openEnciBtn").onclick=()=>{
-  document.getElementById("shopEnciTab").classList.remove("hidden");
-  document.getElementById("openEnciBtn").classList.add("hidden");
-  renderEnciTabs(); renderEnciGrid(enciTab);
-};
-document.getElementById("closeEnciBtn").onclick=()=>{
-  document.getElementById("shopEnciTab").classList.add("hidden");
-  document.getElementById("openEnciBtn").classList.remove("hidden");
-};
-
-function renderEnciTabs(){
+let eTab=0;
+function buildEnciTabs(){
   const c=document.getElementById("enciTabs"); c.innerHTML="";
-  BIOME_NAMES.forEach((nm,i)=>{
-    const b=document.createElement("button");
-    b.className="biome-tab"+(i===enciTab?" active":"");
-    b.textContent=nm;
-    b.onclick=()=>{ enciTab=i; document.querySelectorAll(".biome-tab").forEach((t,ti)=>t.classList.toggle("active",ti===i)); renderEnciGrid(i); };
+  BN.forEach((nm,i)=>{
+    const b=document.createElement("button"); b.className="btab"+(i===eTab?" A":""); b.textContent=nm;
+    b.onclick=()=>{ eTab=i; c.querySelectorAll(".btab").forEach((t,ti)=>t.classList.toggle("A",ti===i)); renderEnci(i); };
     c.appendChild(b);
   });
 }
-
-function renderEnciGrid(bi){
-  const bk=BKEYS[bi], enci=S.enci[bk], names=FISH_NAMES[bk];
-  const g=document.getElementById("enciGrid"); g.innerHTML="";
+function renderEnci(bi){
+  const bk=BK[bi],en=S.enci[bk],nm=FN[bk],g=document.getElementById("enciGrid"); g.innerHTML="";
   for(let i=0;i<10;i++){
-    const found=enci[i];
-    const r=getRarity(i+1);
-    const slot=document.createElement("div");
-    slot.className="enci-slot"+(found?"":" locked");
-    slot.title=found?(names[i]+" — "+r.label):"???";
-    const img=FISH[bk][i+1];
-    slot.innerHTML=`<img src="${img?.src||""}" alt="${found?names[i]:"?"}">
-      <div class="rarity-pip" style="background:${found?r.color:"transparent"}"></div>
-      <div class="slot-num">${i+1}</div>`;
-    g.appendChild(slot);
+    const f=en[i],r=rar(i+1),sl=document.createElement("div");
+    sl.className="eslot"+(f?"":" lk"); sl.title=f?(nm[i]+" — "+r.l):"???";
+    const fi=FI[bk][i+1];
+    sl.innerHTML=`<img src="${fi?.src||""}" alt="${f?nm[i]:"?"}"><div class="rp" style="background:${f?r.col:"transparent"}"></div><div class="sn">${i+1}</div>`;
+    g.appendChild(sl);
   }
 }
 
-// ── LEADERBOARD HTML ─────────────────────────────────────────
-async function loadLeaderboard(){
-  const el=document.getElementById("lbContent");
-  el.innerHTML='<div class="lb-loading">Loading…</div>';
-  try{
-    const d=await Api.leaderboard();
-    const lb=d.leaderboard||[], me=d.myRank;
-
-    let html="";
-    // Podium top 3
-    if(lb.length>=1){
-      const order=[lb[1],lb[0],lb[2]].filter(Boolean);
-      const heights=["170px","210px","140px"], colors=["#C0C0C0","#FFD700","#CD7F32"], medals=["🥈","🥇","🥉"];
-      html+=`<div class="podium-wrap">`;
-      order.forEach((e,pi)=>{
-        html+=`<div class="podium-block" style="height:${heights[pi]};border-color:${colors[pi]}">
-          <div class="podium-medal">${medals[pi]}</div>
-          <div class="podium-name">${esc(e.username)}</div>
-          <div class="podium-val" style="color:#fff">${e.pescaTotali||0} fish</div>
-          <div class="podium-val" style="color:#ce93d8">★ ${e.pescaMiticiTotali||0}</div>
-          <div class="podium-val" style="color:#FFD700">📼 ${e.vhsTotali||0}</div>
-        </div>`;
-      });
-      html+=`</div>`;
-    }
-
-    html+=`<table class="lb-table"><thead><tr>
-      <th>#</th><th>PLAYER</th><th>🐟 TOTAL</th><th style="color:#ce93d8">★ MYTHIC</th><th style="color:#FFD700">📼 VHS</th>
-    </tr></thead><tbody>`;
-
-    if(!lb.length){
-      html+=`<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.25);padding:28px;letter-spacing:2px">NO DATA YET — CAST YOUR LINE</td></tr>`;
-    } else {
-      lb.forEach(r=>{
-        const isMe=me&&r.username===me.username;
-        html+=`<tr class="${isMe?"is-me":""}"><td class="rk">${r.rank}</td><td>${esc(r.username)}</td>
-          <td>${r.pescaTotali||0}</td><td style="color:#ce93d8">${r.pescaMiticiTotali||0}</td>
-          <td style="color:#FFD700">${r.vhsTotali||0}</td></tr>`;
-      });
-    }
-    html+=`</tbody></table>`;
-
-    if(me && !lb.find(r=>r.username===me.username)){
-      html+=`<div style="border-top:1px solid rgba(255,215,0,.15);margin-top:8px;padding-top:8px">
-        <table class="lb-table"><tbody>
-        <tr class="is-me"><td class="rk">#${me.rank}</td><td>${esc(me.username)}</td>
-          <td>${me.pescaTotali||0}</td><td style="color:#ce93d8">${me.pescaMiticiTotali||0}</td>
-          <td style="color:#FFD700">${me.vhsTotali||0}</td></tr>
-        </tbody></table></div>`;
-    }
-    if(!me||Api.isGuest()){
-      html+=`<p style="text-align:center;font-size:.75rem;color:#666;margin-top:12px">Sign in to appear in the rankings.</p>`;
-    }
-    el.innerHTML=html;
-  }catch(e){
-    el.innerHTML=`<div class="lb-loading" style="color:#ff4444">Failed to load. Server may be waking up.</div>`;
-  }
-}
-
+// ── LEADERBOARD ──────────────────────────────────
 function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-
-// ── SETTINGS ─────────────────────────────────────────────────
-function openSettings(){
-  document.getElementById("setUser").textContent=Api.user()?.username||"Guest";
-  openModal("settingsModal");
-}
-document.getElementById("resetBtn").onclick=()=>{
-  document.getElementById("resetConfirmDiv").classList.remove("hidden");
-};
-async function executeReset(){
+async function loadLB(){
+  const el=document.getElementById("lbContent");
+  el.innerHTML='<div style="color:#666;text-align:center;padding:20px;font-size:.76rem;letter-spacing:2px">Loading…</div>';
   try{
-    if(!Api.isGuest()){ const d=await Api.resetState(); S.fromServer(d.state); }
-    else { localStorage.removeItem(LS_KEY); S.fromLocal()||S.fromServer(null); }
-    closeModal("settingsModal");
-    document.getElementById("resetConfirmDiv").classList.add("hidden");
-    notify("Progress reset.");
-  }catch(e){ notify("Reset failed."); }
+    const d=await Api.lb(), lb=d.leaderboard||[], me=d.myRank;
+    let h="";
+    if(lb.length>=1){
+      const ord=[lb[1],lb[0],lb[2]], cls=["#C0C0C0","#FFD700","#CD7F32"], med=["🥈","🥇","🥉"], ht=["170px","215px","140px"];
+      h+=`<div class="podwrap">`;
+      ord.forEach((e,pi)=>{ if(!e) return; h+=`<div class="podblk" style="height:${ht[pi]};border-color:${cls[pi]}"><div class="pm">${med[pi]}</div><div class="pn">${esc(e.username)}</div><div class="pv" style="color:#fff">🐟 ${e.pescaTotali||0}</div><div class="pv" style="color:#ce93d8">★ ${e.pescaMiticiTotali||0}</div><div class="pv" style="color:#FFD700">📼 ${e.vhsTotali||0}</div></div>`; });
+      h+=`</div>`;
+    }
+    h+=`<table class="lbt"><thead><tr><th>#</th><th>PLAYER</th><th>🐟</th><th style="color:#ce93d8">★</th><th style="color:#FFD700">📼</th></tr></thead><tbody>`;
+    if(!lb.length) h+=`<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.2);padding:24px;letter-spacing:2px">NO DATA YET</td></tr>`;
+    else lb.forEach(r=>{ const m=me&&r.username===me.username; h+=`<tr class="${m?"me":""}"><td class="rk">${r.rank}</td><td>${esc(r.username)}</td><td>${r.pescaTotali||0}</td><td style="color:#ce93d8">${r.pescaMiticiTotali||0}</td><td style="color:#FFD700">${r.vhsTotali||0}</td></tr>`; });
+    h+=`</tbody></table>`;
+    if(me&&!lb.find(r=>r.username===me.username)) h+=`<div style="border-top:1px solid rgba(255,215,0,.15);margin-top:6px;padding-top:6px"><table class="lbt"><tbody><tr class="me"><td class="rk">#${me.rank}</td><td>${esc(me.username)}</td><td>${me.pescaTotali||0}</td><td style="color:#ce93d8">${me.pescaMiticiTotali||0}</td><td style="color:#FFD700">${me.vhsTotali||0}</td></tr></tbody></table></div>`;
+    if(!me||Api.guest()) h+=`<p style="text-align:center;font-size:.72rem;color:#555;margin-top:10px">Sign in to appear in the rankings.</p>`;
+    el.innerHTML=h;
+  }catch(e){ el.innerHTML=`<div style="color:#ff4444;text-align:center;padding:20px;font-size:.76rem">Failed to load.</div>`; }
 }
-document.getElementById("openAuthBtn").onclick=()=>{ closeModal("settingsModal"); openAuthPanel(); };
 
-// ── AUTH INLINE PANEL ─────────────────────────────────────────
-function openAuthPanel(){ openModal("authModal"); }
-function closeAuthPanel(){ closeModal("authModal"); }
+// ── SETTINGS ─────────────────────────────────────
+function openSettings(){ document.getElementById("setUser").textContent=Api.usr()?.username||"Guest"; openM("settingsModal"); }
+document.getElementById("btnReset").onclick=()=>document.getElementById("resetConfirm").classList.remove("H");
+async function doReset(){
+  try{
+    if(!Api.guest()){ const d=await Api.resetState(); S.fromSrv(d.state); }
+    else { localStorage.removeItem(LSK); }
+    closeM("settingsModal"); document.getElementById("resetConfirm").classList.add("H"); notif("Progress reset.");
+  }catch(e){ notif("Reset failed."); }
+}
+document.getElementById("btnOpenAuth").onclick=()=>{ closeM("settingsModal"); openM("authModal"); };
 
-// Tabs
-document.querySelectorAll("#authModal .tab").forEach(tab=>{
-  tab.addEventListener("click",()=>{
-    document.querySelectorAll("#authModal .tab").forEach(t=>t.classList.remove("active")); tab.classList.add("active");
-    const target=tab.dataset.tab;
-    document.getElementById("loginForm").classList.toggle("hidden",target!=="login");
-    document.getElementById("registerForm").classList.toggle("hidden",target!=="register");
-  });
-});
+// ── AUTH ─────────────────────────────────────────
+document.querySelectorAll(".atab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".atab").forEach(x=>x.classList.remove("A")); t.classList.add("A");
+  const k=t.dataset.t;
+  document.getElementById("loginForm").classList.toggle("H",k!=="login");
+  document.getElementById("regForm").classList.toggle("H",k!=="register");
+}));
+document.querySelectorAll(".pwt").forEach(b=>b.addEventListener("click",()=>{
+  const i=document.getElementById(b.dataset.pw); i.type=i.type==="password"?"text":"password"; b.textContent=i.type==="password"?"👁":"🙈";
+}));
+function setErr(id,msg){ const e=document.getElementById(id); e.textContent=msg; e.classList.toggle("H",!msg); }
 
-// PW toggles
-document.querySelectorAll(".pw-toggle").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const inp=document.getElementById(btn.dataset.target);
-    inp.type=inp.type==="password"?"text":"password";
-    btn.textContent=inp.type==="password"?"👁":"🙈";
-  });
-});
-
-// Login
 document.getElementById("loginForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  const id=document.getElementById("loginId").value.trim();
-  const pw=document.getElementById("loginPw").value;
-  const btn=document.getElementById("loginBtn");
-  showAuthErr("loginErr","");
-  btn.disabled=true; btn.innerHTML=`<span class="spinner"></span>Loading…`;
+  const id=document.getElementById("loginId").value.trim(), pw=document.getElementById("loginPw").value;
+  const btn=document.getElementById("loginBtn"); setErr("loginErr","");
+  btn.disabled=true; btn.innerHTML=`<span class="sp"></span>Loading…`;
   try{
     await Api.login(id,pw);
-    // Migrate guest data → server
-    const guestData=localStorage.getItem(LS_KEY);
-    if(guestData){
-      try{
-        const gd=JSON.parse(guestData);
-        await Api.saveState(gd);
-        localStorage.removeItem(LS_KEY);
-        const sd=await Api.loadState();
-        S.fromServer(sd.state);
-      }catch(e2){ const sd=await Api.loadState(); S.fromServer(sd.state); }
-    } else {
-      const sd=await Api.loadState(); S.fromServer(sd.state);
-    }
-    closeModal("authModal");
-    openSettings();
-    notify("Signed in as "+Api.user()?.username);
-  }catch(err){ showAuthErr("loginErr",err.message); }
+    const gs=localStorage.getItem(LSK);
+    if(gs){ try{ await Api.saveState(JSON.parse(gs)); localStorage.removeItem(LSK); }catch(e2){} }
+    const sd=await Api.loadState(); S.fromSrv(sd.state);
+    closeM("authModal"); openSettings(); notif("Signed in as "+Api.usr()?.username);
+  }catch(err){ setErr("loginErr",err.message); }
   finally{ btn.disabled=false; btn.textContent="SIGN IN"; }
 });
 
-// Register
-document.getElementById("registerForm").addEventListener("submit",async e=>{
+document.getElementById("regForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  const u=document.getElementById("regUser").value.trim();
-  const em=document.getElementById("regEmail").value.trim();
-  const pw=document.getElementById("regPw").value;
-  const btn=document.getElementById("registerBtn");
-  showAuthErr("regErr","");
-  if(pw.length<8){showAuthErr("regErr","Password must be at least 8 characters.");return;}
-  btn.disabled=true; btn.innerHTML=`<span class="spinner"></span>Loading…`;
+  const u=document.getElementById("regUser").value.trim(), em=document.getElementById("regEmail").value.trim(), pw=document.getElementById("regPw").value;
+  const btn=document.getElementById("regBtn"); setErr("regErr","");
+  if(pw.length<8){ setErr("regErr","Password min 8 characters."); return; }
+  btn.disabled=true; btn.innerHTML=`<span class="sp"></span>Loading…`;
   try{
     await Api.register(u,em,pw);
-    const guestData=localStorage.getItem(LS_KEY);
-    if(guestData){ try{ await Api.saveState(JSON.parse(guestData)); localStorage.removeItem(LS_KEY); }catch(e2){} }
-    const sd=await Api.loadState(); S.fromServer(sd.state);
-    closeModal("authModal"); openSettings();
-    notify("Welcome, "+Api.user()?.username+"!");
-  }catch(err){ showAuthErr("regErr",err.message); }
+    const gs=localStorage.getItem(LSK); if(gs){ try{ await Api.saveState(JSON.parse(gs)); localStorage.removeItem(LSK); }catch(e2){} }
+    const sd=await Api.loadState(); S.fromSrv(sd.state);
+    closeM("authModal"); openSettings(); notif("Welcome, "+Api.usr()?.username+"!");
+  }catch(err){ setErr("regErr",err.message); }
   finally{ btn.disabled=false; btn.textContent="CREATE ACCOUNT"; }
 });
 
-// Guest (from auth panel)
-document.getElementById("guestBtn2").addEventListener("click",async()=>{
-  const btn=document.getElementById("guestBtn2");
-  btn.disabled=true;
-  try{ await Api.guest(); closeModal("authModal"); notify("Playing as Guest"); }
-  catch(e){ document.getElementById("authGlobalErr").textContent=e.message; document.getElementById("authGlobalErr").classList.remove("hidden"); }
+document.getElementById("guestBtn").addEventListener("click",async()=>{
+  const btn=document.getElementById("guestBtn"); btn.disabled=true;
+  try{ await Api.doGuest(); closeM("authModal"); notif("Playing as Guest"); }
+  catch(e){ setErr("authErr",e.message); }
   finally{ btn.disabled=false; }
 });
 
-function showAuthErr(id,msg){
-  const el=document.getElementById(id);
-  if(!el) return;
-  el.textContent=msg;
-  el.classList.toggle("hidden",!msg);
+// ── TUTORIAL ─────────────────────────────────────
+// Fully self-contained — no dependency on canvas or game loop
+let TUT_OPEN = !localStorage.getItem("pesca_tut");
+let tutStep = 0;
+const tutSteps = [
+  document.getElementById("TS0"),
+  document.getElementById("TS1"),
+  document.getElementById("TS2"),
+  document.getElementById("TS3")
+];
+const tutDots = document.getElementById("tutDots").querySelectorAll(".td");
+const tutNext = document.getElementById("tutNext");
+const tutPrev = document.getElementById("tutPrev");
+const tutOverlay = document.getElementById("tutOverlay");
+
+function showTutStep(n){
+  tutStep = Math.max(0, Math.min(tutSteps.length-1, n));
+  tutSteps.forEach((s,i) => s.style.display = i===tutStep ? "block" : "none");
+  tutDots.forEach((d,i) => d.style.background = i===tutStep ? "#FFD700" : "rgba(255,215,0,.22)");
+  tutPrev.style.opacity = tutStep===0 ? "0.3" : "1";
+  tutNext.textContent = tutStep===tutSteps.length-1 ? "START FISHING →" : "NEXT →";
 }
 
-// ── TUTORIAL handled by inline script above ───────────────────
+tutNext.addEventListener("click", function(){
+  if(tutStep >= tutSteps.length-1){
+    TUT_OPEN = false;
+    tutOverlay.classList.add("H");
+    localStorage.setItem("pesca_tut","1");
+  } else {
+    showTutStep(tutStep+1);
+  }
+});
+tutPrev.addEventListener("click", function(){
+  showTutStep(tutStep-1);
+});
 
-// ── SAVE HELPERS ──────────────────────────────────────────────
+if(TUT_OPEN){
+  tutOverlay.classList.remove("H");
+  showTutStep(0);
+} else {
+  tutOverlay.classList.add("H");
+}
+
+// ── SAVE ─────────────────────────────────────────
 function saveNow(){
-  if(!Api.isGuest()){ Api.saveState(S.toPayload()).catch(()=>{}); S._pescaDelta=0;S._miticiDelta=0;S._vhsDelta=0; }
-  else S.toLocal();
+  if(!Api.guest()){ Api.saveState(S.pay()).then(()=>{S._pd=0;S._md=0;S._vd=0;}).catch(()=>{}); }
+  else S.saveLS();
 }
 setInterval(saveNow, 30000);
 
-// ── BOOT ──────────────────────────────────────────────────────
+// ── BOOT ─────────────────────────────────────────
 async function boot(){
-  if(document.documentElement.requestFullscreen)
-    document.documentElement.requestFullscreen().catch(()=>{});
-
-  phase="loading";
-  SLIDE.last=performance.now();
+  // Fullscreen
+  tryFS();
+  // Start render loop immediately
+  phase = "loading";
+  SL.t = performance.now();
   requestAnimationFrame(loop);
-
-  // 1. Wait only for assets — never block on network
-  await new Promise(res=>{ const c=()=>allLoaded()?res():setTimeout(c,80); c(); });
-
-  // 2. Show menu immediately — game is playable now
-  phase="menu";
-
-  // 3. Show tutorial or enable canvas
-  if(!localStorage.getItem("pesca_tut")){
-    document.getElementById("TUT").style.display="flex";
-    canvas.style.pointerEvents="none";
-  } else {
-    document.getElementById("TUT").style.display="none";
-    canvas.style.pointerEvents="auto";
-  }
-
-  // 4. Load state in background — does NOT block the game
+  // Wait for assets
+  await new Promise(res=>{ (function w(){ ready()?res():setTimeout(w,80); })(); });
+  // Show menu — game is playable
+  phase = "menu";
+  // Load state in background
   (async()=>{
     try{
-      // Try guest token if none exists
-      if(!Api.token()){ try{ await Api.guest(); }catch(e){} }
-
-      if(!Api.isGuest()){
-        const d=await Api.loadState();
-        S.fromServer(d.state);
+      if(!Api.tok()){ try{ await Api.doGuest(); }catch(e){} }
+      if(!Api.guest()){
+        const d=await Api.loadState(); S.fromSrv(d.state);
       } else {
-        // Use localStorage immediately, sync with server in background
-        S.fromLocal();
-        try{
-          const d=await Api.loadState();
-          if(d.state) S.fromServer(d.state);
-        }catch(e){}
+        S.loadLS();
+        try{ const d=await Api.loadState(); if(d.state) S.fromSrv(d.state); }catch(e){}
       }
-      document.getElementById("setUser").textContent=Api.user()?.username||"Guest";
-    }catch(e){
-      S.fromLocal();
-    }
+      document.getElementById("setUser").textContent=Api.usr()?.username||"Guest";
+    }catch(e){ S.loadLS(); }
   })();
 }
-
 boot();
 </script>
 </body>

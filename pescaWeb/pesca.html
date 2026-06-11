@@ -1409,7 +1409,6 @@ setInterval(saveNow, 30000);
 
 // ── BOOT ──────────────────────────────────────────────────────
 async function boot(){
-  // Force fullscreen immediately
   if(document.documentElement.requestFullscreen)
     document.documentElement.requestFullscreen().catch(()=>{});
 
@@ -1417,39 +1416,43 @@ async function boot(){
   SLIDE.last=performance.now();
   requestAnimationFrame(loop);
 
-  // Auth: if no token at all, show auth modal
-  if(!Api.token()){
-    // Try guest auto-login
-    try{ await Api.guest(); }catch(e){}
-  }
-
-  // Wait assets
+  // 1. Wait only for assets — never block on network
   await new Promise(res=>{ const c=()=>allLoaded()?res():setTimeout(c,80); c(); });
 
-  // Load state
-  try{
-    if(!Api.isGuest()){
-      const d=await Api.loadState(); S.fromServer(d.state);
-    } else {
-      // Try local storage first
-      if(!S.fromLocal()){
-        const d=await Api.loadState(); S.fromServer(d.state);
-      }
-    }
-  }catch(e){ S.fromLocal(); }
-
+  // 2. Show menu immediately — game is playable now
   phase="menu";
-  document.getElementById("setUser").textContent=Api.user()?.username||"Guest";
 
-  // Tutorial
+  // 3. Show tutorial or enable canvas
   if(!localStorage.getItem("pesca_tut")){
     document.getElementById("TUT").style.display="flex";
-    // canvas stays pointer-events:none until user finishes tutorial
     canvas.style.pointerEvents="none";
   } else {
     document.getElementById("TUT").style.display="none";
     canvas.style.pointerEvents="auto";
   }
+
+  // 4. Load state in background — does NOT block the game
+  (async()=>{
+    try{
+      // Try guest token if none exists
+      if(!Api.token()){ try{ await Api.guest(); }catch(e){} }
+
+      if(!Api.isGuest()){
+        const d=await Api.loadState();
+        S.fromServer(d.state);
+      } else {
+        // Use localStorage immediately, sync with server in background
+        S.fromLocal();
+        try{
+          const d=await Api.loadState();
+          if(d.state) S.fromServer(d.state);
+        }catch(e){}
+      }
+      document.getElementById("setUser").textContent=Api.user()?.username||"Guest";
+    }catch(e){
+      S.fromLocal();
+    }
+  })();
 }
 
 boot();

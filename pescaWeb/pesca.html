@@ -1056,8 +1056,20 @@ function loop(now){
 }
 
 // ── HTML MODAL HELPERS ────────────────────────────────────────
-function openModal(id){ document.getElementById(id).classList.remove("hidden"); }
-function closeModal(id){ document.getElementById(id).classList.add("hidden"); }
+function anyModalOpen(){
+  return [...document.querySelectorAll(".overlay")].some(el=>!el.classList.contains("hidden"));
+}
+function syncCanvas(){
+  canvas.style.pointerEvents = anyModalOpen() ? "none" : "auto";
+}
+function openModal(id){
+  document.getElementById(id).classList.remove("hidden");
+  syncCanvas();
+}
+function closeModal(id){
+  document.getElementById(id).classList.add("hidden");
+  syncCanvas();
+}
 
 function notify(msg){
   const el=document.getElementById("notif");
@@ -1379,7 +1391,7 @@ async function boot(){
   document.getElementById("setUser").textContent=Api.user()?.username||"Guest";
 
   // Tutorial
-  if(!localStorage.getItem("pesca_tut")) openModal("tutModal");
+  if(!localStorage.getItem("pesca_tut")){ openModal("tutModal"); } else { syncCanvas(); }
 }
 
 boot();

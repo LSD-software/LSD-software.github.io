@@ -34,7 +34,7 @@
     .pbtn.danger:hover{background:#cc0000;color:#fff}
     .divider{border:none;border-top:1px solid rgba(255,215,0,0.15);margin:14px 0}
     /* Tutorial dots */
-    .tut-step{display:none}.tut-step.active{display:block}
+    .tut-step{display:none}
     .tut-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
     .tut-dots{display:flex;gap:8px}
     .tut-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.25);transition:background .2s}
@@ -1299,20 +1299,21 @@ function showAuthErr(id,msg){
 
 // ── TUTORIAL ─────────────────────────────────────────────────
 let tutStep=0;
-const tutSteps=document.querySelectorAll(".tut-step");
-const tutDotEls=document.querySelectorAll(".tut-dot");
+const tutModal=document.getElementById("tutModal");
+const tutSteps=tutModal.querySelectorAll(".tut-step");
+const tutDotEls=tutModal.querySelectorAll(".tut-dot");
 function setTutStep(n){
   tutStep=Math.max(0,Math.min(tutSteps.length-1,n));
-  tutSteps.forEach((s,i)=>s.classList.toggle("active",i===tutStep));
+  tutSteps.forEach((s,i)=>{ s.style.display=i===tutStep?"block":"none"; });
   tutDotEls.forEach((d,i)=>d.classList.toggle("active",i===tutStep));
   document.getElementById("tutPrev").style.opacity=tutStep===0?"0.3":"1";
   document.getElementById("tutNext").textContent=tutStep===tutSteps.length-1?"START FISHING →":"NEXT →";
 }
-document.getElementById("tutNext").onclick=()=>{
+document.getElementById("tutNext").onclick=function(){
   if(tutStep>=tutSteps.length-1){ closeModal("tutModal"); localStorage.setItem("pesca_tut","1"); }
   else setTutStep(tutStep+1);
 };
-document.getElementById("tutPrev").onclick=()=>setTutStep(tutStep-1);
+document.getElementById("tutPrev").onclick=function(){ setTutStep(tutStep-1); };
 setTutStep(0);
 
 // ── SAVE HELPERS ──────────────────────────────────────────────

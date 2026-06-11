@@ -646,16 +646,14 @@ function drawRod(now){
   // bar bg
   rc(BX-2,BT,20,bH,"rgba(0,0,0,.65)");
   ctx.save(); ctx.strokeStyle="rgba(255,215,0,.22)"; ctx.lineWidth=1; ctx.strokeRect(BX-2,BT,20,bH); ctx.restore();
-  // fish
-  const r=rar(ROD.fIdx);
-  const fi=ROD.fIdx<=10?FI[S.bk][ROD.fIdx]:null;
-  if(fi&&fi.complete){
-    ctx.save();
-    if(ROD.fRar==="mythic"){ctx.shadowColor="#ce93d8";ctx.shadowBlur=12;}
-    else if(ROD.fRar==="rare"){ctx.shadowColor="#4fc3f7";ctx.shadowBlur=7;}
-    ctx.drawImage(fi,BX-11,eY-14,28,28); ctx.restore();
-  } else if(ROD.fIdx===11){ di("vhs",BX-11,eY-14,28,28); }
-  else{ rc(BX,eY-4,16,8,r.col); }
+  // Fish on bar — always show mystery (no spoiler)
+  ctx.save();
+  ctx.font = "22px 'Courier Prime',monospace";
+  ctx.fillStyle = "rgba(255,215,0,0.6)";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("?", BX+8, eY);
+  ctx.restore();
   // slider
   const inZ=ROD.inZ;
   ctx.save();

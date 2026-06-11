@@ -404,7 +404,6 @@ img("logo","assets/ui/logo.png");
 img("canna","assets/ui/canna_da_pesca.png");
 img("mappa","assets/ui/mappa.png");
 img("vhs","assets/ui/cassettaVHS.png");
-img("pesce-nascosto", "assets/ui/pesce.png");
 for(let i=1;i<=4;i++) img("s"+i,"assets/schermate/schermata"+i+".png");
 for(let i=0;i<4;i++) img("b"+i,"assets/biomi/bioma"+i+".png");
 const BK=["fiume","mare","oceano","artico"];
@@ -638,7 +637,6 @@ function drawGame(now,dt){
 
 function drawRod(now){
   const {BX,BT,BB,bH,SH,eY}=ROD;
-  img("pesce-nascosto", "assets/ui/pesce.png");
   // fishing line
   ctx.save(); ctx.beginPath(); ctx.moveTo(VW*0.72,58);
   ctx.bezierCurveTo(VW*0.8,200,BX+5,BT-15,BX+5,eY);
@@ -654,7 +652,7 @@ function drawRod(now){
   ctx.fillStyle = "rgba(255,215,0,0.6)";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(pesce-nascosto, BX+8, eY);
+  ctx.fillText("?", BX+8, eY);
   ctx.restore();
   // slider
   const inZ=ROD.inZ;

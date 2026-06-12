@@ -404,6 +404,7 @@ img("logo","assets/ui/logo.png");
 img("canna","assets/ui/canna_da_pesca.png");
 img("mappa","assets/ui/mappa.png");
 img("vhs","assets/ui/cassettaVHS.png");
+img("pesce","assets/ui/pesce.png");
 for(let i=1;i<=4;i++) img("s"+i,"assets/schermate/schermata"+i+".png");
 for(let i=0;i<4;i++) img("b"+i,"assets/biomi/bioma"+i+".png");
 const BK=["fiume","mare","oceano","artico"];
@@ -646,14 +647,8 @@ function drawRod(now){
   // bar bg
   rc(BX-2,BT,20,bH,"rgba(0,0,0,.65)");
   ctx.save(); ctx.strokeStyle="rgba(255,215,0,.22)"; ctx.lineWidth=1; ctx.strokeRect(BX-2,BT,20,bH); ctx.restore();
-  // Fish on bar — always show mystery (no spoiler)
-  ctx.save();
-  ctx.font = "22px 'Courier Prime',monospace";
-  ctx.fillStyle = "rgba(255,215,0,0.6)";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("?", BX+8, eY);
-  ctx.restore();
+  // Fish on bar — mystery icon (no spoiler)
+  di("pesce", BX-11, eY-14, 28, 28);
   // slider
   const inZ=ROD.inZ;
   ctx.save();

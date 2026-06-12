@@ -18,7 +18,11 @@
     @keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
     @media(max-width:767px) and (orientation:portrait){
       #rotateOverlay{display:flex!important}
-      #gameCanvas,#mobControls{display:none!important}
+      #gameCanvas{display:none!important}
+    }
+    @media(orientation:landscape){
+      #rotateOverlay{display:none!important}
+      #gameCanvas{display:block!important}
     }
     /* ── CANVAS ── */
     #gameCanvas{display:block;position:fixed;inset:0;width:100%;height:100%;z-index:1;touch-action:none}
@@ -353,10 +357,15 @@ window.addEventListener("resize", resize); resize();
 function toV(sx,sy){ return {x:(sx-ox)/sc, y:(sy-oy)/sc}; }
 
 // ── FULLSCREEN ───────────────────────────────────
-function tryFS(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); }
-window.addEventListener("load",()=>setTimeout(tryFS,400));
+function tryFS(){
+  try{
+    if(!document.fullscreenElement && document.documentElement.requestFullscreen)
+      document.documentElement.requestFullscreen().catch(()=>{});
+  }catch(e){}
+}
+// Only attempt fullscreen on explicit user interaction, not on load
 document.addEventListener("click", tryFS, {once:true});
-document.addEventListener("touchstart", tryFS, {once:true});
+document.addEventListener("touchend", tryFS, {once:true});
 
 // ── MODAL SYSTEM ────────────────────────────────
 // Modals are pure HTML; canvas click/touch are guarded by anyOpen()
@@ -583,7 +592,6 @@ function drawLoading(now){
   rc(VW/2-140,VH-52,280,5,"rgba(255,215,0,.1)");
   const pct=ready()?1:aL/Math.max(1,aT);
   rc(VW/2-140,VH-52,280*pct,5,"rgba(255,215,0,.65)");
-  tx("LOADING…",VW/2,VH-26,20,"rgba(255,215,0,.45)","center");
 }
 
 // ── MENU ─────────────────────────────────────────
@@ -728,7 +736,8 @@ document.addEventListener("mousemove",e=>{
   if(phase==="game"&&!ROD.capt&&mouseY>=ROD.BT&&mouseY<=ROD.BB)
     ROD.y=Math.max(ROD.BT,Math.min(ROD.BB-ROD.SH,mouseY-ROD.SH/2));
 });
-document.addEventListener("touchmove",e=>{
+// touchmove on canvas only — controls rod slider
+cv.addEventListener("touchmove",e=>{
   if(anyOpen()) return;
   e.preventDefault();
   const t=e.touches[0],v=toV(t.clientX,t.clientY); mouseX=v.x; mouseY=v.y;
@@ -756,13 +765,13 @@ document.addEventListener("click",e=>{
   const v=toV(e.clientX,e.clientY);
   clickGame(v.x,v.y);
 });
-document.addEventListener("touchend",e=>{
+// Mobile: touchend only on canvas, never preventDefault (would break HTML buttons)
+cv.addEventListener("touchend",e=>{
   if(anyOpen()) return;
-  e.preventDefault();
   sfxClick();
   const t=e.changedTouches[0],v=toV(t.clientX,t.clientY);
   clickGame(v.x,v.y);
-},{passive:false});
+},{passive:true});
 
 function clickGame(vx,vy){
   if(phase==="game"){
@@ -994,8 +1003,8 @@ setInterval(saveNow, 30000);
 
 // ── BOOT ─────────────────────────────────────────
 async function boot(){
-  // Fullscreen
-  tryFS();
+  // Force correct canvas size
+  resize();
   // Start render loop immediately
   phase = "loading";
   SL.t = performance.now();

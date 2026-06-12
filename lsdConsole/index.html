@@ -2004,28 +2004,62 @@ class Fighter {
 
   _triggerUltra(onDone) {
     if(window._ultraPlaying) return;
-    if(this._zombieUltraLocked) return; // bloccata nei round 1-9 zombie mode
-    // Ultra eseguibile SOLO se il nemico ha ≤30% HP
-    let enemy = null;
-    if(this._ownerAfue){
-      const f1=this._ownerAfue.fighter1, f2=this._ownerAfue.fighter2;
-      enemy = (f1===this) ? f2 : f1;
-    } else if(this._ownerZombies){
-      // in zombie mode: il "nemico" più vicino
-      const zl = this._ownerZombies.zombieList;
-      if(zl && zl.length>0) enemy = zl.reduce((a,b)=>b.hp>0&&Math.abs(b.x-this.x)<Math.abs(a.x-this.x)?b:a, zl[0]);
+    if(this._zombieUltraLocked) return;
+
+    // AFUE: condizione HP 30% sul nemico
+    // Zombie mode: nessuna condizione HP (barra piena è già il gate)
+    if(!this._zombieMode){
+      let enemy = null;
+      if(this._ownerAfue){
+        const f1=this._ownerAfue.fighter1, f2=this._ownerAfue.fighter2;
+        enemy = (f1===this) ? f2 : f1;
+      }
+      if(enemy && enemy.hp > (enemy.maxHp||200)*0.30){
+        this._ultraBlockedMsg = millis();
+        this._ultCharge = 0; this.ultIdx=0; this.ultIdxAlt=0;
+        return;
+      }
     }
-    if(enemy && enemy.hp > (enemy.maxHp||100)*0.30){
-      this._ultraBlockedMsg = millis();
-      this._ultCharge = 0; this.ultIdx=0; this.ultIdxAlt=0;
-      return;
-    }
-    // Cooldown ultra: 20 secondi (raro, prezioso)
+
     if(millis()-this.cd5 < 20000) return;
     this.ultActive=true; this.ultIdx=0; this.ultIdxAlt=0;
     this._ultCharge=0;
     this.cd5=millis();
     window._ultraPlaying = true;
+
+    // Zombie mode: costruisci onDone che uccide l'orda e gestisce il round
+    if(this._ownerZombies){
+      const oz = this._ownerZombies;
+      const originalOnDone = onDone;
+      onDone = () => {
+        // Uccidi tutti gli zombie correnti con effetto morte
+        [...oz.zombieList].forEach(z => {
+          if(z.hp > 0 && !z._dying){
+            z.hp = 0;
+            z._dying = true; z._dyingLife = 0; z._dyingMaxLife = 40;
+            if(!z._deathParticles) z._deathParticles=[];
+            for(let pi=0;pi<16;pi++){
+              const ang=Math.PI+(Math.random()-0.5)*Math.PI, spd=Math.random()*5+2;
+              z._deathParticles.push({x:z.x+(Math.random()-0.5)*50,y:z.y-50,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-1,r:Math.random()*8+4,alpha:1,col:Math.random()<0.65?"#880000":"#cc2200",life:0,maxLife:35+Math.floor(Math.random()*15)});
+            }
+          }
+        });
+        // Dopo le animazioni morte (~700ms): avanza o vittoria
+        setTimeout(() => {
+          oz.zombieList = [];
+          if(!oz._bloodSplats) oz._bloodSplats=[];
+          if(oz.round >= 10){
+            oz.victory    = true;
+            oz.winner     = oz.playerChar;
+            oz.victoryTime = millis();
+            if(game) game.trophies[11]=true;
+          } else {
+            oz.startRound(oz.round + 1);
+          }
+        }, 750);
+        if(originalOnDone) originalOnDone();
+      };
+    }
     // YouTube embed con autoplay — molto più affidabile di Drive
     const ytId = this.name==="grax" ? "PIWatPZndfc" : "o8cJGZX2Pyg";
     const src  = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&fs=0&disablekb=1&iv_load_policy=3`;
@@ -2390,6 +2424,10 @@ class Fighter {
         }
       }
       // Se l'ultra non uccide: il combattimento continua normalmente
+      // In zombie mode: il risultato è gestito da zombieOnDone (già chiamato)
+      if(this._ownerZombies){
+        this.ultKill = false; // reset — zombie mode non usa ultKill
+      }
     }
   }
 
@@ -3041,12 +3079,14 @@ class AttackOfZombies {
       const fakeEnemy = nearestZ
         ? {x:nearestZ.x, y:nearestZ.y||800, hp:nearestZ.hp, blocking:false,
            name:"zombie", facing:nearestZ.facing, cd4:0, cd5:0,
-           _zombieRef: nearestZ}   // riferimento reale per la hit
+           _zombieRef: nearestZ}
         : {x:this.fighter.facing>0 ? BASE_W+200 : -200, y:800,
            hp:100, blocking:false, name:"zombie", facing:1, cd4:0, cd5:0};
-      // Passa il riferimento reale allo zombie per la hit del cubo
       if(nearestZ) this.fighter._graxZombieTarget = nearestZ;
-      this.fighter.update(fakeEnemy);
+      // Durante ultra: aggiorna solo per draw (no attacchi), freeze completo
+      if(!window._ultraPlaying){
+        this.fighter.update(fakeEnemy);
+      }
       this.fighter.drawChar(1);
     }
 
@@ -3054,6 +3094,8 @@ class AttackOfZombies {
     for(let i=this.zombieList.length-1; i>=0; i--){
       const z = this.zombieList[i];
       z.draw();
+      // Durante ultra: zombie congelati (non si muovono, non attaccano)
+      if(window._ultraPlaying) continue;
       if(this.fighter){
         z.move(this.fighter);
         // Hit detection: quando il fighter attacca

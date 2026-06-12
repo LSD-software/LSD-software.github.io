@@ -351,7 +351,15 @@ let sc=1, ox=0, oy=0;
 function resize(){
   cv.width=innerWidth; cv.height=innerHeight;
   const sw=cv.width/VW, sh=cv.height/VH;
-  sc=Math.min(sw,sh); ox=(cv.width-VW*sc)/2; oy=(cv.height-VH*sc)/2;
+  // On mobile (narrow screens) fill width so game is readable
+  // On desktop use contain (letterbox)
+  if(cv.width < 1024){
+    sc = sw; // fill width, crop top/bottom
+  } else {
+    sc = Math.min(sw, sh); // contain, letterbox
+  }
+  ox=(cv.width  - VW*sc)/2;
+  oy=(cv.height - VH*sc)/2;
 }
 window.addEventListener("resize", resize); resize();
 function toV(sx,sy){ return {x:(sx-ox)/sc, y:(sy-oy)/sc}; }
@@ -537,7 +545,7 @@ const ROD={
   inZ:false, cStart:0, cReq:3000,
   capt:false, captT:0, counted:false,
   fIdx:1, fRar:"common",
-  BX:1855, BT:390, BB:790, SH:56,
+  BX:1800, BT:200, BB:880, SH:70,
   get bH(){ return this.BB-this.BT; },
   get eY(){ return this._eY??this.yF; },
   spawn(){
@@ -600,7 +608,9 @@ const MITEMS=[
   {l:"🏪  SHOP",k:"shop"},{l:"🏆  RANK",k:"rank"},
   {l:"⚙   SETTINGS",k:"set"},{l:"✕   EXIT",k:"exit"}
 ];
-const MMX=30,MMY=()=>VH-390,MMW=250,MMH=50,MMG=5;
+const MMX=30, MMW=260, MMH=52, MMG=6;
+// Menu Y: centered vertically in virtual space, always visible
+function MMY(){ return VH/2 - (MITEMS.length*(MMH+MMG))/2; }
 
 function drawMenu(now){
   drawLoading(now); // sliding backgrounds
@@ -609,7 +619,7 @@ function drawMenu(now){
   di("logo",26,54);
   // username top right
   const uname=Api.usr()?.username||"Guest";
-  tx("⚙  "+uname, VW-22, 38, 24, "#FFD700","right","'Cinzel',serif");
+  tx("⚙  "+uname, VW-22, 44, 28, "#FFD700","right","'Cinzel',serif");
   // dobloni
   tx("◈ "+S.dobloni, VW-22, 62, 18,"rgba(255,215,0,.5)","right");
   // menu box
@@ -624,23 +634,23 @@ function drawMenu(now){
     const iy=MY+i*(MMH+MMG);
     const hov=hv(MMX,iy,MMW,MMH);
     if(hov){ rc(MMX,iy,MMW,MMH,"rgba(255,215,0,.1)"); ctx.save(); ctx.strokeStyle="rgba(255,215,0,.45)"; ctx.lineWidth=1; ctx.strokeRect(MMX,iy,MMW,MMH); ctx.restore(); }
-    tx(item.l, MMX+14, iy+MMH/2+8, 22, hov?"#FFD700":"rgba(255,255,255,.82)","left","'Cinzel',serif");
+    tx(item.l, MMX+16, iy+MMH/2+10, 26, hov?"#FFD700":"rgba(255,255,255,.88)","left","'Cinzel',serif");
   });
 }
 
 // ── GAME ─────────────────────────────────────────
 function drawGame(now,dt){
   di("b"+S.bi,0,0,VW,VH);
-  rc(0,0,VW,54,"rgba(0,0,0,.55)");
-  // home btn
-  const hH=hv(12,4,68,46);
-  ctx.save(); ctx.font="24px 'Courier Prime',monospace"; ctx.fillStyle=hH?"#FFD700":"rgba(255,255,255,.7)"; ctx.textAlign="center"; ctx.textBaseline="middle"; if(hH){ctx.beginPath();ctx.arc(46,27,22,0,Math.PI*2);ctx.fillStyle="rgba(255,215,0,.13)";ctx.fill();ctx.font="24px 'Courier Prime',monospace";ctx.fillStyle="#FFD700";ctx.textBaseline="middle";} ctx.fillText("⌂",46,27); ctx.restore();
-  // settings btn
-  const hS=hv(VW-78,4,68,46);
-  ctx.save(); if(hS){ctx.beginPath();ctx.arc(VW-42,27,22,0,Math.PI*2);ctx.fillStyle="rgba(255,215,0,.13)";ctx.fill();} ctx.font="22px 'Courier Prime',monospace"; ctx.fillStyle=hS?"#FFD700":"rgba(255,255,255,.7)"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⚙",VW-42,27); ctx.restore();
-  tx("◈ "+S.dobloni,VW/2,35,30,"#FFD700","center","'Cinzel',serif");
-  tx("C:"+S.comuni+" R:"+S.rari+" M:"+S.mitici,VW/2,52,14,"rgba(255,255,255,.45)","center");
-  tx(BN[S.bi].toUpperCase(),150,34,16,"rgba(255,215,0,.5)","left","'Cinzel',serif");
+  rc(0,0,VW,72,"rgba(0,0,0,.62)");
+  // home btn — large hit area
+  const hH=hv(10,4,90,64);
+  ctx.save(); if(hH){ctx.beginPath();ctx.arc(55,36,28,0,Math.PI*2);ctx.fillStyle="rgba(255,215,0,.13)";ctx.fill();} ctx.font="34px 'Courier Prime',monospace"; ctx.fillStyle=hH?"#FFD700":"rgba(255,255,255,.75)"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⌂",55,36); ctx.restore();
+  // settings btn — large hit area
+  const hS=hv(VW-100,4,90,64);
+  ctx.save(); if(hS){ctx.beginPath();ctx.arc(VW-55,36,28,0,Math.PI*2);ctx.fillStyle="rgba(255,215,0,.13)";ctx.fill();} ctx.font="30px 'Courier Prime',monospace"; ctx.fillStyle=hS?"#FFD700":"rgba(255,255,255,.75)"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⚙",VW-55,36); ctx.restore();
+  tx("◈ "+S.dobloni,VW/2,44,40,"#FFD700","center","'Cinzel',serif");
+  tx("C:"+S.comuni+"  R:"+S.rari+"  M:"+S.mitici,VW/2,66,22,"rgba(255,255,255,.5)","center");
+  tx(BN[S.bi].toUpperCase(),190,40,22,"rgba(255,215,0,.55)","left","'Cinzel',serif");
   drawRod(now);
 }
 
@@ -708,10 +718,10 @@ function doCatch(){
 const MPTS=[{cx:135,cy:590,i:0},{cx:648,cy:705,i:1},{cx:480,cy:330,i:2},{cx:1311,cy:160,i:3}];
 function drawMap(){
   di("mappa",0,0,VW,VH);
-  rc(0,0,VW,54,"rgba(0,0,0,.2)");
-  const hH=hv(12,4,68,46);
-  ctx.save(); ctx.font="24px 'Courier Prime',monospace"; ctx.fillStyle=hH?"#FFD700":"rgba(255,255,255,.7)"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⌂",46,27); ctx.restore();
-  tx("◈ "+S.dobloni,VW-22,38,30,"#FFD700","right","'Cinzel',serif");
+  rc(0,0,VW,72,"rgba(0,0,0,.25)");
+  const hH=hv(10,4,90,64);
+  ctx.save(); if(hH){ctx.beginPath();ctx.arc(55,36,28,0,Math.PI*2);ctx.fillStyle="rgba(255,215,0,.13)";ctx.fill();} ctx.font="34px 'Courier Prime',monospace"; ctx.fillStyle=hH?"#FFD700":"rgba(255,255,255,.75)"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("⌂",55,36); ctx.restore();
+  tx("◈ "+S.dobloni,VW-22,44,36,"#FFD700","right","'Cinzel',serif");
   MPTS.forEach(({cx,cy,i})=>{
     const un=S.biomaBool[i], sel=S.sel[i], hov=hc(cx,cy,30);
     if(sel){ ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,36,0,Math.PI*2); ctx.strokeStyle="rgba(255,80,80,.5)"; ctx.lineWidth=2; ctx.stroke(); ctx.restore(); }
@@ -775,8 +785,8 @@ cv.addEventListener("touchend",e=>{
 
 function clickGame(vx,vy){
   if(phase==="game"){
-    if(hv(12,4,68,46)){ phase="menu"; return; }
-    if(hv(VW-78,4,68,46)){ openSettings(); return; }
+    if(hv(10,4,90,64)){ phase="menu"; return; }
+    if(hv(VW-100,4,90,64)){ openSettings(); return; }
   }
   if(phase==="menu"){
     const MY=MMY();
@@ -793,7 +803,7 @@ function clickGame(vx,vy){
     });
   }
   if(phase==="mappa"){
-    if(hv(12,4,68,46)){ phase="menu"; return; }
+    if(hv(10,4,90,64)){ phase="menu"; return; }
     MPTS.forEach(({cx,cy,i})=>{
       if(hc(cx,cy,34)){
         if(!S.biomaBool[i]&&S.dobloni>=BC[i]){ S.dobloni-=BC[i]; S.biomaBool[i]=true; S.sel=[false,false,false,false]; S.sel[i]=true; notif(BN[i]+" unlocked!"); saveNow(); }

@@ -214,62 +214,118 @@
 <div id="notif"></div>
 
 <!-- TUTORIAL -->
-<div id="tutOverlay" class="M" style="z-index:9999">
-  <div class="P" style="max-width:600px">
+<div id="tutOverlay" style="
+  display:none;
+  position:fixed;inset:0;z-index:99998;
+  background:rgba(0,0,0,.92);
+  align-items:center;justify-content:center;padding:16px;
+  font-family:'Courier Prime',monospace;
+">
+  <div style="background:linear-gradient(160deg,#0d001a,#1a0008);border:2px solid rgba(255,215,0,.5);max-width:600px;width:100%;max-height:88vh;overflow-y:auto;padding:28px 24px;position:relative;">
     <div id="TS0">
-      <h2>P-E-S-C-A</h2><div class="sub">LSD SOFTWARE FISHING GAME</div>
-      <p>Welcome to <strong style="color:#FFD700">LSD P-E-S-C-A</strong> — the retro fishing simulator by LSD Software. Cast your line, catch fish across 4 biomes, and climb the global leaderboard.</p>
-      <ul>
+      <h2 style="font-family:'Cinzel',serif;color:#FFD700;letter-spacing:4px;text-align:center;font-size:1.4rem;margin-bottom:4px">P-E-S-C-A</h2>
+      <div style="color:#800000;text-align:center;font-size:.68rem;letter-spacing:3px;margin-bottom:18px">LSD SOFTWARE FISHING GAME</div>
+      <p style="color:#ccc;font-size:.84rem;line-height:1.7;margin-bottom:10px">Welcome to <strong style="color:#FFD700">LSD P-E-S-C-A</strong> — the retro fishing simulator by LSD Software. Cast your line, catch fish across 4 biomes, and climb the global leaderboard.</p>
+      <ul style="color:#ccc;font-size:.82rem;line-height:1.9;padding-left:18px;margin-bottom:12px">
         <li><strong style="color:#FFD700">◈ Dobloni</strong> — in-game currency, earned by selling fish</li>
         <li><strong style="color:#FFD700">4 Biomes</strong> — River (free), Sea (10◈), Ocean (20◈), Arctic (50◈)</li>
         <li><strong style="color:#FFD700">Leaderboard</strong> — global ranking by total fish caught</li>
       </ul>
-      <p style="font-size:.76rem;color:#888">Playing as guest? Progress saves in your browser. Log in from <strong style="color:#FFD700">Settings</strong> to sync permanently to your account.</p>
+      <p style="font-size:.76rem;color:#888;line-height:1.6">Playing as guest? Progress saves in your browser. Log in from <strong style="color:#FFD700">Settings</strong> to sync to your account.</p>
     </div>
     <div id="TS1" style="display:none">
-      <h2>HOW TO FISH</h2><div class="sub" style="margin-bottom:14px">FISHING MECHANICS</div>
-      <p>A vertical bar appears on the right side of the screen. A <strong style="color:#FFD700">fish icon</strong> moves up and down — keep your <strong style="color:#ff4444">red slider</strong> overlapping it for <strong style="color:#fff">3 seconds</strong> to catch it.</p>
-      <ul>
+      <h2 style="font-family:'Cinzel',serif;color:#FFD700;letter-spacing:4px;text-align:center;font-size:1.4rem;margin-bottom:4px">HOW TO FISH</h2>
+      <div style="color:#800000;text-align:center;font-size:.68rem;letter-spacing:3px;margin-bottom:18px">FISHING MECHANICS</div>
+      <p style="color:#ccc;font-size:.84rem;line-height:1.7;margin-bottom:10px">A vertical bar appears on the right. A fish moves up and down — keep your <strong style="color:#ff4444">red slider</strong> overlapping it for <strong style="color:#fff">3 seconds</strong> to catch it.</p>
+      <ul style="color:#ccc;font-size:.82rem;line-height:1.9;padding-left:18px;margin-bottom:12px">
         <li><strong style="color:#FFD700">↑ / ↓ or W / S</strong> — move slider (keyboard)</li>
-        <li><strong style="color:#FFD700">Mouse / Touch drag</strong> — drag slider on the bar</li>
+        <li><strong style="color:#FFD700">Mouse / Touch drag</strong> — drag on the bar</li>
         <li><strong style="color:#FFD700">▲ ▼ buttons</strong> — on-screen mobile controls</li>
       </ul>
-      <p>Rarer fish move faster and unpredictably — common fish bounce simply, rare fish burst sideways, mythic fish use erratic patterns.</p>
+      <p style="color:#ccc;font-size:.82rem;line-height:1.7">Rarer fish move faster and more unpredictably.</p>
     </div>
     <div id="TS2" style="display:none">
-      <h2>RARITIES & RATES</h2><div class="sub" style="margin-bottom:14px">FISH SPAWN SYSTEM</div>
-      <ul style="line-height:2.1">
-        <li style="color:#aaa">● <strong>Common</strong> — fish 1–6 · 60% chance · sell for 1◈ each</li>
-        <li style="color:#4fc3f7">◆ <strong>Rare</strong> — fish 7–9 · 28% chance · sell for 5◈ each</li>
-        <li style="color:#ce93d8">★ <strong>Mythic</strong> — fish 10 · 8% chance · sell for 10◈ each</li>
-        <li style="color:#FFD700">📼 <strong>VHS Tape</strong> — mysterious · 4% chance · one per biome</li>
+      <h2 style="font-family:'Cinzel',serif;color:#FFD700;letter-spacing:4px;text-align:center;font-size:1.4rem;margin-bottom:4px">RARITIES</h2>
+      <div style="color:#800000;text-align:center;font-size:.68rem;letter-spacing:3px;margin-bottom:18px">FISH SPAWN SYSTEM</div>
+      <ul style="font-size:.85rem;line-height:2.1;padding-left:18px;margin-bottom:12px">
+        <li style="color:#aaa">● <strong>Common</strong> — fish 1–6 · 60% · sell 1◈</li>
+        <li style="color:#4fc3f7">◆ <strong>Rare</strong> — fish 7–9 · 28% · sell 5◈</li>
+        <li style="color:#ce93d8">★ <strong>Mythic</strong> — fish 10 · 8% · sell 10◈</li>
+        <li style="color:#FFD700">📼 <strong>VHS</strong> — mysterious · 4% · one per biome</li>
       </ul>
-      <p>Every species you catch is recorded in your <strong style="color:#FFD700">Field Log</strong>, accessible from the Shop.</p>
+      <p style="color:#ccc;font-size:.82rem">Every catch is recorded in your <strong style="color:#FFD700">Field Log</strong>.</p>
     </div>
     <div id="TS3" style="display:none">
-      <h2>SHOP & MAP</h2><div class="sub" style="margin-bottom:14px">PROGRESSION SYSTEM</div>
-      <ul style="line-height:2.1">
-        <li><strong style="color:#FFD700">SHOP</strong> — sell fish for Dobloni, view your Field Log</li>
-        <li><strong style="color:#FFD700">MAP</strong> — spend Dobloni to unlock new biomes</li>
-        <li><strong style="color:#FFD700">Auto-save</strong> — every 30 seconds and on every catch</li>
-        <li><strong style="color:#FFD700">Settings ⚙</strong> — audio, account login, reset progress</li>
+      <h2 style="font-family:'Cinzel',serif;color:#FFD700;letter-spacing:4px;text-align:center;font-size:1.4rem;margin-bottom:4px">SHOP & MAP</h2>
+      <div style="color:#800000;text-align:center;font-size:.68rem;letter-spacing:3px;margin-bottom:18px">PROGRESSION</div>
+      <ul style="color:#ccc;font-size:.85rem;line-height:2.1;padding-left:18px">
+        <li><strong style="color:#FFD700">SHOP</strong> — sell fish, view Field Log</li>
+        <li><strong style="color:#FFD700">MAP</strong> — unlock biomes with Dobloni</li>
+        <li><strong style="color:#FFD700">Auto-save</strong> — every 30s and on every catch</li>
+        <li><strong style="color:#FFD700">⚙ Settings</strong> — audio, login, reset</li>
       </ul>
     </div>
-    <!-- Nav -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px">
-      <div id="tutDots" style="display:flex;gap:7px">
-        <div style="width:7px;height:7px;border-radius:50%;background:#FFD700" class="td"></div>
-        <div style="width:7px;height:7px;border-radius:50%;background:rgba(255,215,0,.22)" class="td"></div>
-        <div style="width:7px;height:7px;border-radius:50%;background:rgba(255,215,0,.22)" class="td"></div>
-        <div style="width:7px;height:7px;border-radius:50%;background:rgba(255,215,0,.22)" class="td"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:22px">
+      <div id="tDots" style="display:flex;gap:7px">
+        <div style="width:8px;height:8px;border-radius:50%;background:#FFD700;transition:background .2s"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,.22);transition:background .2s"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,.22);transition:background .2s"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,.22);transition:background .2s"></div>
       </div>
-      <div style="display:flex;gap:7px">
-        <button id="tutPrev" style="background:transparent;border:2px solid rgba(255,215,0,.35);color:rgba(255,215,0,.6);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:2px;padding:9px 14px;cursor:pointer;opacity:.3">← PREV</button>
-        <button id="tutNext" style="background:linear-gradient(145deg,#800000,#4a0000);border:2px solid #FFD700;color:#FFD700;font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:2px;padding:9px 18px;cursor:pointer">NEXT →</button>
+      <div style="display:flex;gap:8px">
+        <button id="tPrev" style="background:transparent;border:2px solid rgba(255,215,0,.35);color:rgba(255,215,0,.6);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:2px;padding:10px 16px;cursor:pointer;touch-action:manipulation">← PREV</button>
+        <button id="tNext" style="background:linear-gradient(145deg,#800000,#4a0000);border:2px solid #FFD700;color:#FFD700;font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:2px;padding:10px 20px;cursor:pointer;touch-action:manipulation">NEXT →</button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Tutorial script runs immediately, before any game JS -->
+<script>
+(function(){
+  var STEPS = ["TS0","TS1","TS2","TS3"];
+  var step  = 0;
+  var done  = !!localStorage.getItem("pesca_tut");
+  var ov    = document.getElementById("tutOverlay");
+
+  if(!done) ov.style.display = "flex";
+
+  function show(n){
+    step = Math.max(0, Math.min(STEPS.length-1, n));
+    STEPS.forEach(function(id,i){
+      document.getElementById(id).style.display = i===step ? "block" : "none";
+    });
+    var dots = document.getElementById("tDots").children;
+    for(var i=0;i<dots.length;i++)
+      dots[i].style.background = i===step ? "#FFD700" : "rgba(255,215,0,.22)";
+    document.getElementById("tPrev").style.opacity = step===0 ? "0.3" : "1";
+    document.getElementById("tNext").textContent   = step===STEPS.length-1 ? "START FISHING →" : "NEXT →";
+  }
+
+  document.getElementById("tNext").addEventListener("click", function(e){
+    e.stopPropagation();
+    if(step >= STEPS.length-1){
+      ov.style.display = "none";
+      localStorage.setItem("pesca_tut","1");
+      // re-enable canvas if game already loaded
+      var cv = document.getElementById("gameCanvas");
+      if(cv) cv.style.pointerEvents = "auto";
+    } else {
+      show(step+1);
+    }
+  });
+
+  document.getElementById("tPrev").addEventListener("click", function(e){
+    e.stopPropagation();
+    show(step-1);
+  });
+
+  // expose for game JS
+  window._tutOpen = function(){ return ov.style.display !== "none"; };
+
+  if(!done) show(0);
+})();
+</script>
 
 <!-- SHOP -->
 <div id="shopModal" class="M H">
@@ -457,7 +513,7 @@ document.addEventListener("touchend", tryFS, {once:true});
 // ── MODAL SYSTEM ────────────────────────────────
 // Modals are pure HTML; canvas click/touch are guarded by anyOpen()
 function anyOpen(){
-  if(TUT_OPEN) { cv.style.pointerEvents="none"; return true; }
+  if(window._tutOpen && window._tutOpen()) { cv.style.pointerEvents="none"; return true; }
   const open = !![...document.querySelectorAll(".M")].find(el=>!el.classList.contains("H"));
   cv.style.pointerEvents = open ? "none" : "auto";
   return open;
@@ -1042,51 +1098,7 @@ document.getElementById("guestBtn").addEventListener("click",async()=>{
   finally{ btn.disabled=false; }
 });
 
-// ── TUTORIAL ─────────────────────────────────────
-// Fully self-contained — no dependency on canvas or game loop
-let TUT_OPEN = !localStorage.getItem("pesca_tut");
-let tutStep = 0;
-const tutSteps = [
-  document.getElementById("TS0"),
-  document.getElementById("TS1"),
-  document.getElementById("TS2"),
-  document.getElementById("TS3")
-];
-const tutDots = document.getElementById("tutDots").querySelectorAll(".td");
-const tutNext = document.getElementById("tutNext");
-const tutPrev = document.getElementById("tutPrev");
-const tutOverlay = document.getElementById("tutOverlay");
-
-function showTutStep(n){
-  tutStep = Math.max(0, Math.min(tutSteps.length-1, n));
-  tutSteps.forEach((s,i) => s.style.display = i===tutStep ? "block" : "none");
-  tutDots.forEach((d,i) => d.style.background = i===tutStep ? "#FFD700" : "rgba(255,215,0,.22)");
-  tutPrev.style.opacity = tutStep===0 ? "0.3" : "1";
-  tutNext.textContent = tutStep===tutSteps.length-1 ? "START FISHING →" : "NEXT →";
-}
-
-tutNext.addEventListener("click", function(){
-  if(tutStep >= tutSteps.length-1){
-    TUT_OPEN = false;
-    tutOverlay.classList.add("H");
-    localStorage.setItem("pesca_tut","1");
-    cv.style.pointerEvents = "auto";
-  } else {
-    showTutStep(tutStep+1);
-  }
-});
-tutPrev.addEventListener("click", function(){
-  showTutStep(tutStep-1);
-});
-
-if(TUT_OPEN){
-  tutOverlay.classList.remove("H");
-  cv.style.pointerEvents = "none";
-  showTutStep(0);
-} else {
-  tutOverlay.classList.add("H");
-  cv.style.pointerEvents = "auto";
-}
+// Tutorial handled by inline script above ──────────────────
 
 // ── SAVE ─────────────────────────────────────────
 function saveNow(){

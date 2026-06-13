@@ -457,11 +457,13 @@ document.addEventListener("touchend", tryFS, {once:true});
 // ── MODAL SYSTEM ────────────────────────────────
 // Modals are pure HTML; canvas click/touch are guarded by anyOpen()
 function anyOpen(){
-  if(TUT_OPEN) return true;
-  return !![...document.querySelectorAll(".M")].find(el=>!el.classList.contains("H"));
+  if(TUT_OPEN) { cv.style.pointerEvents="none"; return true; }
+  const open = !![...document.querySelectorAll(".M")].find(el=>!el.classList.contains("H"));
+  cv.style.pointerEvents = open ? "none" : "auto";
+  return open;
 }
-function openM(id){ document.getElementById(id).classList.remove("H"); }
-function closeM(id){ document.getElementById(id).classList.add("H"); }
+function openM(id){ document.getElementById(id).classList.remove("H"); cv.style.pointerEvents="none"; }
+function closeM(id){ document.getElementById(id).classList.add("H"); if(!anyOpen()) cv.style.pointerEvents="auto"; }
 
 // ── API ──────────────────────────────────────────
 const Api={
@@ -1068,6 +1070,7 @@ tutNext.addEventListener("click", function(){
     TUT_OPEN = false;
     tutOverlay.classList.add("H");
     localStorage.setItem("pesca_tut","1");
+    cv.style.pointerEvents = "auto";
   } else {
     showTutStep(tutStep+1);
   }
@@ -1078,9 +1081,11 @@ tutPrev.addEventListener("click", function(){
 
 if(TUT_OPEN){
   tutOverlay.classList.remove("H");
+  cv.style.pointerEvents = "none";
   showTutStep(0);
 } else {
   tutOverlay.classList.add("H");
+  cv.style.pointerEvents = "auto";
 }
 
 // ── SAVE ─────────────────────────────────────────

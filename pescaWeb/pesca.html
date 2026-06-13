@@ -188,7 +188,25 @@
 <body>
 
 <div id="rotateOverlay"><span>📱</span><div>Rotate your device<br>to play LSD P-E-S-C-A</div></div>
-<canvas id="gameCanvas"></canvas>
+<!-- ZOOM CONTROL -->
+<div id="zoomCtrl" style="
+  position:fixed;bottom:10px;left:50%;transform:translateX(-50%);
+  z-index:2000;display:flex;align-items:center;gap:4px;
+  background:rgba(0,0,0,.8);border:1px solid rgba(255,215,0,.3);
+  padding:5px 8px;border-radius:4px;
+">
+  <button class="zbtn" onclick="setZoom(0)" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.3);color:rgba(255,215,0,.7);font-family:'Cinzel',serif;font-size:.58rem;padding:5px 8px;cursor:pointer;letter-spacing:1px">FIT</button>
+  <button class="zbtn" onclick="setZoom(1)" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.3);color:rgba(255,215,0,.7);font-family:'Cinzel',serif;font-size:.58rem;padding:5px 8px;cursor:pointer;letter-spacing:1px">NORM</button>
+  <button class="zbtn" onclick="setZoom(2)" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.3);color:rgba(255,215,0,.7);font-family:'Cinzel',serif;font-size:.58rem;padding:5px 8px;cursor:pointer;letter-spacing:1px">LRG</button>
+  <div style="width:1px;height:20px;background:rgba(255,215,0,.2);margin:0 2px"></div>
+  <button onclick="changeManualZoom(-0.05)" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.3);color:#FFD700;font-size:1rem;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700">−</button>
+  <span id="zoomPct" style="color:#FFD700;font-family:'Cinzel',serif;font-size:.62rem;min-width:40px;text-align:center;letter-spacing:1px">FIT</span>
+  <button onclick="changeManualZoom(0.05)" style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.3);color:#FFD700;font-size:1rem;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700">+</button>
+</div>
+
+<style>
+.zbtn.zA{background:rgba(255,215,0,.25)!important;border-color:#FFD700!important;color:#FFD700!important;font-weight:700}
+</style>
 <div id="mobControls"><div class="mb" id="mobUp">▲</div><div class="mb" id="mobDown">▼</div></div>
 
 <!-- CATCH BADGE -->
@@ -348,19 +366,80 @@ const cv  = document.getElementById("gameCanvas");
 const ctx = cv.getContext("2d");
 const VW  = 1920, VH = 1080;
 let sc=1, ox=0, oy=0;
+// ── ZOOM ─────────────────────────────────────────
+const ZOOMS = { fit:0, normal:1, large:2 };
+let zoomMode   = parseInt(localStorage.getItem("pesca_zoom")||"0");
+let manualZoom = parseFloat(localStorage.getItem("pesca_mzoom")||"1.0");
+let useManual  = localStorage.getItem("pesca_use_manual")==="1";
+
+function setZoom(m){
+  zoomMode=m; useManual=false;
+  localStorage.setItem("pesca_zoom",m);
+  localStorage.setItem("pesca_use_manual","0");
+  resize(); updateZoomUI();
+}
+function changeManualZoom(delta){
+  manualZoom = Math.max(0.2, Math.min(4.0, manualZoom + delta));
+  useManual  = true;
+  localStorage.setItem("pesca_mzoom", manualZoom.toFixed(2));
+  localStorage.setItem("pesca_use_manual","1");
+  resize(); updateZoomUI();
+}
+function updateZoomUI(){
+  document.querySelectorAll(".zbtn").forEach((b,i)=>b.classList.toggle("zA",!useManual&&i===zoomMode));
+  const pct = Math.round((useManual ? manualZoom : getBaseScale()) / (Math.min(innerWidth/VW, innerHeight/VH)) * 100);
+  const lbl = document.getElementById("zoomPct");
+  if(lbl) lbl.textContent = useManual ? Math.round(manualZoom*100)+"%" : ["FIT","NORM","LRG"][zoomMode];
+}
+function getBaseScale(){
+  const sw=innerWidth/VW, sh=innerHeight/VH;
+  if(zoomMode===0) return Math.min(sw,sh);
+  if(zoomMode===1) return sw;
+  return sh*1.3;
+}
+
 function resize(){
   cv.width=innerWidth; cv.height=innerHeight;
   const sw=cv.width/VW, sh=cv.height/VH;
-  // On mobile (narrow screens) fill width so game is readable
-  // On desktop use contain (letterbox)
-  if(cv.width < 1024){
-    sc = sw; // fill width, crop top/bottom
+  if(useManual){
+    sc = manualZoom;
+  } else if(zoomMode===0){
+    sc=Math.min(sw,sh);
+  } else if(zoomMode===1){
+    sc=sw;
   } else {
-    sc = Math.min(sw, sh); // contain, letterbox
+    sc=sh*1.3;
   }
   ox=(cv.width  - VW*sc)/2;
   oy=(cv.height - VH*sc)/2;
 }
+
+// Pinch-to-zoom
+(function(){
+  let lastDist=0;
+  cv.addEventListener("touchstart",e=>{
+    if(e.touches.length===2){
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      lastDist=Math.hypot(dx,dy);
+    }
+  },{passive:true});
+  cv.addEventListener("touchmove",e=>{
+    if(e.touches.length===2){
+      if(anyOpen()) return;
+      e.preventDefault();
+      const dx=e.touches[0].clientX-e.touches[1].clientX;
+      const dy=e.touches[0].clientY-e.touches[1].clientY;
+      const dist=Math.hypot(dx,dy);
+      if(lastDist>0){
+        const delta=(dist-lastDist)/300;
+        changeManualZoom(delta);
+      }
+      lastDist=dist;
+    }
+  },{passive:false});
+  cv.addEventListener("touchend",e=>{ if(e.touches.length<2) lastDist=0; },{passive:true});
+})();
 window.addEventListener("resize", resize); resize();
 function toV(sx,sy){ return {x:(sx-ox)/sc, y:(sy-oy)/sc}; }
 
@@ -1015,6 +1094,7 @@ setInterval(saveNow, 30000);
 async function boot(){
   // Force correct canvas size
   resize();
+  updateZoomUI();
   // Start render loop immediately
   phase = "loading";
   SL.t = performance.now();

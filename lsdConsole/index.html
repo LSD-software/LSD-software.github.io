@@ -28,16 +28,10 @@ body{
   position:fixed;
   top:50%;left:50%;
   transform:translate(-50%,-50%);
+  transform-origin:center center;
   background:#000;
   /* Canvas size set by JS — CSS just centers it */
   image-rendering:auto;
-}
-
-/* Wrapper: contenitore fisso, niente scroll — lo zoom è un transform CSS
-   sul canvas stesso, sempre centrato (transform-origin:center) */
-#canvasWrap{
-  position:fixed; inset:0; overflow:hidden;
-  display:flex; align-items:center; justify-content:center;
 }
 
 /* ── Landscape overlay ── */
@@ -415,7 +409,7 @@ body{
   </div>
 </div>
 
-<div id="canvasWrap"><canvas id="canvas"></canvas></div>
+<canvas id="canvas"></canvas>
 
 <!-- Mobile controls (only shown during AFUE fight) -->
 <div id="mobileMenu" onclick="toggleDrawer()">☰</div>
@@ -541,23 +535,21 @@ const DPR = Math.min(window.devicePixelRatio || 1, 3);
 // Game coordinates always map 1:1 from (0,0) to (BASE_W, BASE_H)
 let _offX = 0, _offY = 0;
 
-// ── ZOOM ──────────────────────────────────────────────────────
-// userZoom: moltiplicatore manuale (1.0 = nessun extra-zoom)
-// Step disponibili tramite pulsante: 1.0 → 1.25 → 1.5 → 1.75 → 2.0 → torna a 1.0
-// Pinch-to-zoom continuo permette qualsiasi valore tra ZOOM_MIN e ZOOM_MAX.
+// ── ZOOM (solo mobile) ──────────────────────────────────────────
+// Su PC il canvas resta sempre translate(-50%,-50%) — comportamento originale,
+// invariato. Su mobile lo zoom aggiunge scale()+pan allo stesso transform,
+// mantenendo translate(-50%,-50%) come base così la scena resta centrata
+// e si espande omogeneamente in ogni direzione.
 const ZOOM_STEPS = [1.0, 1.25, 1.5, 1.75, 2.0];
 const ZOOM_MIN = 1.0, ZOOM_MAX = 2.5;
 let userZoom = 1.0;
-// Pan (offset in px CSS) — applicato DOPO lo scale, sempre relativo al centro
-let panX = 0, panY = 0;
+let panX = 0, panY = 0; // pan in px CSS, solo mobile
 
 function resizeCanvas() {
   W = window.innerWidth;
   H = window.innerHeight;
 
-  // FIT: il canvas è sempre dimensionato per stare interamente nello schermo.
-  // Lo zoom utente è un transform CSS separato — non cambia canvas.width/height,
-  // quindi il rendering interno resta 1:1 e la scena rimane centrata.
+  // FIT: scale so entire game is visible with no cropping on any device
   scale = Math.min(W / BASE_W, H / BASE_H);
 
   const cssW = Math.round(BASE_W * scale);
@@ -580,35 +572,37 @@ function resizeCanvas() {
   applyZoomTransform();
 }
 
-// Applica zoom (scale) + pan come singolo transform CSS, sempre centrato.
-// transform-origin:center fa sì che lo zoom si espanda dal centro dello
-// schermo in ogni direzione in modo omogeneo, senza spostare la scena.
+// Applica il transform del canvas. Su PC (userZoom===1) è identico
+// all'originale: translate(-50%,-50%). Su mobile con zoom attivo,
+// aggiunge scale()+pan mantenendo la stessa base di centratura.
 function applyZoomTransform(){
-  canvas.style.transformOrigin = "center center";
-  canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${userZoom})`;
-  // Limita il pan in base allo zoom corrente (non far uscire troppo la scena)
+  if(userZoom <= 1.001 && panX===0 && panY===0){
+    canvas.style.transform = "translate(-50%,-50%)";
+    return;
+  }
   clampPan();
+  // Ordine: prima centra (-50%,-50%), poi pan, poi scale dal centro
+  canvas.style.transform =
+    `translate(-50%,-50%) translate(${panX}px, ${panY}px) scale(${userZoom})`;
 }
 
 function clampPan(){
   if(userZoom<=1.001){ panX=0; panY=0; return; }
-  const cssW = canvas.clientWidth  || (BASE_W*scale);
-  const cssH = canvas.clientHeight || (BASE_H*scale);
+  const cssW = BASE_W*scale;
+  const cssH = BASE_H*scale;
   const maxPanX = (cssW*(userZoom-1))/2;
   const maxPanY = (cssH*(userZoom-1))/2;
   panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
   panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
 }
 
-// Pulsante zoom (disegnato nel canvas, vicino ai trofei): ciclo step fissi
+// Pulsante zoom (disegnato nel canvas, vicino ai trofei, solo mobile)
 function cycleZoom(){
-  // Trova lo step corrente più vicino e passa al successivo
   let idx = ZOOM_STEPS.findIndex(v => Math.abs(v-userZoom) < 0.01);
   if(idx === -1){
-    // Zoom manuale non allineato a uno step: vai allo step successivo > userZoom
     idx = ZOOM_STEPS.findIndex(v => v > userZoom);
-    if(idx === -1) idx = 0; // torna a Fit
-    else idx = idx - 1;     // così il prossimo +1 sotto sia corretto
+    if(idx === -1) idx = 0;
+    else idx = idx - 1;
   }
   idx = (idx + 1) % ZOOM_STEPS.length;
   userZoom = ZOOM_STEPS[idx];
@@ -617,17 +611,16 @@ function cycleZoom(){
 }
 window.cycleZoom = cycleZoom;
 
-// ── Pinch-to-zoom + pan a due dita (solo mobile, sul canvasWrap) ──────────
+// ── Pinch-to-zoom + pan a due dita (solo mobile) ──────────────────
 (function setupPinchZoom(){
-  const wrap = document.getElementById("canvasWrap");
-  if(!wrap) return;
+  if(!isMobile) return;
   let pinchStartDist = 0;
   let pinchStartZoom = 1;
   let panStart = {x:0,y:0};
   let touchStart = {x:0,y:0};
   let isPinching = false;
 
-  wrap.addEventListener("touchstart", (e)=>{
+  document.addEventListener("touchstart", (e)=>{
     if(e.touches.length===2){
       isPinching = true;
       const [t1,t2] = e.touches;
@@ -641,13 +634,12 @@ window.cycleZoom = cycleZoom;
     }
   }, {passive:true});
 
-  wrap.addEventListener("touchmove", (e)=>{
+  document.addEventListener("touchmove", (e)=>{
     if(e.touches.length===2 && isPinching){
       const [t1,t2] = e.touches;
       const dist = Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY);
       const ratio = dist / (pinchStartDist||1);
       userZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, pinchStartZoom*ratio));
-      // Pan con il movimento medio delle due dita
       const mid = {x:(t1.clientX+t2.clientX)/2, y:(t1.clientY+t2.clientY)/2};
       panX = panStart.x + (mid.x - touchStart.x);
       panY = panStart.y + (mid.y - touchStart.y);
@@ -656,7 +648,7 @@ window.cycleZoom = cycleZoom;
     }
   }, {passive:true});
 
-  wrap.addEventListener("touchend", (e)=>{
+  document.addEventListener("touchend", (e)=>{
     if(e.touches.length<2) isPinching=false;
   }, {passive:true});
 })();

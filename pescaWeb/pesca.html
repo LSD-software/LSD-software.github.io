@@ -141,7 +141,7 @@ html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:'Co
 </div>
 
 <!-- CATCH BADGE -->
-<div id="bdg"><img id="bI" src="" alt=""><div><div class="bt" id="bT">CAUGHT!</div><div class="bn" id="bN"></div><div class="br" id="bR"></div><div class="bb" id="bB"></div></div></div>
+<div id="bdg" onclick="if(phase==='game'&&ROD.rodPhase==='caught'){document.getElementById('bdg').classList.remove('show');ROD.reset();}" style="cursor:pointer"><img id="bI" src="" alt=""><div><div class="bt" id="bT">CAUGHT!</div><div class="bn" id="bN"></div><div class="br" id="bR"></div><div class="bb" id="bB"></div></div></div>
 <div id="nf"></div>
 
 <!-- TUTORIAL — standalone, runs before game JS -->
@@ -448,6 +448,7 @@ function ambLoop(){
 }
 function sfxC(rc){if(!AC||amuted)return;const now=AC.currentTime,cfg={common:{f:[392,494,587],t:"square",g:.14,d:.08},rare:{f:[440,554,659,880],t:"triangle",g:.17,d:.09},mythic:{f:[523,659,784,1047],t:"triangle",g:.21,d:.1},vhs:{f:[261,329,392,523,659],t:"sine",g:.19,d:.08}};const c=cfg[rc]||cfg.common;c.f.forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type=c.t;g.gain.setValueAtTime(c.g,now+i*c.d);g.gain.exponentialRampToValueAtTime(0.001,now+i*c.d+0.5);o.connect(g);g.connect(MG);o.start(now+i*c.d);o.stop(now+i*c.d+0.6);});}
 function sfxK(){if(!AC||amuted)return;const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=440;o.type="square";g.gain.setValueAtTime(0.05,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+0.06);o.connect(g);g.connect(MG);o.start();o.stop(AC.currentTime+0.07);}
+function sfxEscape(){if(!AC||amuted)return;const now=AC.currentTime;[330,220,180].forEach((f,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type="triangle";g.gain.setValueAtTime(0.12,now+i*0.15);g.gain.exponentialRampToValueAtTime(0.001,now+i*0.15+0.4);o.connect(g);g.connect(MG);o.start(now+i*0.15);o.stop(now+i*0.15+0.5);});}
 function tgAudio(){amuted=!amuted;if(MG)MG.gain.value=amuted?0:0.13;document.getElementById("togM").classList.toggle("on",!amuted);}
 
 // ── STATE ──
@@ -461,32 +462,92 @@ const S={
   get bk(){return BK[this.bi];},
   pay(){return{dobloni:this.dobloni,comuni:this.comuni,rari:this.rari,mitici:this.mitici,biomiSbloccati:this.bb,biomaSelezionato:this.bi,enciclopedia:{fiume:this.enci.fiume,mare:this.enci.mare,oceano:this.enci.oceano,artico:this.enci.artico},vhs:this.vhs,pescaTotaliDelta:this._pd,pescaMiticiDelta:this._md,vhsDelta:this._vd};},
   fromSrv(d){if(!d)return;this.dobloni=d.dobloni??0;this.comuni=d.comuni??0;this.rari=d.rari??0;this.mitici=d.mitici??0;this.bb=d.biomiSbloccati??[true,false,false,false];this.sel=[false,false,false,false];this.sel[d.biomaSelezionato??0]=true;this.vhs=d.vhs??[false,false,false,false];if(d.enciclopedia)BK.forEach(k=>{this.enci[k]=d.enciclopedia[k]||new Array(10).fill(false);});this._pd=0;this._md=0;this._vd=0;},
-  saveLS(){try{localStorage.setItem(LSK,JSON.stringify(this.pay()));}catch(e){}},
-  loadLS(){try{const d=JSON.parse(localStorage.getItem(LSK)||"null");if(!d)return false;this.fromSrv(d);return true;}catch(e){return false;}}
+  saveLS(){
+    try{
+      // Save full state + accumulated totals for when user logs in
+      const data={
+        dobloni:this.dobloni,comuni:this.comuni,rari:this.rari,mitici:this.mitici,
+        biomiSbloccati:this.bb,biomaSelezionato:this.bi,
+        enciclopedia:{fiume:this.enci.fiume,mare:this.enci.mare,oceano:this.enci.oceano,artico:this.enci.artico},
+        vhs:this.vhs,
+        // Keep running totals for leaderboard migration
+        pescaTotaliDelta:this._pd,pescaMiticiDelta:this._md,vhsDelta:this._vd,
+        // Also store cumulative totals in case session restarts
+        _pescaTot:( (JSON.parse(localStorage.getItem(LSK)||'{}')._pescaTot||0) ),
+        _miticiTot:( (JSON.parse(localStorage.getItem(LSK)||'{}')._miticiTot||0) ),
+        _vhsTot:( (JSON.parse(localStorage.getItem(LSK)||'{}')._vhsTot||0) )
+      };
+      data._pescaTot+=this._pd;data._miticiTot+=this._md;data._vhsTot+=this._vd;
+      localStorage.setItem(LSK,JSON.stringify(data));
+      // Reset session deltas after saving to localStorage
+      this._pd=0;this._md=0;this._vd=0;
+    }catch(e){}
+  },
+  loadLS(){
+    try{
+      const d=JSON.parse(localStorage.getItem(LSK)||"null");
+      if(!d)return false;
+      this.dobloni=d.dobloni??0;this.comuni=d.comuni??0;this.rari=d.rari??0;this.mitici=d.mitici??0;
+      this.bb=d.biomiSbloccati??[true,false,false,false];
+      this.sel=[false,false,false,false];this.sel[d.biomaSelezionato??0]=true;
+      this.vhs=d.vhs??[false,false,false,false];
+      if(d.enciclopedia)BK.forEach(k=>{this.enci[k]=d.enciclopedia[k]||new Array(10).fill(false);});
+      // Restore accumulated totals (NOT reset)
+      this._pd=d.pescaTotaliDelta??0;this._md=d.pescaMiticiDelta??0;this._vd=d.vhsDelta??0;
+      return true;
+    }catch(e){return false;}
+  }
 };
 
 // ── ROD ──
+// Phases: "idle" (show CAST button) | "fishing" (catch mini-game) | "caught" (badge) | "escaped" (got away msg)
 const ROD={
-  y:580,spd:5,yF:580,vF:0,sinP:0,sinA:0,sinF:0,burstT:0,burstI:0,
-  inZ:false,cStart:0,cReq:3000,capt:false,captT:0,counted:false,
-  fIdx:1,fRar:"common",
-  BX:1800,BT:200,BB:880,SH:70,
+  rodPhase:"idle",      // idle | fishing | caught | escaped
+  y:580, spd:5,
+  yF:580, vF:0, sinP:0, sinA:0, sinF:0, burstT:0, burstI:0,
+  inZ:false, cStart:0, cReq:3000,
+  captT:0, counted:false,
+  escapeTime:0, escapeMsg:0,  // when fish escapes
+  fIdx:1, fRar:"common",
+  BX:1800, BT:200, BB:880, SH:70,
   get bH(){return this.BB-this.BT;},
   get eY(){return this._eY??this.yF;},
-  spawn(){
-    const bi=S.bi,fi=spawnIdx(S.vhs[bi]);this.fIdx=fi;const r=rar(fi);this.fRar=r.c;
-    this.cReq=fi===10?4000:fi>=7?3500:3000;
+
+  // Call when player clicks CAST button
+  cast(){
+    const bi=S.bi, fi=spawnIdx(S.vhs[bi]);
+    this.fIdx=fi; const r=rar(fi); this.fRar=r.c;
+    this.cReq=fi===10?4500:fi>=7?3800:3200;
+    // Escape timer: common 8s, rare 6s, mythic 5s, vhs 7s
+    const escapeSecs={common:8000,rare:6000,mythic:5000,vhs:7000};
+    this.escapeTime=escapeSecs[r.c]||8000;
     const bs=BS[bi];
     if(r.c==="common"){this.vF=bs*(0.7+Math.random()*.4)*(Math.random()<.5?1:-1);this.sinA=0;this.sinF=0;this.burstI=0;}
     else if(r.c==="rare"){this.vF=bs*(1+Math.random()*.5)*(Math.random()<.5?1:-1);this.sinA=30+Math.random()*30;this.sinF=.002+Math.random()*.002;this.burstI=2500+Math.random()*1500;}
     else if(r.c==="mythic"){this.vF=bs*(1.5+Math.random()*.8)*(Math.random()<.5?1:-1);this.sinA=60+Math.random()*50;this.sinF=.004+Math.random()*.003;this.burstI=1200+Math.random()*800;}
     else{this.vF=bs*(1.2+Math.random()*.6)*(Math.random()<.5?1:-1);this.sinA=20+Math.random()*40;this.sinF=.003;this.burstI=3000;}
-    this.sinP=Math.random()*Math.PI*2;this.burstT=0;
-    this.yF=this.BT+this.bH*(0.2+Math.random()*.6);this.y=this.BT+this.bH*.5;
-    this.inZ=false;this.cStart=0;this.capt=false;this.captT=0;this.counted=false;
+    this.sinP=Math.random()*Math.PI*2; this.burstT=0;
+    this.yF=this.BT+this.bH*(0.2+Math.random()*.6);
+    this.y=this.BT+this.bH*.5;
+    this.inZ=false; this.cStart=0; this.counted=false;
+    this.castStart=performance.now();
+    this.rodPhase="fishing";
   },
+
+  reset(){this.rodPhase="idle"; this.inZ=false; this.cStart=0; this.counted=false;},
+
   update(now,dt){
-    if(this.capt)return;
+    if(this.rodPhase!=="fishing") return;
+    const elapsed=now-this.castStart;
+
+    // Fish escapes after escapeTime
+    if(elapsed>=this.escapeTime){
+      this.rodPhase="escaped";
+      this.escapeMsg=now;
+      sfxEscape();
+      return;
+    }
+
     this.sinP+=this.sinF*dt;
     if(this.burstI>0){this.burstT+=dt;if(this.burstT>=this.burstI){this.vF*=-(0.8+Math.random()*.6);this.burstT=0;this.burstI=Math.max(600,this.burstI*(0.7+Math.random()*.6));}}
     this.yF+=this.vF*(dt/16);
@@ -494,9 +555,11 @@ const ROD={
     if(this.yF<mn){this.yF=mn;this.vF=Math.abs(this.vF)*(0.8+Math.random()*.4);}
     if(this.yF>mx){this.yF=mx;this.vF=-Math.abs(this.vF)*(0.8+Math.random()*.4);}
     const eY=Math.max(mn,Math.min(mx,this.yF+this.sinA*Math.sin(this.sinP)));this._eY=eY;
+
+    // Overlap check
     const ov=eY-18<this.y+this.SH&&eY+18>this.y;
     if(ov){if(!this.inZ){this.cStart=now;this.inZ=true;}}else{this.inZ=false;this.cStart=0;}
-    if(this.inZ&&now-this.cStart>=this.cReq){this.capt=true;this.captT=now;}
+    if(this.inZ&&now-this.cStart>=this.cReq){this.rodPhase="caught";}
   }
 };
 
@@ -548,28 +611,98 @@ function drawGame(now,dt){
   tx("◈ "+S.dobloni,VW/2,46,46,"#FFD700","center","'Cinzel',serif");
   tx("C:"+S.comuni+"  R:"+S.rari+"  M:"+S.mitici,VW/2,68,26,"rgba(255,255,255,.5)","center");
   tx(BN[S.bi].toUpperCase(),185,42,24,"rgba(255,215,0,.55)","left","'Cinzel',serif");
-  drawRod(now,dt);
+  drawRod(now);
 }
 
 function drawRod(now){
-  const{BX,BT,BB,bH,SH,eY}=ROD;
-  ctx.save();ctx.beginPath();ctx.moveTo(VW*.72,60);ctx.bezierCurveTo(VW*.8,200,BX+5,BT-15,BX+5,eY);ctx.strokeStyle="rgba(255,255,255,.28)";ctx.lineWidth=1.5;ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  const{BX,BT,BB,bH,SH}=ROD;
+  const eY=ROD.eY;
+
+  // Fishing line — always visible
+  ctx.save();ctx.beginPath();ctx.moveTo(VW*.72,60);
+  ctx.bezierCurveTo(VW*.8,200,BX+5,BT-15,BX+5,ROD.rodPhase==="fishing"?eY:BB-10);
+  ctx.strokeStyle="rgba(255,255,255,.28)";ctx.lineWidth=1.5;ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);ctx.restore();
   di("canna",BX-82,BT-28);
-  rc(BX-2,BT,20,bH,"rgba(0,0,0,.65)");
-  ctx.save();ctx.strokeStyle="rgba(255,215,0,.22)";ctx.lineWidth=1;ctx.strokeRect(BX-2,BT,20,bH);ctx.restore();
-  // mystery fish
-  di("pesce",BX-11,eY-14,28,28);
-  // slider
-  const inZ=ROD.inZ;
-  rc(BX-2,ROD.y,20,SH,inZ?"rgba(70,200,70,.9)":"rgba(200,30,30,.88)");
-  ctx.save();ctx.strokeStyle=inZ?"#4EC600":"#FFD700";ctx.lineWidth=2;ctx.strokeRect(BX-2,ROD.y,20,SH);ctx.restore();
-  if(inZ&&!ROD.capt){
-    const pct=Math.min(1,(now-ROD.cStart)/ROD.cReq);
-    ctx.save();ctx.beginPath();ctx.arc(BX+8,ROD.y+SH/2,13,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);ctx.strokeStyle="hsl("+(120-pct*120)+",100%,55%)";ctx.lineWidth=3;ctx.stroke();ctx.restore();
+
+  // ── IDLE: show CAST button ──────────────────────────────────
+  if(ROD.rodPhase==="idle"){
+    const bx=BX-80,by=BB+20,bw=180,bh=60;
+    const hov=hv(bx,by,bw,bh);
+    ctx.save();
+    ctx.fillStyle=hov?"rgba(255,215,0,.25)":"rgba(128,0,0,.7)";
+    ctx.fillRect(bx,by,bw,bh);
+    ctx.strokeStyle="#FFD700";ctx.lineWidth=2;ctx.strokeRect(bx,by,bw,bh);
+    ctx.font="bold 26px 'Cinzel',serif";ctx.fillStyle="#FFD700";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("🎣 CAST",bx+bw/2,by+bh/2);
+    ctx.restore();
+    return;
   }
-  if(ROD.capt){
+
+  // ── FISHING: bar + fish + slider ───────────────────────────
+  if(ROD.rodPhase==="fishing"){
+    const elapsed=now-ROD.castStart;
+    const escapePct=Math.min(1,elapsed/ROD.escapeTime);
+
+    // Bar background
+    rc(BX-2,BT,20,bH,"rgba(0,0,0,.65)");
+    ctx.save();ctx.strokeStyle="rgba(255,215,0,.22)";ctx.lineWidth=1;ctx.strokeRect(BX-2,BT,20,bH);ctx.restore();
+
+    // Escape timer bar (red, shrinking from top)
+    const escH=bH*(1-escapePct);
+    rc(BX-2,BT,20,escH,"rgba(200,0,0,.18)");
+    ctx.save();ctx.strokeStyle="rgba(255,80,80,.4)";ctx.lineWidth=1;ctx.strokeRect(BX-2,BT,20,escH);ctx.restore();
+
+    // Mystery fish icon
+    di("pesce",BX-11,eY-14,28,28);
+
+    // Slider
+    const inZ=ROD.inZ;
+    rc(BX-2,ROD.y,20,SH,inZ?"rgba(70,200,70,.9)":"rgba(200,30,30,.88)");
+    ctx.save();ctx.strokeStyle=inZ?"#4EC600":"#FFD700";ctx.lineWidth=2;ctx.strokeRect(BX-2,ROD.y,20,SH);ctx.restore();
+
+    // Capture progress arc
+    if(inZ){
+      const pct=Math.min(1,(now-ROD.cStart)/ROD.cReq);
+      ctx.save();ctx.beginPath();ctx.arc(BX+8,ROD.y+SH/2,13,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);
+      ctx.strokeStyle="hsl("+(120-pct*120)+",100%,55%)";ctx.lineWidth=3;ctx.stroke();ctx.restore();
+    }
+
+    // Escape warning when < 2s left
+    const msLeft=ROD.escapeTime-elapsed;
+    if(msLeft<2000){
+      ctx.save();
+      ctx.globalAlpha=0.6+0.4*Math.sin(now/80);
+      ctx.font="bold 22px 'Cinzel',serif";ctx.fillStyle="#ff4444";ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.fillText("HURRY!",BX+8,BT-18);
+      ctx.restore();
+    }
+    return;
+  }
+
+  // ── CAUGHT: process + show "click to dismiss" ───────────────
+  if(ROD.rodPhase==="caught"){
+    di("canna",BX-82,BT-28);
     if(!ROD.counted){doCatch();ROD.counted=true;}
-    if(now-ROD.captT>3400) ROD.spawn();
+    // Badge handles display; hint text on canvas
+    ctx.save();ctx.font="22px 'Cinzel',serif";ctx.fillStyle="rgba(255,215,0,.6)";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("TAP TO CONTINUE",VW/2,VH-60);
+    ctx.restore();
+    return;
+  }
+
+  // ── ESCAPED ─────────────────────────────────────────────────
+  if(ROD.rodPhase==="escaped"){
+    const age=now-ROD.escapeMsg;
+    ctx.save();
+    ctx.globalAlpha=Math.max(0,1-age/1500);
+    ctx.font="bold 56px 'Cinzel',serif";ctx.fillStyle="#ff4444";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.shadowColor="#ff0000";ctx.shadowBlur=20;
+    ctx.fillText("GOT AWAY!",VW/2,VH/2-60);
+    ctx.font="28px 'Cinzel',serif";ctx.fillStyle="#ffaaaa";ctx.shadowBlur=0;
+    ctx.fillText("The fish escaped...",VW/2,VH/2);
+    ctx.restore();
+    if(age>2000) ROD.reset();
+    return;
   }
 }
 
@@ -606,7 +739,7 @@ function doCatch(){
   document.getElementById("bB").textContent=BN[bi]+" Biome";
   bd.className="";void bd.offsetHeight;bd.classList.add("show",r.c==="vhs"?"vhs":r.c);
   clearTimeout(bdgT);bdgT=setTimeout(()=>bd.classList.remove("show"),3000);
-  if(!Api.guest()){Api.saveState(S.pay()).then(()=>{S._pd=0;S._md=0;S._vd=0;}).catch(()=>{});}else S.saveLS();
+  saveNow(); // Save on every catch — localStorage always, server if logged in
 }
 
 // ── NOTIF ──
@@ -651,8 +784,20 @@ function gameClick(vx,vy){
   if(document.querySelector(".ov.on")) return; // modal open
   sfxK();
   if(phase==="game"){
-    if(hv(10,4,90,64)){phase="menu";return;}
+    if(hv(10,4,90,64)){phase="menu";ROD.reset();return;}
     if(hv(VW-100,4,90,64)){openSet();return;}
+    // CAST button (idle phase)
+    if(ROD.rodPhase==="idle"){
+      const bx=ROD.BX-80,by=ROD.BB+20,bw=180,bh=60;
+      if(hv(bx,by,bw,bh)){ ROD.cast(); return; }
+    }
+    // Dismiss badge (caught phase) — click anywhere
+    if(ROD.rodPhase==="caught"){
+      // Close badge
+      document.getElementById("bdg").classList.remove("show");
+      ROD.reset();
+      return;
+    }
     return;
   }
   if(phase==="menu"){
@@ -764,7 +909,19 @@ document.getElementById("lf").addEventListener("submit",async e=>{
   const btn=document.getElementById("lBtn");setErr("lEr","");btn.disabled=true;btn.innerHTML=`<span class="sp"></span>Loading…`;
   try{
     await Api.login(id,pw);
-    const gs=localStorage.getItem(LSK);if(gs){try{await Api.saveState(JSON.parse(gs));localStorage.removeItem(LSK);}catch(e2){}}
+    // Migrate guest data to server
+    const gs=localStorage.getItem(LSK);
+    if(gs){
+      try{
+        const gd=JSON.parse(gs);
+        // Use accumulated totals for leaderboard
+        gd.pescaTotaliDelta=gd._pescaTot||0;
+        gd.pescaMiticiDelta=gd._miticiTot||0;
+        gd.vhsDelta=gd._vhsTot||0;
+        await Api.saveState(gd);
+        localStorage.removeItem(LSK);
+      }catch(e2){console.warn("Migration failed:",e2);}
+    }
     const sd=await Api.loadState();S.fromSrv(sd.state);
     closeOv("authOv");openSet();notif("Signed in as "+Api.usr()?.username);
   }catch(err){setErr("lEr",err.message);}
@@ -776,7 +933,15 @@ document.getElementById("rf").addEventListener("submit",async e=>{
   const btn=document.getElementById("rBtn");setErr("rEr","");if(pw.length<8){setErr("rEr","Min 8 characters.");return;}
   btn.disabled=true;btn.innerHTML=`<span class="sp"></span>Loading…`;
   try{
-    await Api.register(u,em,pw);const gs=localStorage.getItem(LSK);if(gs){try{await Api.saveState(JSON.parse(gs));localStorage.removeItem(LSK);}catch(e2){}}
+    await Api.register(u,em,pw);
+    const gs2=localStorage.getItem(LSK);
+    if(gs2){
+      try{
+        const gd2=JSON.parse(gs2);
+        gd2.pescaTotaliDelta=gd2._pescaTot||0;gd2.pescaMiticiDelta=gd2._miticiTot||0;gd2.vhsDelta=gd2._vhsTot||0;
+        await Api.saveState(gd2);localStorage.removeItem(LSK);
+      }catch(e2){console.warn("Migration failed:",e2);}
+    }
     const sd=await Api.loadState();S.fromSrv(sd.state);closeOv("authOv");openSet();notif("Welcome, "+Api.usr()?.username+"!");
   }catch(err){setErr("rEr",err.message);}
   finally{btn.disabled=false;btn.textContent="CREATE ACCOUNT";}
@@ -791,11 +956,24 @@ document.getElementById("gBtn").addEventListener("click",async()=>{
 
 // ── SAVE ──
 function saveNow(){
+  // Always save to localStorage as backup
+  S.saveLS();
+  // If logged in, also push to server
   if(!Api.guest()){
     const payload=S.pay();
-    Api.saveState(payload).then(()=>{S._pd=0;S._md=0;S._vd=0;}).catch(err=>console.warn("Save failed:",err));
-  } else {
-    S.saveLS();
+    // Add cumulative totals from localStorage for leaderboard
+    try{
+      const ls=JSON.parse(localStorage.getItem(LSK)||"{}");
+      payload.pescaTotaliDelta=(ls._pescaTot||0);
+      payload.pescaMiticiDelta=(ls._miticiTot||0);
+      payload.vhsDelta=(ls._vhsTot||0);
+    }catch(e){}
+    Api.saveState(payload)
+      .then(()=>{
+        // Clear LS totals after successful server save
+        try{const ls=JSON.parse(localStorage.getItem(LSK)||"{}");ls._pescaTot=0;ls._miticiTot=0;ls._vhsTot=0;localStorage.setItem(LSK,JSON.stringify(ls));}catch(e){}
+      })
+      .catch(err=>console.warn("Server save failed, keeping in localStorage:",err));
   }
 }
 setInterval(saveNow,30000);

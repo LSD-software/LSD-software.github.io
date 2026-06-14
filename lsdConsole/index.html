@@ -3124,7 +3124,7 @@ class AttackOfZombies {
     }
     // Ultra sbloccata solo all'ultimo round (round 10)
     if(this.fighter) {
-      this.fighter._zombieUltraLocked = (r < 9); // ultra disponibile solo round 9 e 10
+      this.fighter._zombieUltraLocked = (r < 10); // ultra disponibile solo al round 10
       // Reset proiettili attivi tra i round
       this.fighter.projActive  = false;
       this.fighter.proj2Active = false;
@@ -3176,7 +3176,7 @@ class AttackOfZombies {
     fillText(`Zombies: ${this.zombieList.length}`, BASE_W/2, 128, "#baa701", 22);
     // Ultra: sbloccata solo al round 10
     if(this.fighter && this.fighter._zombieUltraLocked){
-      fillText("⚡ ULTRA unlocks at Round 9", BASE_W/2, 158, "#555", 18);
+      fillText("⚡ ULTRA unlocks at Round 10", BASE_W/2, 158, "#555", 18);
     } else if(this.fighter && !this.fighter._zombieUltraLocked){
       fillText("⚡ ULTRA UNLOCKED!", BASE_W/2, 158, "#ff4400", 20);
     }
@@ -3857,30 +3857,331 @@ class ZombieFighter {
 // ============================================================
 class BallGame {
   constructor(){this.reset();}
-  reset(){this.started=false;this.over=false;this.score=0;this.bx=BASE_W/2;this.by=BASE_H/2;this.bdx=1;this.bdy=1;this.speed=5;this.padX=BASE_W/2;this._submitted=false;this._lbData=null;this._lbLoading=false;}
+  reset(){
+    this.started=false;this.over=false;this.score=0;
+    this.speed=5;this.padX=BASE_W/2;this.padW=150;
+    this._submitted=false;this._lbData=null;this._lbLoading=false;
+    // Palle: array — sempre almeno 1 quando started
+    this.balls=[{x:BASE_W/2,y:BASE_H/2,dx:1,dy:1,prevY:BASE_H/2}];
+    // Chaos mode (score>=4)
+    this.chaos=false;
+    this.bombs=[];      // {x,y,speed}
+    this.powerups=[];   // {x,y,type,speed}
+    this._lastBombSpawn=0; this._lastBallSpawn=0; this._lastPowerSpawn=0;
+    this._slowMoUntil=0; this._paddleBigUntil=0;
+    // Info icon: appare al raggiungimento di score 4, mostra tooltip
+    this._paused=false;
+    this._fxFlash=0; this._fxFlashCol="#fff";
+    this._shake=0;
+  }
   draw(){
-    ctx.fillStyle="#000";ctx.fillRect(0,0,W,H);
-    fillText(`Score: ${this.score}`,BASE_W/2,30,"#a10000",32);
+    // ── Sfondo: psichedelico se chaos attivo ──────────────────
+    if(this.chaos && this.started && !this.over){
+      const hueBg=(frameCount*0.6)%360;
+      const grad=ctx.createRadialGradient(sx(BASE_W/2),sy(BASE_H/2),0,sx(BASE_W/2),sy(BASE_H/2),ss(BASE_W*0.75));
+      grad.addColorStop(0,`hsl(${hueBg},60%,12%)`);
+      grad.addColorStop(0.5,`hsl(${(hueBg+90)%360},55%,6%)`);
+      grad.addColorStop(1,"#000");
+      ctx.save(); ctx.fillStyle=grad; ctx.fillRect(0,0,W,H); ctx.restore();
+      // Onde concentriche pulsanti
+      for(let i=0;i<4;i++){
+        const r=((frameCount*4+i*180)%900);
+        ctx.save(); ctx.globalAlpha=Math.max(0,0.12-(r/900)*0.12);
+        ctx.strokeStyle=`hsl(${(hueBg+i*60)%360},90%,60%)`; ctx.lineWidth=ss(3);
+        ctx.beginPath(); ctx.arc(sx(BASE_W/2),sy(BASE_H/2),ss(r),0,Math.PI*2); ctx.stroke(); ctx.restore();
+      }
+    } else {
+      ctx.fillStyle="#000";ctx.fillRect(0,0,W,H);
+    }
+
+    // Screen shake (impatto bomba)
+    let shakeX=0, shakeY=0;
+    if(this._shake>0){
+      shakeX=(Math.random()-0.5)*this._shake;
+      shakeY=(Math.random()-0.5)*this._shake;
+      this._shake*=0.85; if(this._shake<0.5) this._shake=0;
+    }
+    ctx.save(); ctx.translate(ss(shakeX),ss(shakeY));
+
+    fillText(`Score: ${this.score}`,BASE_W/2,30,this.chaos?"#FF4400":"#a10000",32);
+    if(this.chaos) fillText("⚡ CHAOS MODE ⚡",BASE_W/2,68,"#FFD700",18);
+
     fillRoundRect(BASE_W-220,60,200,50,"#a10000",0.85,8);
     fillText("🏆 CLASSIFICA",BASE_W-120,85,"#baa701",18);
-    if(isButtonPressed(BASE_W-120,85,200,50)&&!this._lbLoading){this._lbLoading=true;Auth.getLeaderboard("ball").then(d=>{this._lbData=d;this._lbLoading=false;});}
-    const padY=BASE_H-100;this.padX=mouseX;
-    ctx.save();ctx.fillStyle="#fff";ctx.fillRect(sx(this.padX-75),sy(padY),ss(150),ss(18));ctx.restore();
-    const hue=(frameCount*3)%360;
-    ctx.save();ctx.fillStyle=`hsl(${hue},80%,50%)`;ctx.shadowColor=`hsl(${hue},80%,50%)`;ctx.shadowBlur=ss(12);ctx.beginPath();ctx.arc(sx(this.bx),sy(this.by),ss(24),0,Math.PI*2);ctx.fill();ctx.restore();
+    if(isButtonPressed(BASE_W-120,85,200,50)&&!this._lbLoading){consumeClick();this._lbLoading=true;Auth.getLeaderboard("ball").then(d=>{this._lbData=d;this._lbLoading=false;});}
+
+    const padY=BASE_H-100;
+    if(!this._paused && this.started && !this.over) this.padX=mouseX;
+    // Paddle (più largo durante power-up)
+    const padGlow = this._paddleBigUntil>millis();
+    ctx.save();
+    ctx.fillStyle=padGlow?"#4EC600":"#fff";
+    if(padGlow){ ctx.shadowColor="#4EC600"; ctx.shadowBlur=ss(16); }
+    ctx.fillRect(sx(this.padX-this.padW/2),sy(padY),ss(this.padW),ss(18));
+    ctx.restore();
+
+    // ── Palle ──────────────────────────────────────────────
+    this.balls.forEach(b=>{
+      const hue=(frameCount*3 + b.x)%360;
+      const slow = this._slowMoUntil>millis();
+      ctx.save();
+      ctx.fillStyle=`hsl(${hue},80%,50%)`;
+      ctx.shadowColor=`hsl(${hue},80%,50%)`; ctx.shadowBlur=ss(slow?20:12);
+      // Trail psichedelico in slow-mo
+      if(slow){
+        for(let t=1;t<=4;t++){
+          ctx.globalAlpha=0.18*(5-t);
+          ctx.beginPath(); ctx.arc(sx(b.x-b.dx*b.speed*t*0.6),sy(b.y-b.dy*b.speed*t*0.6),ss(24-t*3),0,Math.PI*2); ctx.fill();
+        }
+        ctx.globalAlpha=1;
+      }
+      ctx.beginPath();ctx.arc(sx(b.x),sy(b.y),ss(24),0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    });
+
+    // ── Bombe ──────────────────────────────────────────────
+    this.bombs.forEach(bomb=>{
+      ctx.save();
+      ctx.fillStyle="#1a1a1a"; ctx.shadowColor="#FF0000"; ctx.shadowBlur=ss(10);
+      ctx.beginPath(); ctx.arc(sx(bomb.x),sy(bomb.y),ss(22),0,Math.PI*2); ctx.fill();
+      ctx.fillStyle="#FF3300";
+      ctx.font=`${ss(26)}px sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText("💣",sx(bomb.x),sy(bomb.y));
+      ctx.restore();
+    });
+
+    // ── Power-ups ──────────────────────────────────────────
+    this.powerups.forEach(p=>{
+      ctx.save();
+      const col = p.type==="big" ? "#4EC600" : "#00CCFF";
+      ctx.shadowColor=col; ctx.shadowBlur=ss(14);
+      ctx.fillStyle=col; ctx.globalAlpha=0.25;
+      ctx.beginPath(); ctx.arc(sx(p.x),sy(p.y),ss(26),0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1;
+      ctx.font=`${ss(24)}px sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText(p.type==="big"?"📏":"🐌",sx(p.x),sy(p.y));
+      ctx.restore();
+    });
+
+    // ── Flash effetto (bomba/power-up) ──────────────────────
+    if(this._fxFlash>0){
+      ctx.save(); ctx.globalAlpha=this._fxFlash*0.35; ctx.fillStyle=this._fxFlashCol;
+      ctx.fillRect(0,0,W,H); ctx.restore();
+      this._fxFlash-=0.06; if(this._fxFlash<0) this._fxFlash=0;
+    }
+
+    // ── GAME OVER ────────────────────────────────────────────
     if(this.over){fillText("GAME OVER",BASE_W/2,BASE_H/2,"#a10000",52);this.started=false;}
+
     if(!this.started){
       drawButton("START",BASE_W/2,BASE_H-80,180,90);
-      if(isButtonPressed(BASE_W/2,BASE_H-80,180,90)){this.started=true;this.over=false;this.score=0;this.bx=BASE_W/2;this.by=BASE_H/2;this.speed=5;this._submitted=false;}
+      if(isButtonPressed(BASE_W/2,BASE_H-80,180,90)){
+        consumeClick();
+        this.started=true;this.over=false;this.score=0;this.speed=5;this._submitted=false;
+        this.balls=[{x:BASE_W/2,y:BASE_H/2,dx:1,dy:1,prevY:BASE_H/2}];
+        this.chaos=false; this.bombs=[]; this.powerups=[];
+        this.padW=150; this._slowMoUntil=0; this._paddleBigUntil=0;
+        this._paused=false;
+      }
       if(this._lbData) this._drawLB();
-    } else {
-      this.bx+=this.bdx*this.speed;this.by+=this.bdy*this.speed;
-      if(this.bx<24||this.bx>BASE_W-24)this.bdx*=-1;
-      if(this.by<24)this.bdy=1;
-      if(this.by+24>=padY&&this.by+24<=padY+12&&this.bx>this.padX-75&&this.bx<this.padX+75){this.bdy=-1;this.score++;if(this.score%2===0)this.speed+=0.4;if(game)game.trophies[6]=true;}
-      if(this.by>BASE_H){this.over=true;if(!this._submitted){Auth.submitScore("ball",this.score);this._submitted=true;}}
+      ctx.restore();
+      return;
+    }
+
+    // ── Info icon: sempre visibile durante il chaos mode,
+    //    ricliccabile in qualsiasi momento per riaprire la spiegazione ──
+    if(this.chaos){
+      this._drawInfoIcon(padY);
+    }
+
+    // ── Pausa attiva: mostra spiegazione, blocca il gioco ────
+    if(this._paused){
+      this._drawPauseOverlay();
+      ctx.restore();
+      return;
+    }
+
+    if(this.over){ ctx.restore(); return; }
+
+    // ── Update fisico ────────────────────────────────────────
+    const slow = this._slowMoUntil>millis();
+    const speedMult = slow ? 0.45 : 1;
+
+    // Palle
+    for(let i=this.balls.length-1;i>=0;i--){
+      const b=this.balls[i];
+      b.prevY=b.y;
+      b.x += b.dx*b.speed*speedMult;
+      b.y += b.dy*b.speed*speedMult;
+
+      if(b.x<24||b.x>BASE_W-24) b.dx*=-1;
+      if(b.y<24) b.dy=1;
+
+      // ── FIX HITBOX: paddle ──────────────────────────────────
+      // Finestra verticale ampliata + controllo "era sopra, ora è sotto/dentro"
+      // per evitare il tunneling ad alta velocità.
+      const padTop=padY-10, padBot=padY+28; // hitbox verticale ampliata (era 12px)
+      const crossedPad = (b.prevY+24 < padBot) && (b.y+24 >= padTop);
+      const overPaddleX = b.x > this.padX-this.padW/2-10 && b.x < this.padX+this.padW/2+10;
+      if(b.dy>0 && crossedPad && b.y+24<=padBot+40 && overPaddleX){
+        b.dy=-1;
+        b.y = padTop-24; // riposiziona sopra il paddle, niente affondamento
+        this.score++;
+        if(this.score%2===0) this.speed+=0.4;
+        if(game) game.trophies[6]=true;
+        // Chaos mode si attiva da score 4
+        if(this.score>=4 && !this.chaos){
+          this.chaos=true;
+        }
+      }
+
+      // Palla persa
+      if(b.y>BASE_H+30){
+        this.balls.splice(i,1);
+        if(this.balls.length>0){
+          // Era una pallina extra: -1 punto, continua con l'altra
+          this.score=Math.max(0,this.score-1);
+          this._fxFlash=1; this._fxFlashCol="#FF8800";
+        }
+      }
+    }
+
+    // Game over: nessuna palla rimasta
+    if(this.balls.length===0){
+      this.over=true;
+      if(!this._submitted){Auth.submitScore("ball",this.score);this._submitted=true;}
+      ctx.restore();
+      return;
+    }
+
+    // ── Chaos: spawn bombe ───────────────────────────────────
+    if(this.chaos){
+      if(millis()-this._lastBombSpawn > 3200 + Math.random()*1800){
+        this._lastBombSpawn=millis();
+        this.bombs.push({x:80+Math.random()*(BASE_W-160), y:-30, speed:3+Math.random()*2});
+      }
+      // Spawn seconda palla (una volta, quando score raggiunge multipli di 4 e c'è solo 1 palla)
+      if(this.balls.length===1 && this.score>=4 && millis()-this._lastBallSpawn>6000 && Math.random()<0.02){
+        this._lastBallSpawn=millis();
+        const src=this.balls[0];
+        this.balls.push({
+          x:src.x, y:src.y,
+          dx:-src.dx, dy:src.dy, prevY:src.y,
+          speed:this.speed
+        });
+        this._fxFlash=1; this._fxFlashCol="#00CCFF";
+      }
+      // Spawn power-up
+      if(millis()-this._lastPowerSpawn > 5500 + Math.random()*3000){
+        this._lastPowerSpawn=millis();
+        this.powerups.push({
+          x:80+Math.random()*(BASE_W-160), y:-30,
+          type: Math.random()<0.5?"big":"slow",
+          speed:2.5+Math.random()
+        });
+      }
+    }
+
+    // Aggiorna bombe
+    for(let i=this.bombs.length-1;i>=0;i--){
+      const bomb=this.bombs[i];
+      bomb.y += bomb.speed*speedMult;
+      // Collisione bomba con paddle o qualsiasi palla
+      let hit=false;
+      if(bomb.y+22>=padY && bomb.y-22<=padY+18 && bomb.x>this.padX-this.padW/2-15 && bomb.x<this.padX+this.padW/2+15){
+        hit=true;
+      }
+      this.balls.forEach(b=>{
+        if(Math.hypot(b.x-bomb.x,b.y-bomb.y)<46) hit=true;
+      });
+      if(hit){
+        this.score=Math.max(0,this.score-2);
+        this._fxFlash=1; this._fxFlashCol="#FF0000";
+        this._shake=14;
+        this.bombs.splice(i,1);
+      } else if(bomb.y>BASE_H+30){
+        this.bombs.splice(i,1);
+      }
+    }
+
+    // Aggiorna power-up
+    for(let i=this.powerups.length-1;i>=0;i--){
+      const p=this.powerups[i];
+      p.y += p.speed*speedMult;
+      let hit=false;
+      if(p.y+22>=padY && p.y-22<=padY+18 && p.x>this.padX-this.padW/2-15 && p.x<this.padX+this.padW/2+15){
+        hit=true;
+      }
+      if(hit){
+        if(p.type==="big"){
+          this.padW=240; this._paddleBigUntil=millis()+8000;
+          this._fxFlash=1; this._fxFlashCol="#4EC600";
+        } else {
+          this._slowMoUntil=millis()+6000;
+          this._fxFlash=1; this._fxFlashCol="#00CCFF";
+        }
+        this.powerups.splice(i,1);
+      } else if(p.y>BASE_H+30){
+        this.powerups.splice(i,1);
+      }
+    }
+
+    // Ripristina paddle normale dopo scadenza power-up
+    if(this._paddleBigUntil>0 && this._paddleBigUntil<=millis()) this.padW=150;
+
+    ctx.restore();
+  }
+
+  // ── Info icon: lampeggia, click apre overlay pausa ─────────
+  _drawInfoIcon(padY){
+    const iconX=BASE_W-100, iconY=padY-70;
+    const pulse=0.85+0.15*Math.sin(frameCount*0.15);
+    ctx.save();
+    ctx.shadowColor="#FFD700"; ctx.shadowBlur=ss(18*pulse);
+    ctx.fillStyle="#1a1a00";
+    ctx.beginPath(); ctx.arc(sx(iconX),sy(iconY),ss(32*pulse),0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle="#FFD700"; ctx.lineWidth=ss(3);
+    ctx.beginPath(); ctx.arc(sx(iconX),sy(iconY),ss(32*pulse),0,Math.PI*2); ctx.stroke();
+    ctx.font=`bold ${ss(30)}px monospace`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillStyle="#FFD700";
+    ctx.fillText("?",sx(iconX),sy(iconY));
+    ctx.restore();
+    if(isButtonPressed(iconX,iconY,70,70)){
+      consumeClick();
+      this._paused=true;
     }
   }
+
+  // ── Overlay pausa: spiega il Chaos Mode, click sullo schermo riprende ──
+  _drawPauseOverlay(){
+    ctx.save(); ctx.fillStyle="rgba(0,0,0,0.85)"; ctx.fillRect(0,0,W,H); ctx.restore();
+    fillRoundRect(BASE_W/2-420,BASE_H/2-260,840,520,"#0a0a0a",0.95,18);
+    strokeRoundRect(BASE_W/2-420,BASE_H/2-260,840,520,"#FFD700",3,18);
+    fillText("⚡ CHAOS MODE UNLOCKED ⚡",BASE_W/2,BASE_H/2-200,"#FFD700",36);
+
+    const lines=[
+      ["💣","Bombs fall from the sky — catch one and lose 2 points!"],
+      ["🟡🔵","A second ball may appear — lose one, keep playing with -1 point."],
+      ["📏","Green power-up: paddle grows bigger for 8 seconds."],
+      ["🐌","Blue power-up: everything slows down for 6 seconds — trippy trails!"],
+      ["🌀","The background pulses with psychedelic colors as you score."]
+    ];
+    lines.forEach((l,i)=>{
+      const ly=BASE_H/2-130+i*60;
+      ctx.font=`${ss(32)}px sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillStyle="#fff"; ctx.fillText(l[0],sx(BASE_W/2-370),sy(ly));
+      fillText(l[1],BASE_W/2+40,ly,"#ccc",20);
+    });
+
+    fillText("Tap anywhere to resume",BASE_W/2,BASE_H/2+220,"#4EC600",24);
+
+    // Tap ovunque sullo schermo riprende il gioco
+    if(clickAvailable()){
+      consumeClick();
+      this._paused=false;
+    }
+  }
+
   _drawLB(){const rows=(this._lbData?.leaderboard||[]).slice(0,8);fillRoundRect(50,200,340,380,"#000",0.8,10);strokeRoundRect(50,200,340,380,"#baa701",2,10);fillText("TOP SCORES",220,228,"#baa701",22);rows.forEach((r,i)=>{const ry=265+i*38;fillText(`#${r.rank} ${r.username}`,150,ry,"#fff",18);fillText(`${r.bestScore}`,330,ry,"#baa701",18);});if(this._lbData?.myRank)fillText(`You: #${this._lbData.myRank.rank}`,220,590,"#4EC600",18);}
 }
 

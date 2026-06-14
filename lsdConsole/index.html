@@ -1386,21 +1386,43 @@ class LSDAttackForceUE {
       // noop — gestito da closeUltra() localmente
     });
     // Round result for online: show YOU WIN / YOU LOSE
+    // Relay a bassa latenza: ferma immediatamente il gioco su
+    // entrambi i client appena uno dei due fighter muore, ancora
+    // prima che arrivi round_result_broadcast (che richiede il
+    // salvataggio DB sul server).
+    this.socket.on("defeat_broadcast", d => {
+      if(this._victoryRegistered) return; // già gestito localmente
+      this._victoryRegistered = true;
+      this.victory = true;
+      window._ultraPlaying = false; // sblocca eventuale freeze ultra
+      const loserIndex = d.loserIndex;
+      const p1Won = (loserIndex===1);
+      const p2Won = (loserIndex===0);
+      this.winner = p1Won
+        ? (this.fighter1?this.fighter1.name.toUpperCase():"P1")
+        : (this.fighter2?this.fighter2.name.toUpperCase():"P2");
+      this.localWon = (this.playerIndex===0 && p1Won) || (this.playerIndex===1 && p2Won);
+      if(this.localWon && game) game.trophies[13]=true;
+      if(!this.victoryTime) this.victoryTime=millis();
+      // Forza l'HP del fighter perdente a 0 per coerenza visiva
+      if(loserIndex===0 && this.fighter1) this.fighter1.hp=0;
+      if(loserIndex===1 && this.fighter2) this.fighter2.hp=0;
+    });
+
     this.socket.on("round_result_broadcast", d => {
       this._onlineResult = d; // {winner, loser, winnerIndex}
-      // P2 (playerIndex=1) non emette round_result ma deve aggiornare localWon
-      // quando riceve il broadcast
-      if(this.playerIndex===1){
+      // Fallback: se per qualche motivo defeat_broadcast non è arrivato
+      // (es. evento perso), questo broadcast ufficiale gestisce comunque
+      // la vittoria per ENTRAMBI i giocatori (non solo P2).
+      if(!this._victoryRegistered){
         const p1Won = d.winnerIndex===0;
         const p2Won = d.winnerIndex===1;
-        if(!this._victoryRegistered){
-          this._victoryRegistered=true;
-          this.victory=true;
-          this.winner = p1Won ? (this.fighter1?this.fighter1.name.toUpperCase():"P1") : (this.fighter2?this.fighter2.name.toUpperCase():"P2");
-          this.localWon = p2Won; // P2 ha vinto se winnerIndex===1
-          if(this.localWon && game) game.trophies[13]=true;
-          if(!this.victoryTime) this.victoryTime=millis();
-        }
+        this._victoryRegistered=true;
+        this.victory=true;
+        this.winner = p1Won ? (this.fighter1?this.fighter1.name.toUpperCase():"P1") : (this.fighter2?this.fighter2.name.toUpperCase():"P2");
+        this.localWon = (this.playerIndex===0 && p1Won) || (this.playerIndex===1 && p2Won);
+        if(this.localWon && game) game.trophies[13]=true;
+        if(!this.victoryTime) this.victoryTime=millis();
       }
     });
   }
@@ -1760,8 +1782,11 @@ class LSDAttackForceUE {
       }
     }
 
-    // Blocca il combattimento durante la riproduzione dell'ultra
-    if(!window._ultraPlaying){
+    // Blocca il combattimento durante l'ultra O appena la vittoria
+    // è stata registrata (anche via defeat_broadcast a bassa latenza) —
+    // evita che un giocatore continui a colpire dopo che l'avversario
+    // ha già ricevuto la notifica di game over.
+    if(!window._ultraPlaying && !this._victoryRegistered){
       this.fighter1.update(this.fighter2);
       this.fighter2.update(this.fighter1);
     }
@@ -1783,6 +1808,14 @@ class LSDAttackForceUE {
       if(p1Dead || p2Dead){
         this._victoryRegistered = true;
         this.victory = true;
+        // ── Relay immediato a bassa latenza ──────────────────
+        // Notifica subito l'avversario: chi è morto (loserIndex),
+        // così entrambi i client si fermano nello stesso istante
+        // possibile, senza aspettare round_result/DB.
+        if(this.mode==="online" && this.socket){
+          const loserIndex = p1Dead ? 0 : 1;
+          this.socket.emit("defeat", { loserIndex });
+        }
         // Chi ha vinto? fighter2 vivo → P2 vince; fighter1 vivo → P1 vince
         const p1Won = p2Dead && !p1Dead;
         const p2Won = p1Dead && !p2Dead;
@@ -2509,6 +2542,9 @@ class Fighter {
             if(afue.localWon && game) game.trophies[13]=true;
             if(afue.mode==="online" && afue.socket){
               const winnerIndex = attackerIsF1 ? 0 : 1;
+              const loserIndex  = attackerIsF1 ? 1 : 0;
+              // Relay immediato a bassa latenza, come nel victory check normale
+              afue.socket.emit("defeat", { loserIndex });
               afue.socket.emit("round_result", { winnerIndex });
             }
           }
@@ -3709,7 +3745,7 @@ class ZombieFighter {
       if(dist > STOP_DIST){
         const step = Math.min(this.speed, dist - STOP_DIST);
         this.x += step * this.facing;
-        this.frame = Math.floor(t/10) % 3;
+        this.frame = t<15 ? 1 : 2; // camminata: stesso timing dei Fighter AFUE (0.5s/ciclo)
       } else {
         this._doAttack(fighter, now, r);
       }
@@ -3779,7 +3815,7 @@ class ZombieFighter {
         if(dist > STOP_DIST){
           const step = Math.min(this.speed, dist - STOP_DIST);
           this.x += step * this.facing;
-          this.frame = Math.floor(t/10) % 3;
+          this.frame = t<15 ? 1 : 2; // camminata: stesso timing dei Fighter AFUE (0.5s/ciclo)
         } else {
           this._aiState = "attack";
         }
@@ -3810,7 +3846,7 @@ class ZombieFighter {
         // Movimento laterale (simulato su asse x con opposito)
         this.x += this._strafeDir * this.speed * 0.5;
         this.x  = Math.max(60, Math.min(BASE_W-60, this.x));
-        this.frame = Math.floor(t/10) % 3;
+        this.frame = t<15 ? 1 : 2; // camminata: stesso timing dei Fighter AFUE (0.5s/ciclo)
         // Cambia dir strafe ogni tanto
         if(Math.random() < 0.015) this._strafeDir *= -1;
         break;
@@ -3821,7 +3857,7 @@ class ZombieFighter {
         const retreatSpd = this.speed * 1.8;
         this.x -= this.facing * retreatSpd;
         this.x  = Math.max(60, Math.min(BASE_W-60, this.x));
-        this.frame = Math.floor(t/10) % 3;
+        this.frame = t<15 ? 1 : 2; // camminata: stesso timing dei Fighter AFUE (0.5s/ciclo)
         // Dopo ~400ms torna in approach
         if(now >= this._aiTimer - 400) this._aiState = "lunge";
         break;
@@ -3837,7 +3873,7 @@ class ZombieFighter {
         }
         this.x += this._strafeDir * this.speed * 1.1;
         this.x  = Math.max(60, Math.min(BASE_W-60, this.x));
-        this.frame = Math.floor(t/10) % 3;
+        this.frame = t<15 ? 1 : 2; // camminata: stesso timing dei Fighter AFUE (0.5s/ciclo)
         if(Math.random() < 0.008) this._strafeDir *= -1;
         // Attacca di scatto quando è vicino
         if(dist < STOP_DIST + 40) this._aiState = "lunge";
@@ -3850,7 +3886,7 @@ class ZombieFighter {
           // Rientro: approccio per tornare in range
           const step2 = Math.min(this.speed * 1.2, dist - STOP_DIST);
           this.x += step2 * this.facing;
-          this.frame = Math.floor(t/10) % 3;
+          this.frame = t<15 ? 1 : 2; // camminata: stesso timing dei Fighter AFUE (0.5s/ciclo)
         } else {
           this._doAttack(fighter, now, r);
         }

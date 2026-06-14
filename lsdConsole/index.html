@@ -3905,7 +3905,8 @@ class BallGame {
     this.speed=5;this.padX=BASE_W/2;this.padW=150;
     this._submitted=false;this._lbData=null;this._lbLoading=false;
     // Palle: array — sempre almeno 1 quando started
-    this.balls=[{x:BASE_W/2,y:BASE_H/2,dx:1,dy:1,prevY:BASE_H/2}];
+    // NB: "speed" è una proprietà PER-PALLA (b.speed), letta nel loop fisico.
+    this.balls=[{x:BASE_W/2,y:BASE_H/2,dx:1,dy:1,prevY:BASE_H/2,speed:this.speed}];
     // Chaos mode (score>=4)
     this.chaos=false;
     this.bombs=[];      // {x,y,speed}
@@ -3974,7 +3975,7 @@ class BallGame {
       if(slow){
         for(let t=1;t<=4;t++){
           ctx.globalAlpha=0.18*(5-t);
-          ctx.beginPath(); ctx.arc(sx(b.x-b.dx*b.speed*t*0.6),sy(b.y-b.dy*b.speed*t*0.6),ss(24-t*3),0,Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(sx(b.x-b.dx*this.speed*t*0.6),sy(b.y-b.dy*this.speed*t*0.6),ss(24-t*3),0,Math.PI*2); ctx.fill();
         }
         ctx.globalAlpha=1;
       }
@@ -4030,7 +4031,7 @@ class BallGame {
       if(isButtonPressed(BASE_W/2,BASE_H-80,180,90)){
         consumeClick();
         this.started=true;this.over=false;this.score=0;this.speed=5;this._submitted=false;
-        this.balls=[{x:BASE_W/2,y:BASE_H/2,dx:1,dy:1,prevY:BASE_H/2}];
+        this.balls=[{x:BASE_W/2,y:BASE_H/2,dx:1,dy:1,prevY:BASE_H/2,speed:this.speed}];
         this.chaos=false; this.bombs=[]; this.powerups=[];
         this.padW=150; this._slowMoUntil=0; this._paddleBigUntil=0;
         this._paused=false;
@@ -4063,8 +4064,8 @@ class BallGame {
     for(let i=this.balls.length-1;i>=0;i--){
       const b=this.balls[i];
       b.prevY=b.y;
-      b.x += b.dx*b.speed*speedMult;
-      b.y += b.dy*b.speed*speedMult;
+      b.x += b.dx*this.speed*speedMult;
+      b.y += b.dy*this.speed*speedMult;
 
       if(b.x<24||b.x>BASE_W-24) b.dx*=-1;
       if(b.y<24) b.dy=1;

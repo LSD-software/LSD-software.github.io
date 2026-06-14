@@ -33,6 +33,27 @@ body{
   image-rendering:auto;
 }
 
+/* ── Zoom control (mobile) ── */
+#zoomBtn{
+  position:fixed; top:10px; left:10px; z-index:9500;
+  width:48px; height:48px;
+  background:rgba(0,0,0,0.7); border:2px solid #baa701; border-radius:10px;
+  color:#baa701; font-family:monospace; font-size:18px; font-weight:bold;
+  display:none; align-items:center; justify-content:center;
+  cursor:pointer; user-select:none; -webkit-user-select:none;
+  box-shadow:0 0 12px #00000088;
+}
+#zoomBtn.visible{ display:flex; }
+#zoomBtn:active{ filter:brightness(1.4); transform:scale(0.95); }
+
+/* Wrapper per permettere pan quando zoomato oltre lo schermo */
+#canvasWrap{
+  position:fixed; inset:0; overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+#canvasWrap.zoomed{ overflow:auto; }
+#canvasWrap:not(.zoomed){ overflow:hidden; }
+
 /* ── Landscape overlay ── */
 #landscapeOverlay{
   display:none;position:fixed;inset:0;z-index:99999;
@@ -408,7 +429,8 @@ body{
   </div>
 </div>
 
-<canvas id="canvas"></canvas>
+<div id="canvasWrap"><canvas id="canvas"></canvas></div>
+<button id="zoomBtn" onclick="cycleZoom()">🔍</button>
 
 <!-- Mobile controls (only shown during AFUE fight) -->
 <div id="mobileMenu" onclick="toggleDrawer()">☰</div>
@@ -534,12 +556,18 @@ const DPR = Math.min(window.devicePixelRatio || 1, 3);
 // Game coordinates always map 1:1 from (0,0) to (BASE_W, BASE_H)
 let _offX = 0, _offY = 0;
 
+// Livelli di zoom disponibili (moltiplicatori sul fit automatico)
+const ZOOM_LEVELS = [1.0, 1.25, 1.5];
+let zoomLevel = 0; // indice in ZOOM_LEVELS — persistito in memoria (no localStorage)
+
 function resizeCanvas() {
   W = window.innerWidth;
   H = window.innerHeight;
 
   // FIT: scale so entire game is visible with no cropping on any device
-  scale = Math.min(W / BASE_W, H / BASE_H);
+  const fitScale = Math.min(W / BASE_W, H / BASE_H);
+  const zoomMult = ZOOM_LEVELS[zoomLevel] || 1.0;
+  scale = fitScale * zoomMult;
 
   // Physical canvas pixels = game size × DPR for sharp rendering
   const cssW = Math.round(BASE_W * scale);
@@ -548,20 +576,58 @@ function resizeCanvas() {
   canvas.width  = Math.round(cssW * DPR);
   canvas.height = Math.round(cssH * DPR);
 
-  // CSS size = logical pixels (centered by transform:translate(-50%,-50%) in CSS)
+  // CSS size = logical pixels
   canvas.style.width  = cssW + "px";
   canvas.style.height = cssH + "px";
 
   // Scale context by DPR so everything drawn in game coords
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
-  // Offsets are 0 — canvas is already positioned at (0,0) game origin
   _offX = 0;
   _offY = 0;
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
+
+  // Gestione wrapper: se zoomato oltre il fit, permetti pan/scroll
+  const wrap = document.getElementById("canvasWrap");
+  if(wrap){
+    if(zoomMult > 1){
+      wrap.classList.add("zoomed");
+      canvas.style.position = "absolute";
+      canvas.style.top = "0"; canvas.style.left = "0";
+      canvas.style.transform = "none";
+      // Centra lo scroll sul canvas
+      requestAnimationFrame(() => {
+        wrap.scrollLeft = Math.max(0, (cssW - W) / 2);
+        wrap.scrollTop  = Math.max(0, (cssH - H) / 2);
+      });
+    } else {
+      wrap.classList.remove("zoomed");
+      canvas.style.position = "fixed";
+      canvas.style.top = "50%"; canvas.style.left = "50%";
+      canvas.style.transform = "translate(-50%,-50%)";
+    }
+  }
+
+  // Mostra il pulsante zoom solo su mobile
+  const zb = document.getElementById("zoomBtn");
+  if(zb) zb.classList.toggle("visible", isMobile);
 }
+
+// Ciclo zoom: Fit (100%) → 125% → 150% → torna a Fit
+function cycleZoom(){
+  zoomLevel = (zoomLevel + 1) % ZOOM_LEVELS.length;
+  resizeCanvas();
+  // Feedback testuale rapido sul pulsante
+  const zb = document.getElementById("zoomBtn");
+  if(zb){
+    const pct = Math.round(ZOOM_LEVELS[zoomLevel]*100);
+    zb.textContent = zoomLevel===0 ? "🔍" : pct+"%";
+  }
+}
+window.cycleZoom = cycleZoom;
+
 window.addEventListener("resize", () => { resizeCanvas(); });
 // Also re-calc on orientation change (mobile)
 window.addEventListener("orientationchange", () => { setTimeout(resizeCanvas, 200); });
@@ -2027,13 +2093,15 @@ class Fighter {
     this.cd5=millis();
     window._ultraPlaying = true;
 
-    // Zombie mode: costruisci onDone che uccide l'orda e gestisce il round
+    // Zombie mode: l'ultra uccide tutti gli zombie dell'orda corrente.
+    // NON gestiamo round/vittoria qui — lasciamo che il loop normale
+    // (blocco z._dyingLife>=z._dyingMaxLife → startRound/victory) se ne occupi,
+    // così non c'è doppia gestione né race condition.
     if(this._ownerZombies){
       const oz = this._ownerZombies;
       const originalOnDone = onDone;
       onDone = () => {
-        // Uccidi tutti gli zombie correnti con effetto morte
-        [...oz.zombieList].forEach(z => {
+        oz.zombieList.forEach(z => {
           if(z.hp > 0 && !z._dying){
             z.hp = 0;
             z._dying = true; z._dyingLife = 0; z._dyingMaxLife = 40;
@@ -2042,21 +2110,10 @@ class Fighter {
               const ang=Math.PI+(Math.random()-0.5)*Math.PI, spd=Math.random()*5+2;
               z._deathParticles.push({x:z.x+(Math.random()-0.5)*50,y:z.y-50,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-1,r:Math.random()*8+4,alpha:1,col:Math.random()<0.65?"#880000":"#cc2200",life:0,maxLife:35+Math.floor(Math.random()*15)});
             }
+            // Carica ultra (consistenza con kill normali)
+            if(oz.fighter) oz.fighter._ultCharge = Math.min(1,(oz.fighter._ultCharge||0)+0.25);
           }
         });
-        // Dopo le animazioni morte (~700ms): avanza o vittoria
-        setTimeout(() => {
-          oz.zombieList = [];
-          if(!oz._bloodSplats) oz._bloodSplats=[];
-          if(oz.round >= 10){
-            oz.victory    = true;
-            oz.winner     = oz.playerChar;
-            oz.victoryTime = millis();
-            if(game) game.trophies[11]=true;
-          } else {
-            oz.startRound(oz.round + 1);
-          }
-        }, 750);
         if(originalOnDone) originalOnDone();
       };
     }
@@ -2873,11 +2930,14 @@ class TargetShooting {
     this._drawTarget(); this._drawForceBar(); this._drawCrosshair();
     fillRoundRect(BASE_W-220,60,200,50,"#a10000",0.85,8);
     fillText("🏆 CLASSIFICA",BASE_W-120,85,"#baa701",18);
-    if(isButtonPressed(BASE_W-120,85,200,50)&&!this._lbLoading){this._lbLoading=true;Auth.getLeaderboard("target").then(d=>{this._lbData=d;this._lbLoading=false;});}
+    if(isButtonPressed(BASE_W-120,85,200,50)){
+      consumeClick();
+      if(!this._lbLoading){this._lbLoading=true;Auth.getLeaderboard("target").then(d=>{this._lbData=d;this._lbLoading=false;});}
+    }
     setFont(28); ctx.fillStyle="#fff"; ctx.textAlign="right"; ctx.fillText(`Score: ${this.score}`,sx(BASE_W-50),sy(50)); ctx.textAlign="center";
     if(!this.started){
       drawButton("START",BASE_W/2,BASE_H-280,200,90);
-      if(isButtonPressed(BASE_W/2,BASE_H-280,200,90)) this.started=true;
+      if(isButtonPressed(BASE_W/2,BASE_H-280,200,90)){ consumeClick(); this.started=true; }
       if(isMobile) this._drawMobileForceBtn();
       if(this._lbData) this._drawLB();
     } else if(this.attempts>0){
@@ -2887,7 +2947,9 @@ class TargetShooting {
         this.targetX+=this.targetSpeedX*this.difficulty; this.targetY+=this.targetSpeedY*this.difficulty;
         if(this.targetX-50<=200||this.targetX+50>=BASE_W-100) this.targetSpeedX*=-1;
         if(this.targetY-50<=100||this.targetY+50>=BASE_H-100) this.targetSpeedY*=-1;
-        if(clickAvailable()&&this.forza>0&&!this.shot){
+        // Sparo valido solo se il tocco/click è DENTRO il rettangolo di gioco
+        const insidePlayArea = mouseX>=200 && mouseX<=BASE_W-100 && mouseY>=100 && mouseY<=BASE_H-100;
+        if(clickAvailable()&&this.forza>0&&!this.shot&&insidePlayArea){
           consumeClick(); this.shot=true; this.shotX=mouseX;
           let off=0;
           if(this.forza<=260) off=(100-this.forza/260*80);
@@ -2908,7 +2970,7 @@ class TargetShooting {
       if(!this._scoreSubmitted){ Auth.submitScore("target",this.score); this._scoreSubmitted=true; }
       setFont(38); ctx.fillStyle="#baa701"; ctx.fillText(`Final: ${this.score} punti`,sx(BASE_W/2),sy(BASE_H/2-100));
       drawButton("PLAY AGAIN",BASE_W/2,BASE_H-280,250,90);
-      if(isButtonPressed(BASE_W/2,BASE_H-280,250,90)) this.reset();
+      if(isButtonPressed(BASE_W/2,BASE_H-280,250,90)){ consumeClick(); this.reset(); }
       if(this._lbData) this._drawLB();
     }
   }
@@ -2920,17 +2982,31 @@ class TargetShooting {
     if(this._lbData?.myRank) fillText(`You: #${this._lbData.myRank.rank} — ${this._lbData.myRank.bestScore}`,220,600,"#4EC600",18);
   }
   _drawMobileForceBtn(){
-    const bx=BASE_W-200,by=BASE_H-150;
-    const held=isHover(bx,by,180,70)&&mousePressed;
+    // Pulsante posizionato subito sotto la barra forza (x:50-120, y:270-860)
+    // così il dito che tiene premuto è vicino alla barra che si carica
+    const bw=140, bh=80;
+    const bx=85, by=900; // centro pulsante: x=85 (centro barra 50-120), y sotto barra
+    const held=isHover(bx,by,bw,bh)&&mousePressed;
     this.increaseForce=held; this.decreaseForce=!held;
-    ctx.save(); ctx.fillStyle=held?"#00aa00":"#006600"; ctx.beginPath(); ctx.roundRect(sx(bx-90),sy(by-35),ss(180),ss(70),ss(10)); ctx.fill();
-    setFont(18); ctx.fillStyle="#fff"; ctx.fillText("HOLD to charge",sx(bx),sy(by)); ctx.restore();
+    ctx.save();
+    ctx.fillStyle=held?"#00aa00":"#006600";
+    ctx.shadowColor=held?"#00ff00":"transparent"; ctx.shadowBlur=held?ss(14):0;
+    ctx.beginPath(); ctx.roundRect(sx(bx-bw/2),sy(by-bh/2),ss(bw),ss(bh),ss(12)); ctx.fill();
+    ctx.strokeStyle="#F0F50C"; ctx.lineWidth=ss(2);
+    ctx.beginPath(); ctx.roundRect(sx(bx-bw/2),sy(by-bh/2),ss(bw),ss(bh),ss(12)); ctx.stroke();
+    setFont(20); ctx.fillStyle="#fff";
+    ctx.fillText(held?"⬆ CHARGING":"HOLD",sx(bx),sy(by-6));
+    setFont(14); ctx.fillStyle="#ccc";
+    ctx.fillText("to charge",sx(bx),sy(by+18));
+    ctx.restore();
+    // Consuma il tocco per evitare che venga interpretato come "sparo"
+    if(held) consumeClick();
   }
   _drawTarget(){
     ctx.save(); ctx.strokeStyle="#0000ff"; ctx.lineWidth=ss(2); ctx.strokeRect(sx(200),sy(100),ss(BASE_W-300),ss(BASE_H-200)); ctx.restore();
     fillCircle(this.targetX,this.targetY,50,"#fff"); fillCircle(this.targetX,this.targetY,40,"#000");
     fillCircle(this.targetX,this.targetY,20,"#F50C0C"); fillCircle(this.targetX,this.targetY,10,"#F0F50C");
-    fillText("Hold B to charge — click to shoot",BASE_W/2,BASE_H-50,"#F0F50C",24);
+    fillText(isMobile ? "Hold the green button to charge — tap inside the box to shoot" : "Hold B to charge — click to shoot",BASE_W/2,BASE_H-50,"#F0F50C",isMobile?20:24);
   }
   _drawForceBar(){
     ctx.save(); ctx.fillStyle="#fff"; ctx.fillRect(sx(50),sy(270),ss(70),ss(590));
@@ -2939,7 +3015,10 @@ class TargetShooting {
     fillText("B",88,910,"#F0F50C",20);
   }
   _drawCrosshair(){
-    ctx.save(); ctx.strokeStyle="#fff"; ctx.lineWidth=ss(2); ctx.beginPath();
+    // Colore mirino: verde se dentro l'area di sparo valida, bianco altrimenti
+    const insidePlayArea = mouseX>=200 && mouseX<=BASE_W-100 && mouseY>=100 && mouseY<=BASE_H-100;
+    const crossCol = insidePlayArea ? "#00ff00" : "#888";
+    ctx.save(); ctx.strokeStyle=crossCol; ctx.lineWidth=ss(2); ctx.beginPath();
     ctx.moveTo(sx(mouseX-28),sy(mouseY)); ctx.lineTo(sx(mouseX+28),sy(mouseY));
     ctx.moveTo(sx(mouseX),sy(mouseY-28)); ctx.lineTo(sx(mouseX),sy(mouseY+28));
     ctx.stroke(); ctx.beginPath(); ctx.arc(sx(mouseX),sy(mouseY),ss(7),0,Math.PI*2); ctx.stroke(); ctx.restore();
@@ -2991,6 +3070,7 @@ class AttackOfZombies {
   startRound(r) {
     this.round = r;
     this.zombieList = [];
+    this._roundTransitioning = false;
     const count = this._zombieCount(r);
     const speed = this._zombieSpeed(r);
     for(let i=0; i<count; i++){
@@ -3214,19 +3294,28 @@ class AttackOfZombies {
             if(!this._bloodSplats) this._bloodSplats=[];
             this._bloodSplats.push({x:z.x, y:z.y, r:28+Math.random()*16, alpha:0.55, life:0, maxLife:300});
             this.zombieList.splice(i,1);
-            // Se non ci sono più zombie vivi (o in dying)
-            const aliveOrDying = this.zombieList.filter(zz=>!zz._dying||zz._dyingLife<zz._dyingMaxLife);
-            if(this.zombieList.length===0){
-              if(this.round>=10){
-                this.victory=true; this.winner=this.playerChar;
-                this.victoryTime=millis();
-                if(game) game.trophies[11]=true;
-              } else {
-                this.startRound(this.round+1);
-              }
-            }
           }
         }
+      }
+    }
+
+    // ── Round completato: tutti gli zombie eliminati ──────────
+    // Eseguito una sola volta per frame, dopo tutte le rimozioni.
+    if(!this.victory && this.zombieList.length===0 && !this._roundTransitioning){
+      this._roundTransitioning = true;
+      if(this.round >= 10){
+        this.victory = true;
+        this.winner  = this.playerChar;
+        this.victoryTime = millis();
+        if(game) game.trophies[11]=true;
+      } else {
+        // Breve pausa (300ms) per mostrare l'arena vuota col personaggio
+        // prima che spawnino i nuovi zombie del round successivo
+        const nextRound = this.round + 1;
+        setTimeout(() => {
+          this.startRound(nextRound);
+          this._roundTransitioning = false;
+        }, 300);
       }
     }
 

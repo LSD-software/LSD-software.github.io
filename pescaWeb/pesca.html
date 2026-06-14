@@ -595,10 +595,9 @@ function doCatch(){
   const idx=ROD.fIdx,bi=S.bi,bk=S.bk,r=rar(idx);
   if(idx<=10){if(idx<=6)S.comuni++;else if(idx<=9)S.rari++;else S.mitici++;S.enci[bk][idx-1]=true;S._pd++;if(idx===10)S._md++;sfxC(r.c);}
   else{S.vhs[bi]=true;S._vd++;S._pd++;sfxC("vhs");}
-  // Get fish image — FI[biome][fishIdx]
-  var fishImgEl = null;
-  if(idx>=1 && idx<=10){ fishImgEl = FI[bk][idx]; }
-  var fishSrc = (idx===11) ? (IMG["vhs"]?.src||"") : (fishImgEl?.src||"");
+  // Badge image — use direct path for reliability
+  const bpath2={"fiume":"pesci/fiume","mare":"pesci/mare","oceano":"pesci/oceano","artico":"pesci/artico"};
+  var fishSrc=(idx===11)?"assets/ui/cassettaVHS.png":"assets/"+bpath2[bk]+"/"+idx+".png";
   const bd=document.getElementById("bdg");
   document.getElementById("bI").src=fishSrc;
   document.getElementById("bT").textContent=idx===11?"MYSTERIOUS OBJECT!":"FISH CAUGHT!";
@@ -707,7 +706,21 @@ document.getElementById("bLogX").onclick=()=>{document.getElementById("logP").st
 
 let eTab=0;
 function buildTabs(){const c=document.getElementById("eTabs");c.innerHTML="";BN.forEach((nm,i)=>{const b=document.createElement("button");b.className="btab"+(i===eTab?" a":"");b.textContent=nm;b.onclick=()=>{eTab=i;c.querySelectorAll(".btab").forEach((t,ti)=>t.classList.toggle("a",ti===i));renderEnci(i);};c.appendChild(b);});}
-function renderEnci(bi){const bk=BK[bi],en=S.enci[bk],nm=FN[bk],g=document.getElementById("eGrid");g.innerHTML="";for(let i=0;i<10;i++){const f=en[i],r=rar(i+1),sl=document.createElement("div");sl.className="es"+(f?"":" lk");sl.title=f?(nm[i]+" — "+r.l):"???";const fiImg=FI[bk][i+1];const fiSrc=fiImg?fiImg.src:"";sl.innerHTML=`<img src="${fiSrc}" alt="${f?nm[i]:"?"}"><div class="rp" style="background:${f?r.col:"transparent"}"></div><div class="sn">${i+1}</div>`;g.appendChild(sl);}}
+function renderEnci(bi){
+  const bk=BK[bi],en=S.enci[bk],nm=FN[bk],g=document.getElementById("eGrid");
+  g.innerHTML="";
+  for(let i=0;i<10;i++){
+    const f=en[i], r=rar(i+1);
+    const sl=document.createElement("div");
+    sl.className="es"+(f?"":" lk");
+    sl.title=f?(nm[i]+" — "+r.l):"???";
+    // Use direct path instead of Image object src to avoid timing issues
+    const bpath={"fiume":"pesci/fiume","mare":"pesci/mare","oceano":"pesci/oceano","artico":"pesci/artico"};
+    const src="assets/"+bpath[bk]+"/"+(i+1)+".png";
+    sl.innerHTML=`<img src="${src}" alt="${f?nm[i]:"?"}"><div class="rp" style="background:${f?r.col:"transparent"}"></div><div class="sn">${i+1}</div>`;
+    g.appendChild(sl);
+  }
+}
 
 // ── LEADERBOARD ──
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -803,14 +816,18 @@ async function boot(){
   requestAnimationFrame(loop);
   await new Promise(res=>{(function w(){rdy()?res():setTimeout(w,80);})();});
   phase="menu";
-  (async()=>{
-    try{
-      if(!Api.tok()){try{await Api.doGuest();}catch(e){}}
-      if(!Api.guest()){const d=await Api.loadState();S.fromSrv(d.state);}
-      else{S.loadLS();try{const d=await Api.loadState();if(d.state)S.fromSrv(d.state);}catch(e){}}
-      document.getElementById("setU").textContent=Api.usr()?.username||"Guest";
-    }catch(e){S.loadLS();}
-  })();
+  // Load state from server — do this BEFORE showing menu
+  try{
+    if(!Api.tok()){try{await Api.doGuest();}catch(e){}}
+    if(!Api.guest()){
+      const d=await Api.loadState();
+      S.fromSrv(d.state);
+    } else {
+      S.loadLS();
+      try{const d=await Api.loadState();if(d.state)S.fromSrv(d.state);}catch(e){}
+    }
+    document.getElementById("setU").textContent=Api.usr()?.username||"Guest";
+  }catch(e){S.loadLS();}
 }
 boot();
 </script>

@@ -412,9 +412,13 @@ function rar(i){
 }
 function spawnIdx(vhsDone){
   const r=Math.random()*100;
-  if(!vhsDone&&r<4) return 11;
-  if(r<(vhsDone?8:12)) return 10;
-  if(r<(vhsDone?36:40)) return 7+Math.floor(Math.random()*3);
+  // VHS: solo se non ancora trovata, rarissima 2%
+  if(!vhsDone && r<2) return 11;
+  // Mythic: 8% (indipendente da VHS)
+  if(r<10) return 10;
+  // Rare: 27%
+  if(r<37) return 7+Math.floor(Math.random()*3);
+  // Common: restante ~63%
   return 1+Math.floor(Math.random()*6);
 }
 
@@ -498,8 +502,7 @@ function hc(cx,cy,r){const dx=mX-cx,dy=mY-cy;return dx*dx+dy*dy<=r*r;}
 function drawSlide(now){
   if(!SL.t)SL.t=now;if(now-SL.t>=SL.int){SL.i=(SL.i+1)%4;SL.t=now;}
   di("s"+(SL.i+1),0,0,VW,VH);
-  rc(VW/2-130,VH-40,260,4,"rgba(255,215,0,.1)");
-  rc(VW/2-130,VH-40,260*(rdy()?1:aL/Math.max(1,aT)),4,"rgba(255,215,0,.65)");
+  // no progress bar
 }
 
 const MI=[{l:"▶  PLAY",k:"play"},{l:"🗺  MAP",k:"map"},{l:"🏪  SHOP",k:"shop"},{l:"🏆  RANK",k:"rank"},{l:"⚙   SETTINGS",k:"set"},{l:"✕   EXIT",k:"exit"}];
@@ -761,8 +764,17 @@ function saveNow(){if(!Api.guest()){Api.saveState(S.pay()).then(()=>{S._pd=0;S._
 setInterval(saveNow,30000);
 
 // ── BOOT ──
+function tryFS(){
+  if(!document.fullscreenElement && document.documentElement.requestFullscreen)
+    document.documentElement.requestFullscreen().catch(()=>{});
+}
+document.addEventListener("click", tryFS, {once:true});
+document.addEventListener("touchend", tryFS, {once:true});
+
 async function boot(){
   rz(); uzUI();
+  // Try fullscreen immediately
+  try{ document.documentElement.requestFullscreen().catch(()=>{}); }catch(e){}
   phase="loading"; SL.t=performance.now();
   requestAnimationFrame(loop);
   await new Promise(res=>{(function w(){rdy()?res():setTimeout(w,80);})();});

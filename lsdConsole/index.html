@@ -2945,8 +2945,42 @@ class Fighter {
 // ============================================================
 //  GAME 2 — TARGET SHOOTING  (unchanged logic, kept)
 // ============================================================
+// ── Pop-up introduttivo generico, riusabile da qualsiasi gioco ──────────
+// title: stringa titolo. lines: array di [icona, testo]. accentCol: colore tema.
+// Ritorna true se il pop-up è visibile (il chiamante deve bloccare il gioco).
+function drawIntroPopup(state, title, lines, accentCol="#FFD700"){
+  if(state._introSeen) return false;
+  ctx.save(); ctx.fillStyle="rgba(0,0,0,0.88)"; ctx.fillRect(0,0,W,H); ctx.restore();
+
+  const boxW=860, boxH=120+lines.length*58+110;
+  const boxX=BASE_W/2-boxW/2, boxY=BASE_H/2-boxH/2;
+
+  fillRoundRect(boxX,boxY,boxW,boxH,"#0a0a0a",0.97,18);
+  strokeRoundRect(boxX,boxY,boxW,boxH,accentCol,3,18);
+
+  fillText(title,BASE_W/2,boxY+60,accentCol,38);
+
+  lines.forEach((l,i)=>{
+    const ly=boxY+130+i*58;
+    ctx.font=`${ss(32)}px sans-serif`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillStyle="#fff"; ctx.fillText(l[0],sx(boxX+70),sy(ly));
+    fillText(l[1],BASE_W/2+50,ly,"#ccc",20);
+  });
+
+  const btnY=boxY+boxH-60;
+  fillRoundRect(BASE_W/2-130,btnY-32,260,64,"#a10000",1,12);
+  strokeRoundRect(BASE_W/2-130,btnY-32,260,64,accentCol,2,12);
+  fillText("⚡ GOT IT — START!",BASE_W/2,btnY,accentCol,22);
+
+  if(isButtonPressed(BASE_W/2,btnY,260,64)){
+    consumeClick();
+    state._introSeen=true;
+  }
+  return true;
+}
+
 class TargetShooting {
-  constructor(){ this.reset(); }
+  constructor(){ this._introSeen=false; this.reset(); }
   reset(){
     this.started=false;this.score=0;this.attempts=10;this.difficulty=0;
     this.forza=0;this.increaseForce=false;this.decreaseForce=false;
@@ -2970,6 +3004,15 @@ class TargetShooting {
     }
     setFont(28); ctx.fillStyle="#fff"; ctx.textAlign="right"; ctx.fillText(`Score: ${this.score}`,sx(BASE_W-50),sy(50)); ctx.textAlign="center";
     if(!this.started){
+      // Pop-up introduttivo: mostrato una volta prima del primo START
+      if(drawIntroPopup(this, "🎯 TARGET SHOOTING", [
+        ["🏃","A target bounces around the screen — track its movement."],
+        ["💪","Hold the charge button (or B on PC) to build up power."],
+        ["🎯","Release to fire — the longer you hold, the farther you shoot."],
+        ["✅","Hit the target dead-on for maximum points!"],
+        ["🏆","Climb the leaderboard with your best score."]
+      ], "#FFD700")) return;
+
       drawButton("START",BASE_W/2,BASE_H-280,200,90);
       if(isButtonPressed(BASE_W/2,BASE_H-280,200,90)){ consumeClick(); this.started=true; }
       if(isMobile) this._drawMobileForceBtn();
@@ -3856,7 +3899,7 @@ class ZombieFighter {
 //  GAME 5 — BALL
 // ============================================================
 class BallGame {
-  constructor(){this.reset();}
+  constructor(){ this._introSeen=false; this.reset(); }
   reset(){
     this.started=false;this.over=false;this.score=0;
     this.speed=5;this.padX=BASE_W/2;this.padW=150;
@@ -3974,6 +4017,15 @@ class BallGame {
     if(this.over){fillText("GAME OVER",BASE_W/2,BASE_H/2,"#a10000",52);this.started=false;}
 
     if(!this.started){
+      // Pop-up introduttivo: mostrato una volta prima del primo START
+      if(drawIntroPopup(this, "🏓 LSD BALL", [
+        ["🖱️","Move the paddle with your mouse (or finger) to bounce the ball."],
+        ["⬆️","Don't let the ball fall below the paddle — keep it alive!"],
+        ["⚡","Reach score 4 to unlock CHAOS MODE — things get weird..."],
+        ["💣","Watch out for falling bombs and surprise power-ups later on."],
+        ["🏆","Score as high as you can and climb the leaderboard!"]
+      ], "#4EC600")) return;
+
       drawButton("START",BASE_W/2,BASE_H-80,180,90);
       if(isButtonPressed(BASE_W/2,BASE_H-80,180,90)){
         consumeClick();

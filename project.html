@@ -82,6 +82,7 @@
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/project.css">
+  <link rel="stylesheet" href="css/badges.css">
   <style>
   /* ── AUTH PANEL in navbar ───────────────────────── */
   #authNavBtn {
@@ -258,30 +259,63 @@
   }
   .auth-logout-btn:hover { border-color: #ff4444; color: #ff4444; }
 
-  @media (max-width:600px) {
-    #authNavBtn { padding: 6px 12px; font-size: 0.72rem; }
+  /* ── Riga account dentro il menu mobile ──────────────── */
+  .menu-auth-row {
+    display: none; /* visibile solo da mobile, vedi media query sotto */
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    margin-bottom: 4px;
+    background: rgba(186,167,1,0.08);
+    border-bottom: 1px solid rgba(186,167,1,0.25);
+    cursor: pointer;
+  }
+  .menu-auth-row .auth-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg,#a10000,#600000);
+    border: 1.5px solid #baa701;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; color: #baa701; font-weight: 900;
+  }
+  #authNavLabelMobile {
+    font-family: 'Cinzel', serif; color: #baa701; font-weight: 700;
+    font-size: 0.85rem; letter-spacing: 1.5px; text-align: left;
+  }
+
+  @media (max-width:700px) {
+    /* Il bottone in alto a destra si riduce alla sola icona: il nome
+       completo dell'utente resta comunque leggibile nel menu a tendina */
+    #authNavBtn { padding: 6px; gap: 0; min-width: 40px; justify-content: center; }
+    #authNavBtn #authNavLabel { display: none; }
+    .menu-auth-row { display: flex; }
   }
   </style>
+  <link rel="stylesheet" href="css/footer.css">
 </head>
 <body>
   <header>
     <div id="navbar">
-      <div id="logo">
+      <a id="logo" href="index.html" aria-label="LSD Software — Back to home">
         <img src="img/icon.png" alt="LSD Software Logo" width="80" height="80">
-      </div>
+      </a>
       <h1>LSD Software</h1>
       <div id="hamburger" aria-label="Open navigation menu" role="button" tabindex="0" aria-expanded="false">
         <span></span><span></span><span></span>
       </div>
       <nav id="menu" aria-label="Main navigation">
+        <!-- Riga account: visibile anche da mobile dentro al menu a tendina -->
+        <div class="menu-auth-row" onclick="openAuthModal()">
+          <div class="auth-avatar" id="authAvatarMobile">?</div>
+          <span id="authNavLabelMobile">SIGN IN / REGISTER</span>
+        </div>
         <a href="index.html">HOME</a>
         <a href="about.html">ABOUT</a>
         <a href="project.html">PROJECTS</a>
         <a href="leaderboard.html">LEADERBOARD</a>
         <a href="contact.html">CONTACTS</a>
       </nav>
-      <!-- Auth button in navbar -->
-      <div id="authNavBtn" onclick="openAuthModal()">
+      <!-- Auth button in navbar (desktop: icona + nome, mobile: solo icona) -->
+      <div id="authNavBtn" onclick="openAuthModal()" aria-label="Account">
         <div class="auth-avatar" id="authAvatar">?</div>
         <span id="authNavLabel">SIGN IN</span>
       </div>
@@ -383,24 +417,70 @@
     </div>
   </main>
 
-  <footer>
-    <p>© 2025 <strong>LSD Software</strong> — Milan, Italy &nbsp;|&nbsp;
-    <a href="index.html" style="color:gold;text-decoration:none;">Home</a> &nbsp;·&nbsp;
-    <a href="about.html" style="color:gold;text-decoration:none;">About</a> &nbsp;·&nbsp;
-    <a href="contact.html" style="color:gold;text-decoration:none;">Contact</a> &nbsp;·&nbsp;
-    <a href="privacy.html" style="color:gold;text-decoration:none;">Privacy Policy</a> &nbsp;·&nbsp;
-    <a href="cookies.html" style="color:gold;text-decoration:none;">Cookie Policy</a></p>
+    <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-brand-logo">
+          <img src="img/icon.png" alt="LSD Software logo">
+          <span>LSD SOFTWARE</span>
+        </div>
+        <p>Free indie games &amp; digital experiments, made by a small team of computer science students in Milan, Italy.</p>
+        <div class="footer-social">
+          <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord">💬</a>
+          <a href="contact.html" aria-label="Contact LSD Software">✉️</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="project.html">Games</a></li>
+          <li><a href="leaderboard.html">Leaderboard</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Games</h4>
+        <ul>
+          <li><a href="cardGameWeb/main.html">LSD Card Game</a></li>
+          <li><a href="pescaWeb/pesca.html">P-E-S-C-A</a></li>
+          <li><a href="lsdConsole/index.html">LSD Console</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="cookies.html">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© <span id="footYear">2025</span> <strong style="color:rgba(255,255,255,0.6)">LSD Software</strong> — Milan, Italy</span>
+      <div class="footer-legal-links">
+        <a href="privacy.html">Privacy</a><span>·</span>
+        <a href="cookies.html">Cookies</a><span>·</span>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
   </footer>
 
   <script src="cardGameWeb/js_cg/api.js"></script>
   <script src="js/script.js"></script>
   <script src="js/cookie-banner.js"></script>
   <script src="js/auth-project.js"></script>
+  <script src="js/badges.js"></script>
   <script>
   function openConsole(e) {
     e.preventDefault();
     window.location.href = 'lsdConsole/index.html';
   }
   </script>
+  <script src="js/footer.js"></script>
 </body>
 </html>

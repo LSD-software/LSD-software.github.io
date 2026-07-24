@@ -148,9 +148,31 @@
   font-size: 0.9rem;
 }
 
+/* ── TABLE WRAPPER (scroll orizzontale invece di nascondere dati) ── */
+.lb-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,215,0,0.35) transparent;
+}
+.lb-table-wrap::-webkit-scrollbar { height: 6px; }
+.lb-table-wrap::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 4px; }
+
+.lb-scroll-hint {
+  display: none;
+  text-align: center;
+  color: rgba(255,215,0,0.45);
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  margin: 6px 0 0;
+}
+
 /* ── TABLE ─────────────────────────────────────────────── */
 #lbTable {
   width: 100%;
+  min-width: 420px;
   border-collapse: collapse;
   font-family: 'Cinzel', serif;
 }
@@ -170,6 +192,25 @@
 }
 .col-rank   { width: 60px; text-align: center !important; }
 .col-score, .col-coins, .col-streak { text-align: right !important; }
+
+/* Colonne "appiccicate" durante lo scroll orizzontale su mobile:
+   rank e nome giocatore restano sempre visibili */
+@media (max-width: 600px) {
+  #lbTable th.col-rank, #lbTable td.col-rank,
+  #lbTable th.col-name, #lbTable td.col-name,
+  .my-rank-table th:first-child, .my-rank-table td:first-child,
+  .my-rank-table th:nth-child(2), .my-rank-table td:nth-child(2) {
+    position: sticky;
+    z-index: 2;
+    background: #0d0d0d;
+  }
+  #lbTable th.col-rank, #lbTable td.col-rank { left: 0; }
+  #lbTable th.col-name, #lbTable td.col-name { left: 60px; box-shadow: 4px 0 8px -4px rgba(0,0,0,0.6); }
+
+  #lbTable tbody tr.rank-1 td.col-rank, #lbTable tbody tr.rank-1 td.col-name { background: #1a1400; }
+  #lbTable tbody tr.rank-2 td.col-rank, #lbTable tbody tr.rank-2 td.col-name { background: #161616; }
+  #lbTable tbody tr.rank-3 td.col-rank, #lbTable tbody tr.rank-3 td.col-name { background: #1a1006; }
+}
 
 #lbTable tbody tr {
   border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -309,13 +350,17 @@
   .game-tab { padding: 10px 14px; font-size: 0.72rem; gap: 8px; }
   .game-tab img { width: 28px; height: 28px; }
 
-  #lbTable th, #lbTable td { padding: 10px 8px; }
-  .col-streak { display: none; } /* nasconde win streak su mobile piccolo */
+  #lbTable th, #lbTable td { padding: 10px 8px; font-size: 0.76rem; }
+  #lbTable { min-width: 480px; } /* forza scroll invece di stringere/nascondere colonne */
+  .lb-scroll-hint { display: block; }
 
-  #lbPanel { padding: 14px 10px; }
+  #lbPanel { padding: 12px 8px; border-radius: 10px; }
 
   #sortBar { gap: 6px; }
   .sort-btn { padding: 7px 12px; font-size: 0.7rem; }
+
+  .rank-medal { width: 26px; height: 26px; font-size: 0.72rem; }
+  .player-name.is-me::after { content: " ◀"; }
 }
 
 /* ============================================================ CONSOLE SUB-BAR */
@@ -369,40 +414,6 @@
   border-color: gold;
   color: gold;
   box-shadow: 0 0 12px rgba(255,215,0,0.4);
-}
-
-/* ============================================================ PODIO CONSOLE */
-.podium-container {
-  display: none;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 16px;
-  margin: 24px auto 0;
-  max-width: 700px;
-  flex-wrap: wrap;
-}
-.podium-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  width: 180px;
-  border: 2px solid gold;
-  border-radius: 10px 10px 0 0;
-  padding: 12px 8px;
-  background: rgba(0,0,0,0.5);
-}
-.podium-rank  { font-size: 2rem; margin-bottom: 6px; }
-.podium-name  { font-family:'Cinzel',serif; color:#fff; font-size:0.85rem; text-align:center; word-break:break-word; }
-.podium-val   { font-family:'Courier Prime',monospace; font-size:1rem; font-weight:700; margin-top:4px; }
-
-@media (max-width: 600px) {
-  .podium-block { width: 100px; padding: 8px 4px; }
-  .podium-rank  { font-size: 1.5rem; }
-  .podium-name  { font-size: 0.72rem; }
-  .podium-val   { font-size: 0.82rem; }
-  #consoleGameTabs { gap: 6px; }
-  .console-game-btn { padding: 6px 10px; font-size: 0.68rem; }
 }
 
 /* ============================================================
@@ -461,4 +472,8 @@
   .podium-name      { font-size: 0.65rem; }
   .podium-val       { font-size: 0.7rem; }
   .col-ratio-afue   { display: none; } /* nasconde W/L% su schermi piccoli */
+  #consoleGameTabs { gap: 6px; }
+  .console-game-btn { padding: 6px 10px; font-size: 0.68rem; }
 }
+
+/* ── MY BADGES: vedi css/badges.css (widget condiviso con project.html) ── */

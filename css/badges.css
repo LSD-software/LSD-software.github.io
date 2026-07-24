@@ -1,0 +1,70 @@
+/* ============================================================
+   badges.css — Widget "I tuoi badge" — condiviso tra
+   leaderboard.html e project.html (modale account)
+   ============================================================ */
+
+#myBadgesPanel {
+  margin-top: 24px;
+  border-top: 1px solid rgba(255,215,0,0.15);
+  padding-top: 20px;
+}
+
+.badges-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: rgba(255,215,0,0.5);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.badges-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.badge-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(145deg, rgba(255,215,0,0.1), rgba(128,0,0,0.12));
+  border: 1px solid rgba(255,215,0,0.35);
+  border-radius: 20px;
+  padding: 8px 14px 8px 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.badge-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255,215,0,0.15);
+}
+
+.badge-icon { font-size: 1.1rem; line-height: 1; }
+
+.badge-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.5px;
+  color: gold;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badges-empty {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1px;
+}
+
+#badgesCount {
+  color: rgba(255,215,0,0.45);
+  letter-spacing: 0;
+  font-size: 0.85em;
+}
+
+@media (max-width: 600px) {
+  .badge-chip  { padding: 6px 10px 6px 8px; }
+  .badge-name  { font-size: 0.66rem; }
+}

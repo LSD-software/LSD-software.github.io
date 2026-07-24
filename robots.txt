@@ -1,7 +1,12 @@
 User-agent: *
 Allow: /
 
-# Active game screens — noindex via meta tag; allow crawl for link following
+# Active game screen — no useful content to index, meta noindex already set
 Disallow: /cardGameWeb/game.html
+
+# Auth / account pages — private, thin content, no SEO value
+Disallow: /cardGameWeb/auth.html
+Disallow: /cardGameWeb/reset-password.html
+Disallow: /cardGameWeb/settings.html
 
 Sitemap: https://lsd-software.github.io/sitemap.xml

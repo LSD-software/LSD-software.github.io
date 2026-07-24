@@ -37,11 +37,12 @@
 
       gtag('config', 'G-FDLQKFS0J0');
     </script>
+  <link rel="stylesheet" href="css/footer.css">
 </head>
 <body>
   <header>
     <div id="navbar">
-      <div id="logo"><img src="img/icon.png" alt="LSD Software Logo" width="80" height="80"></div>
+      <a id="logo" href="index.html" aria-label="LSD Software — Back to home"><img src="img/icon.png" alt="LSD Software Logo" width="80" height="80"></a>
       <h1 style="font-size:1.2rem;">COOKIE POLICY</h1>
       <div id="hamburger" aria-label="Toggle navigation" role="button" tabindex="0"><span></span><span></span><span></span></div>
       <nav id="menu">
@@ -146,11 +147,59 @@
     </div>
   </main>
 
-  <footer>
-    <p>© 2025 <strong>LSD Software</strong> — Milan, Italy &nbsp;|&nbsp;
-    <a href="privacy.html" style="color:gold;text-decoration:none;">Privacy Policy</a> &nbsp;·&nbsp;
-    <a href="index.html" style="color:gold;text-decoration:none;">Home</a></p>
+    <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-brand-logo">
+          <img src="img/icon.png" alt="LSD Software logo">
+          <span>LSD SOFTWARE</span>
+        </div>
+        <p>Free indie games &amp; digital experiments, made by a small team of computer science students in Milan, Italy.</p>
+        <div class="footer-social">
+          <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord">💬</a>
+          <a href="contact.html" aria-label="Contact LSD Software">✉️</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="project.html">Games</a></li>
+          <li><a href="leaderboard.html">Leaderboard</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Games</h4>
+        <ul>
+          <li><a href="cardGameWeb/main.html">LSD Card Game</a></li>
+          <li><a href="pescaWeb/pesca.html">P-E-S-C-A</a></li>
+          <li><a href="lsdConsole/index.html">LSD Console</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="cookies.html">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© <span id="footYear">2025</span> <strong style="color:rgba(255,255,255,0.6)">LSD Software</strong> — Milan, Italy</span>
+      <div class="footer-legal-links">
+        <a href="privacy.html">Privacy</a><span>·</span>
+        <a href="cookies.html">Cookies</a><span>·</span>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
   </footer>
   <script src="js/script.js"></script>
+  <script src="js/footer.js"></script>
 </body>
 </html>

@@ -38,20 +38,31 @@ async function _apiCall(path, method = "GET", body = null) {
 
 // ── Navbar update ────────────────────────────────────────────
 function _updateNavbar() {
-  const btn   = document.getElementById("authNavBtn");
-  const label = document.getElementById("authNavLabel");
+  const btn    = document.getElementById("authNavBtn");
+  const label  = document.getElementById("authNavLabel");
   const avatar = document.getElementById("authAvatar");
+  // Riga account nel menu mobile (stesso stato, mostrata quando si apre l'hamburger)
+  const labelM  = document.getElementById("authNavLabelMobile");
+  const avatarM = document.getElementById("authAvatarMobile");
   if (!btn) return;
+
   if (_authUser && !_authUser.isGuest) {
     const initials = _authUser.username.slice(0, 2).toUpperCase();
     avatar.textContent = initials;
     label.textContent  = _authUser.username.toUpperCase();
     btn.style.borderColor = "rgba(186,167,1,0.8)";
+    if (avatarM) avatarM.textContent = initials;
+    if (labelM)  labelM.textContent  = _authUser.username.toUpperCase();
   } else {
     avatar.textContent = "?";
     label.textContent  = "SIGN IN";
     btn.style.borderColor = "rgba(186,167,1,0.5)";
+    if (avatarM) avatarM.textContent = "?";
+    if (labelM)  labelM.textContent  = "SIGN IN / REGISTER";
   }
+
+  // Aggiorna anche il widget badge, se presente in pagina
+  if (window.LSDBadges) window.LSDBadges.load();
 }
 
 // ── Modal open/close ─────────────────────────────────────────
@@ -193,6 +204,11 @@ function _showLoggedIn() {
     <div class="welcome-text">Welcome back,<br><span>${_authUser?.username || ""}</span></div>
     <div class="user-email">${_authUser?.email || "Guest"}</div>
     <hr class="auth-divider" style="width:100%">
+    <div id="myBadgesPanel" class="hidden" style="width:100%;margin-top:0;border-top:none;padding-top:0;">
+      <div class="badges-title" style="text-align:center;">🏅 YOUR BADGES <span id="badgesCount"></span></div>
+      <div id="badgesGrid" class="badges-grid" style="justify-content:center;"></div>
+    </div>
+    <hr class="auth-divider" style="width:100%">
     <button class="auth-submit-btn" onclick="window.location.href='lsdConsole/index.html'">
       🎮  PLAY LSD CONSOLE
     </button>
@@ -201,6 +217,7 @@ function _showLoggedIn() {
       🏆  VIEW LEADERBOARD
     </button>
     <button class="auth-logout-btn" onclick="doLogout()">SIGN OUT</button>`;
+  if (window.LSDBadges) window.LSDBadges.load();
 }
 
 function doLogout() {

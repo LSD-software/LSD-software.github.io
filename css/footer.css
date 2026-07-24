@@ -1,0 +1,146 @@
+/* ============================================================
+   footer.css — LSD Software site-wide footer
+   ============================================================ */
+
+.site-footer {
+  background: linear-gradient(180deg, #1a1a1a 0%, #101010 100%);
+  border-top: 2px solid rgba(255,215,0,0.25);
+  color: rgba(255,255,255,0.75);
+  font-family: "Courier Prime", monospace;
+  margin-top: 40px;
+  width: 100%;
+}
+
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 20px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 28px;
+}
+
+.footer-col h4 {
+  color: gold;
+  font-size: 0.82rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0 0 14px;
+  font-weight: 700;
+}
+
+.footer-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.footer-brand-logo img {
+  width: 34px; height: 34px; object-fit: contain;
+}
+.footer-brand-logo span {
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  font-size: 0.95rem;
+}
+
+.footer-col p {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.5);
+  margin: 0 0 14px;
+  max-width: 260px;
+}
+
+.footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.footer-col li { margin-bottom: 9px; }
+
+.footer-col a {
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+  position: relative;
+}
+.footer-col a:hover { color: gold; }
+
+.footer-social {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.footer-social a {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: rgba(255,215,0,0.05);
+  transition: all 0.2s;
+}
+.footer-social a:hover {
+  border-color: gold;
+  background: rgba(255,215,0,0.15);
+  transform: translateY(-2px);
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 1100px;
+  margin: 0 auto;
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.4);
+}
+
+.footer-bottom a {
+  color: rgba(255,215,0,0.7);
+  text-decoration: none;
+}
+.footer-bottom a:hover { text-decoration: underline; }
+
+.footer-legal-links {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.footer-legal-links span { color: rgba(255,255,255,0.2); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    padding: 32px 20px 8px;
+    gap: 26px;
+    text-align: center;
+  }
+  .footer-brand-logo { justify-content: center; }
+  .footer-col p { margin-left: auto; margin-right: auto; }
+  .footer-social { justify-content: center; }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    padding: 14px 16px 18px;
+  }
+}

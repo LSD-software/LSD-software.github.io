@@ -90,6 +90,16 @@ header {
   position: relative;
 }
 
+#logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+  border-radius: 8px;
+  transition: opacity 0.2s;
+}
+#logo:hover { opacity: 0.85; }
+
 #logo img {
   height: 80px;
   width: auto;
@@ -231,6 +241,8 @@ footer {
     width: auto;
     object-fit: contain;
   }
+
+  #logo { border-radius: 6px; }
 
   h1 {
     font-size: clamp(0.95rem, 5vw, 1.3rem);

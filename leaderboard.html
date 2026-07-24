@@ -18,14 +18,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/leaderboard.css">
+  <link rel="stylesheet" href="css/badges.css">
+  <link rel="stylesheet" href="css/footer.css">
 </head>
 
 <body>
   <header>
     <div id="navbar">
-      <div id="logo">
+      <a id="logo" href="index.html" aria-label="LSD Software — Back to home">
         <img src="img/icon.png" alt="LSD Software Logo" width="80" height="80">
-      </div>
+      </a>
       <h1>LEADERBOARD</h1>
       <div id="hamburger" aria-label="Toggle navigation menu" role="button" tabindex="0">
         <span></span><span></span><span></span>
@@ -93,31 +95,42 @@
 
       <div id="lbError" class="lb-error hidden"></div>
 
-      <table id="lbTable" class="hidden">
-        <thead>
-          <tr id="lbHeadRow">
-            <th class="col-rank">RANK</th>
-            <th class="col-name">PLAYER</th>
-            <th class="col-score cg-col">SCORE</th>
-            <th class="col-coins cg-col">COINS</th>
-            <th class="col-streak cg-col">WIN STREAK</th>
-            <th class="col-wins console-col hidden">WINS</th>
-            <th class="col-losses console-col hidden">LOSSES</th>
-            <th class="col-bestscore console-col hidden">BEST SCORE</th>
-          </tr>
-        </thead>
-        <tbody id="lbBody"></tbody>
-      </table>
+      <div class="lb-table-wrap">
+        <table id="lbTable" class="hidden">
+          <thead>
+            <tr id="lbHeadRow">
+              <th class="col-rank">RANK</th>
+              <th class="col-name">PLAYER</th>
+              <th class="col-score cg-col">SCORE</th>
+              <th class="col-coins cg-col">COINS</th>
+              <th class="col-streak cg-col">WIN STREAK</th>
+              <th class="col-wins console-col hidden">WINS</th>
+              <th class="col-losses console-col hidden">LOSSES</th>
+              <th class="col-bestscore console-col hidden">BEST SCORE</th>
+            </tr>
+          </thead>
+          <tbody id="lbBody"></tbody>
+        </table>
+      </div>
+      <p class="lb-scroll-hint" id="lbScrollHint">⟷ swipe to see all columns</p>
 
       <!-- MY RANK separato -->
       <div id="myRankPanel" class="hidden">
         <div class="my-rank-label">YOUR POSITION</div>
-        <table class="my-rank-table">
-          <tbody id="myRankBody"></tbody>
-        </table>
+        <div class="lb-table-wrap">
+          <table class="my-rank-table">
+            <tbody id="myRankBody"></tbody>
+          </table>
+        </div>
         <p id="notLoggedNote" class="not-logged hidden">
           <a href="cardGameWeb/auth.html">Sign in</a> to see your position in the ranking.
         </p>
+      </div>
+
+      <!-- MY BADGES ─────────────────────────────────────────── -->
+      <div id="myBadgesPanel" class="hidden">
+        <div class="badges-title">🏅 YOUR BADGES <span id="badgesCount"></span></div>
+        <div id="badgesGrid" class="badges-grid"></div>
       </div>
 
     </div>
@@ -130,10 +143,57 @@
 
   </main>
 
-  <footer>
-    © 2025 <strong>LSD Software</strong> — Milan, Italy &nbsp;|&nbsp;
-    <a href="privacy.html" style="color:gold;text-decoration:none;">Privacy Policy</a> &nbsp;·&nbsp;
-    <a href="cookies.html" style="color:gold;text-decoration:none;">Cookie Policy</a>
+    <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-brand-logo">
+          <img src="img/icon.png" alt="LSD Software logo">
+          <span>LSD SOFTWARE</span>
+        </div>
+        <p>Free indie games &amp; digital experiments, made by a small team of computer science students in Milan, Italy.</p>
+        <div class="footer-social">
+          <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord">💬</a>
+          <a href="contact.html" aria-label="Contact LSD Software">✉️</a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="project.html">Games</a></li>
+          <li><a href="leaderboard.html">Leaderboard</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Games</h4>
+        <ul>
+          <li><a href="cardGameWeb/main.html">LSD Card Game</a></li>
+          <li><a href="pescaWeb/pesca.html">P-E-S-C-A</a></li>
+          <li><a href="lsdConsole/index.html">LSD Console</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="cookies.html">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© <span id="footYear">2025</span> <strong style="color:rgba(255,255,255,0.6)">LSD Software</strong> — Milan, Italy</span>
+      <div class="footer-legal-links">
+        <a href="privacy.html">Privacy</a><span>·</span>
+        <a href="cookies.html">Cookies</a><span>·</span>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
   </footer>
 
   <script src="cardGameWeb/js_cg/api.js"></script>
@@ -141,5 +201,7 @@
   <script src="js/cookie-banner.js"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/leaderboard-console.js"></script>
+  <script src="js/badges.js"></script>
+  <script src="js/footer.js"></script>
 </body>
 </html>

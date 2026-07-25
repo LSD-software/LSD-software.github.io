@@ -51,7 +51,20 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
         rows.forEach((r, i) => r.rank = i + 1);
       }
       renderConsoleTable(rows, game);
-      renderConsoleMyRank(data.myRank, game);
+
+      // Fallback: se il server non restituisce myRank (es. token scaduto,
+      // corsa tra richieste) ma l'utente loggato è già visibile nella
+      // classifica pubblica appena caricata, usiamo quella riga invece
+      // di mostrare "Play some rounds" a chi ha già giocato.
+      let myRank = data.myRank;
+      if (!myRank) {
+        const me = typeof Api !== "undefined" ? Api.getUser() : null;
+        if (me && !me.isGuest && me.username) {
+          const mine = rows.find(r => r.username?.toLowerCase() === me.username.toLowerCase());
+          if (mine) myRank = { ...mine };
+        }
+      }
+      renderConsoleMyRank(myRank, game);
     } catch (err) {
       showError(err.message || "Could not load leaderboard.");
     } finally { showLoading(false); }
@@ -211,9 +224,22 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
       const res = await fetch(`${BACKEND_PESCA}/pesca/leaderboard`, { headers });
       if (!res.ok) throw new Error("Server error " + res.status);
       const data = await res.json();
+      const rows = data.leaderboard || [];
 
-      renderPescaTable(data.leaderboard || []);
-      renderPescaMyRank(data.myRank);
+      renderPescaTable(rows);
+
+      // Stesso fallback usato per la console: se myRank non arriva dal
+      // server ma l'utente è già visibile nella classifica pubblica,
+      // usiamo quella riga invece di mostrare lo stato vuoto.
+      let myRank = data.myRank;
+      if (!myRank) {
+        const me = typeof Api !== "undefined" ? Api.getUser() : null;
+        if (me && !me.isGuest && me.username) {
+          const mine = rows.find(r => r.username?.toLowerCase() === me.username.toLowerCase());
+          if (mine) myRank = { ...mine };
+        }
+      }
+      renderPescaMyRank(myRank);
     } catch (err) {
       showError(err.message || "Could not load P-E-S-C-A leaderboard.");
     } finally {

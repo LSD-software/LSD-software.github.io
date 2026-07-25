@@ -48,8 +48,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentGame !== "cardgame") return;
 
       const data = await Api.getLeaderboard(currentSort);
-      renderTable(data.leaderboard || []);
-      renderMyRank(data.myRank);
+      const rows = data.leaderboard || [];
+      renderTable(rows);
+
+      // Fallback: se myRank non arriva dal server (es. token scaduto,
+      // corsa tra richieste) ma sei già visibile nella classifica
+      // pubblica appena caricata, usiamo quella riga.
+      let myRank = data.myRank;
+      if (!myRank && myUser && !myUser.isGuest) {
+        const mine = rows.find(r => r.username?.toLowerCase() === myUser.username.toLowerCase());
+        if (mine) myRank = { ...mine };
+      }
+      renderMyRank(myRank);
 
     } catch (err) {
       showError(err.message || "Could not load leaderboard. Make sure you're connected.");

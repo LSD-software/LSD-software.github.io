@@ -505,7 +505,7 @@ const ROD={
   rodPhase:"idle",      // idle | fishing | caught | escaped
   y:580, spd:5,
   yF:580, vF:0, sinP:0, sinA:0, sinF:0, burstT:0, burstI:0,
-  inZ:false, cStart:0, cReq:3000,
+  inZ:false, capProg:0, cReq:3000, drainRate:0.5,
   captT:0, counted:false,
   escapeTime:0, escapeMsg:0,  // when fish escapes
   fIdx:1, fRar:"common",
@@ -517,10 +517,17 @@ const ROD={
   cast(){
     const bi=S.bi, fi=spawnIdx(S.vhs[bi]);
     this.fIdx=fi; const r=rar(fi); this.fRar=r.c;
-    this.cReq=fi===10?4500:fi>=7?3800:3200;
-    // Escape timer: common 8s, rare 6s, mythic 5s, vhs 7s
-    const escapeSecs={common:8000,rare:6000,mythic:5000,vhs:7000};
+    // FIX: rarità alta leggermente meno punitiva — un filo meno tempo di
+    // aggancio richiesto, e un po' più di tempo prima che il pesce scappi.
+    this.cReq=fi===10?4000:fi>=7?3500:3200;
+    // Escape timer: common 8s, rare 6.5s, mythic 5.6s, vhs 7.3s (erano 8/6/5/7)
+    const escapeSecs={common:8000,rare:6500,mythic:5600,vhs:7300};
     this.escapeTime=escapeSecs[r.c]||8000;
+    // Velocità di "scarico" del progresso quando il pesce esce dalla zona:
+    // più basso = più permissivo. I pesci rari/mitici scaricano più piano
+    // per compensare i loro movimenti più rapidi ed erratici.
+    const drainRates={common:0.5,rare:0.4,mythic:0.35,vhs:0.4};
+    this.drainRate=drainRates[r.c]??0.5;
     const bs=BS[bi];
     if(r.c==="common"){this.vF=bs*(0.7+Math.random()*.4)*(Math.random()<.5?1:-1);this.sinA=0;this.sinF=0;this.burstI=0;}
     else if(r.c==="rare"){this.vF=bs*(1+Math.random()*.5)*(Math.random()<.5?1:-1);this.sinA=30+Math.random()*30;this.sinF=.002+Math.random()*.002;this.burstI=2500+Math.random()*1500;}
@@ -529,12 +536,12 @@ const ROD={
     this.sinP=Math.random()*Math.PI*2; this.burstT=0;
     this.yF=this.BT+this.bH*(0.2+Math.random()*.6);
     this.y=this.BT+this.bH*.5;
-    this.inZ=false; this.cStart=0; this.counted=false;
+    this.inZ=false; this.capProg=0; this.counted=false;
     this.castStart=performance.now();
     this.rodPhase="fishing";
   },
 
-  reset(){this.rodPhase="idle"; this.inZ=false; this.cStart=0; this.counted=false;},
+  reset(){this.rodPhase="idle"; this.inZ=false; this.capProg=0; this.counted=false;},
 
   update(now,dt){
     if(this.rodPhase!=="fishing") return;
@@ -558,8 +565,18 @@ const ROD={
 
     // Overlap check
     const ov=eY-18<this.y+this.SH&&eY+18>this.y;
-    if(ov){if(!this.inZ){this.cStart=now;this.inZ=true;}}else{this.inZ=false;this.cStart=0;}
-    if(this.inZ&&now-this.cStart>=this.cReq){this.rodPhase="caught";}
+    this.inZ=ov;
+    if(ov){
+      // Dentro la zona: il progresso sale verso cReq
+      this.capProg=Math.min(this.cReq,this.capProg+dt);
+    }else{
+      // FIX: prima, uscire dalla zona azzerava tutto il progresso
+      // istantaneamente (this.cStart=0) — troppo punitivo e frustrante.
+      // Ora il progresso scende gradualmente (velocità diversa per rarità),
+      // così una breve uscita dalla zona non manda in fumo tutto il lavoro.
+      this.capProg=Math.max(0,this.capProg-dt*this.drainRate);
+    }
+    if(this.capProg>=this.cReq){this.rodPhase="caught";}
   }
 };
 
@@ -660,9 +677,10 @@ function drawRod(now){
     rc(BX-2,ROD.y,20,SH,inZ?"rgba(70,200,70,.9)":"rgba(200,30,30,.88)");
     ctx.save();ctx.strokeStyle=inZ?"#4EC600":"#FFD700";ctx.lineWidth=2;ctx.strokeRect(BX-2,ROD.y,20,SH);ctx.restore();
 
-    // Capture progress arc
-    if(inZ){
-      const pct=Math.min(1,(now-ROD.cStart)/ROD.cReq);
+    // Capture progress arc — riflette il nuovo misuratore graduale (capProg),
+    // resta visibile anche appena fuori dalla zona mentre scende piano
+    if(inZ||ROD.capProg>0){
+      const pct=Math.min(1,ROD.capProg/ROD.cReq);
       ctx.save();ctx.beginPath();ctx.arc(BX+8,ROD.y+SH/2,13,-Math.PI/2,-Math.PI/2+pct*Math.PI*2);
       ctx.strokeStyle="hsl("+(120-pct*120)+",100%,55%)";ctx.lineWidth=3;ctx.stroke();ctx.restore();
     }

@@ -155,25 +155,47 @@ const BUFF_DEFS = [
   },
 ];
 
-function trySpawnBuff() {
-  const baseMod = Math.min(totalRounds * 0.004, 0.10);
-  const shuffled = [...BUFF_DEFS].sort(() => Math.random()-0.5);
-  for (const def of shuffled) {
-    if (Math.random() < def.prob + baseMod) {
-      if (activeBuffs.find(b => b.id === def.id)) continue;
-      const buff = {
-        ...def,
-        roundsLeft: def.rounds,
-        stateData: def.state ? JSON.parse(JSON.stringify(def.state)) : {},
-      };
-      activeBuffs.push(buff);
-      // Attiva subito l'effetto per carte LSD personaggio
-      if (def.onActivate) def.onActivate(roundState);
-      showBuffModal(buff);
-      renderBuffs();
-      return;
-    }
+// Selezione casuale pesata: sceglie un elemento dal pool con probabilità
+// proporzionale al peso restituito da weightFn. Usata sia per i debuff/eventi
+// che per i buff, per far sì che i pesi relativi (prob) restino significativi
+// anche dopo aver introdotto il "cancello" di frequenza qui sotto.
+function weightedPick(pool, weightFn) {
+  const total = pool.reduce((sum, x) => sum + weightFn(x), 0);
+  let r = Math.random() * total;
+  for (const item of pool) {
+    r -= weightFn(item);
+    if (r <= 0) return item;
   }
+  return pool[pool.length - 1];
+}
+
+function trySpawnBuff() {
+  // PRIMA: i buff scattavano solo come "ripiego" quando nessun debuff/evento
+  // visivo si attivava (raro, perché il pool debuff era enorme) — risultato:
+  // aiuti troppo rari. ORA: probabilità di base molto più alta, e le 3 carte
+  // LSD personaggio (Leonardo/Skywalker/Dario) pesano di più delle altre,
+  // quindi compaiono più spesso come richiesto.
+  const baseMod    = Math.min(totalRounds * 0.006, 0.18);
+  const buffChance = 0.34 + baseMod;
+  if (Math.random() >= buffChance) return;
+
+  const eligible = BUFF_DEFS.filter(def => !activeBuffs.find(b => b.id === def.id));
+  if (!eligible.length) return;
+
+  // Le carte LSD (Leonardo, Skywalker, Dario) pesano più del doppio rispetto
+  // ai buff classici: sono l'aiuto più iconico e devono comparire più spesso.
+  const def = weightedPick(eligible, d => d.isLSD ? d.prob * 2.4 : d.prob);
+
+  const buff = {
+    ...def,
+    roundsLeft: def.rounds,
+    stateData: def.state ? JSON.parse(JSON.stringify(def.state)) : {},
+  };
+  activeBuffs.push(buff);
+  // Attiva subito l'effetto per carte LSD personaggio
+  if (def.onActivate) def.onActivate(roundState);
+  showBuffModal(buff);
+  renderBuffs();
 }
 
 function tickBuffs() {
@@ -323,6 +345,14 @@ function pickBiasedCard(current) {
   return pool[Math.floor(Math.random()*pool.length)];
 }
 
+// Carta per il debuff "Ghost Card": SEMPRE diversa dalla carta corrente
+// (mai la stessa carta due volte), ma adiacente per restare un round punitivo.
+function pickGhostCard(current) {
+  if (current <= 1)  return current + 1;
+  if (current >= 10) return current - 1;
+  return Math.random() < 0.5 ? current - 1 : current + 1;
+}
+
 // ============================================================
 // MULTI-ROUND FX (per Dario e debuff visivi multi-round)
 // ============================================================
@@ -393,7 +423,7 @@ const LSD_EVENTS = [
     color:"#880000", prob:0.06, type:"debuff", rounds:1, needsCoins:true,
     apply:()=>{ coins=Math.max(0,Math.floor(coins/2)); updateHUD(); } },
 
-  { id:"ghost_card",    icon:"👻", label:"GHOST CARD",         desc:"Next card mirrors current for 2 rounds. You cannot win.",
+  { id:"ghost_card",    icon:"👻", label:"GHOST CARD",         desc:"The deck is rigged against you for 2 rounds. You cannot win, whatever you pick.",
     color:"#334455", prob:0.07, type:"debuff", rounds:2,
     apply:(s)=>{ s.ghostCard=true; },
     reapply:(s)=>{ s.ghostCard=true; } },
@@ -566,18 +596,31 @@ function pickNextCardHard(current) {
 let activeEventDef = null;
 
 function tryLSDEvent() {
-  const baseMod = Math.min(totalRounds*0.006, 0.18);
-  const shuffled = [...LSD_EVENTS].sort(()=>Math.random()-0.5);
+  // PRIMA: 36 eventi/debuff venivano controllati uno per uno ogni round,
+  // ognuno con la propria probabilità + un baseMod crescente — il risultato
+  // era che quasi ogni singolo round scattava qualcosa (troppo frequente,
+  // "il tavolo che gira" continuamente). ORA c'è un unico "cancello" di
+  // probabilità complessiva, molto più basso: solo se passa, si sceglie UN
+  // evento tra quelli eleggibili con una pesca pesata (i pesi "prob"
+  // originali restano come rarità relativa tra loro).
+  const baseMod    = Math.min(totalRounds * 0.002, 0.05);
+  const eventChance = 0.15 + baseMod;
 
-  for (const ev of shuffled) {
-    if (ev.needsCoins && coins <= 1) continue;
-    if (ev.needsScore && score <= 0) continue;
-    // Dario shield blocca il prossimo debuff
-    if (roundState.darioShield && ev.type === "debuff") {
-      roundState.darioShield = false;
-      continue;
+  if (Math.random() < eventChance) {
+    let eligible = LSD_EVENTS.filter(ev =>
+      (!ev.needsCoins || coins > 1) && (!ev.needsScore || score > 0)
+    );
+
+    // Dario shield: blocca il prossimo debuff (i debuff vengono esclusi da
+    // questa estrazione, poi lo scudo si consuma).
+    if (roundState.darioShield) {
+      const hadDebuffs = eligible.some(ev => ev.type === "debuff");
+      eligible = eligible.filter(ev => ev.type !== "debuff");
+      if (hadDebuffs) roundState.darioShield = false;
     }
-    if (Math.random() < ev.prob + baseMod) {
+
+    if (eligible.length) {
+      const ev = weightedPick(eligible, e => e.prob);
       showLSDModal(ev, ()=>{
         ev.apply(roundState, ev);
         activeEventDef = ev;
@@ -740,7 +783,11 @@ function resolveRound(wantHigher) {
   }
 
   const effectiveHigher = roundState.swapButtons ? !wantHigher : wantHigher;
-  const revealed = roundState.ghostCard ? currentValue : nextValue;
+  // FIX: prima "Ghost Card" mostrava letteralmente la stessa carta già sul
+  // tavolo (revealed = currentValue) — es. tavolo con 7 → usciva di nuovo 7.
+  // Ora esce sempre un valore DIVERSO (adiacente), il debuff resta punitivo
+  // (il round è comunque perso di sicuro) ma non mostra più un numero duplicato.
+  const revealed = roundState.ghostCard ? pickGhostCard(currentValue) : nextValue;
 
   elNextImg.src = cardImgPath(revealed);
   elNextLabel.textContent = CARD_NAMES[revealed]||"";
@@ -749,7 +796,7 @@ function resolveRound(wantHigher) {
 
   let isWin = effectiveHigher?(revealed>currentValue):(revealed<currentValue);
   if (roundState.mirrorRound)   isWin = !isWin;
-  if (roundState.ghostCard && revealed===currentValue) isWin = false;
+  if (roundState.ghostCard)     isWin = false;
   if (roundState.reversePayout) isWin = !isWin;
 
   // Hot Potato

@@ -595,12 +595,13 @@ function tryLSDEvent() {
   // Sistema a due dadi:
   // 1) "Succede qualcosa questo round?" — probabilità complessiva unica
   //    (prima si controllavano 36 eventi uno per uno, quasi sempre uno
-  //    scattava: troppo frequente. Ora è un unico cancello, più contenuto).
+  //    scattava: troppo frequente. Poi era stata abbassata troppo — qui
+  //    alzata di nuovo per far capitare i debuff più spesso).
   // 2) Se succede qualcosa: 60% è un debuff/evento visivo, 40% è un
   //    buff/aiuto (Leonardo/Skywalker/Dario compresi) — così il gioco resta
   //    difficile ma con margine reale per trovare vantaggi.
-  const baseMod      = Math.min(totalRounds * 0.003, 0.10);
-  const anyEventChance = 0.32 + baseMod;
+  const baseMod      = Math.min(totalRounds * 0.004, 0.15);
+  const anyEventChance = 0.48 + baseMod;
 
   if (Math.random() >= anyEventChance) return; // niente questo round
 

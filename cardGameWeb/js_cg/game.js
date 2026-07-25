@@ -169,22 +169,18 @@ function weightedPick(pool, weightFn) {
   return pool[pool.length - 1];
 }
 
-function trySpawnBuff() {
-  // PRIMA: i buff scattavano solo come "ripiego" quando nessun debuff/evento
-  // visivo si attivava (raro, perché il pool debuff era enorme) — risultato:
-  // aiuti troppo rari. ORA: probabilità di base molto più alta, e le 3 carte
-  // LSD personaggio (Leonardo/Skywalker/Dario) pesano di più delle altre,
-  // quindi compaiono più spesso come richiesto.
-  const baseMod    = Math.min(totalRounds * 0.006, 0.18);
-  const buffChance = 0.34 + baseMod;
-  if (Math.random() >= buffChance) return;
-
+function trySpawnBuffGuaranteed() {
+  // Chiamata quando il "dado" a monte (tryLSDEvent) ha già deciso che tocca
+  // a un buff/aiuto (40% dei casi in cui succede qualcosa). Qui scegliamo
+  // QUALE buff, pesando di più le 3 carte LSD personaggio (Leonardo,
+  // Skywalker, Dario) rispetto ai buff classici (scudo/oracolo/ecc.), ma
+  // senza esagerare — devono comparire più spesso, non monopolizzare.
   const eligible = BUFF_DEFS.filter(def => !activeBuffs.find(b => b.id === def.id));
   if (!eligible.length) return;
 
-  // Le carte LSD (Leonardo, Skywalker, Dario) pesano più del doppio rispetto
-  // ai buff classici: sono l'aiuto più iconico e devono comparire più spesso.
-  const def = weightedPick(eligible, d => d.isLSD ? d.prob * 2.4 : d.prob);
+  // Le 3 carte LSD pesano 1.6x rispetto al loro prob base — più presenti
+  // dei buff classici, ma i buff classici restano ben rappresentati.
+  const def = weightedPick(eligible, d => d.isLSD ? d.prob * 1.6 : d.prob);
 
   const buff = {
     ...def,
@@ -596,17 +592,21 @@ function pickNextCardHard(current) {
 let activeEventDef = null;
 
 function tryLSDEvent() {
-  // PRIMA: 36 eventi/debuff venivano controllati uno per uno ogni round,
-  // ognuno con la propria probabilità + un baseMod crescente — il risultato
-  // era che quasi ogni singolo round scattava qualcosa (troppo frequente,
-  // "il tavolo che gira" continuamente). ORA c'è un unico "cancello" di
-  // probabilità complessiva, molto più basso: solo se passa, si sceglie UN
-  // evento tra quelli eleggibili con una pesca pesata (i pesi "prob"
-  // originali restano come rarità relativa tra loro).
-  const baseMod    = Math.min(totalRounds * 0.002, 0.05);
-  const eventChance = 0.15 + baseMod;
+  // Sistema a due dadi:
+  // 1) "Succede qualcosa questo round?" — probabilità complessiva unica
+  //    (prima si controllavano 36 eventi uno per uno, quasi sempre uno
+  //    scattava: troppo frequente. Ora è un unico cancello, più contenuto).
+  // 2) Se succede qualcosa: 60% è un debuff/evento visivo, 40% è un
+  //    buff/aiuto (Leonardo/Skywalker/Dario compresi) — così il gioco resta
+  //    difficile ma con margine reale per trovare vantaggi.
+  const baseMod      = Math.min(totalRounds * 0.003, 0.10);
+  const anyEventChance = 0.32 + baseMod;
 
-  if (Math.random() < eventChance) {
+  if (Math.random() >= anyEventChance) return; // niente questo round
+
+  const rollIsDebuff = Math.random() < 0.60; // 60% debuff, 40% buff
+
+  if (rollIsDebuff) {
     let eligible = LSD_EVENTS.filter(ev =>
       (!ev.needsCoins || coins > 1) && (!ev.needsScore || score > 0)
     );
@@ -645,8 +645,14 @@ function tryLSDEvent() {
       });
       return;
     }
+    // Nessun debuff eleggibile (raro, es. filtri needsCoins/needsScore) →
+    // proviamo comunque a dare un buff invece di sprecare il round.
+    trySpawnBuffGuaranteed();
+    return;
   }
-  trySpawnBuff();
+
+  // 40%: tocca a un buff/aiuto
+  trySpawnBuffGuaranteed();
 }
 
 // --- MODALE EVENTO ---

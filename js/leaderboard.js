@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentSort = "score";
   let currentGame = "cardgame";
-  const myUser    = typeof Api !== "undefined" ? Api.getUser() : null;
+  let myUser      = typeof Api !== "undefined" ? Api.getUser() : null;
 
   // ── INIT ────────────────────────────────────────────────
   loadLeaderboard();
@@ -143,6 +143,16 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     tbody.appendChild(tr);
   }
+
+  // ── AUTH REFRESH HOOK ───────────────────────────────────
+  // Chiamato da js/auth-modal.js dopo login/register/logout, così la
+  // classifica (in particolare "YOUR POSITION") si aggiorna subito,
+  // senza dover ricaricare la pagina.
+  window._refreshLeaderboardAfterAuth = () => {
+    myUser = typeof Api !== "undefined" ? Api.getUser() : null;
+    document.getElementById("lbCta").classList.toggle("hidden", !!myUser);
+    loadLeaderboard();
+  };
 
   // ── HELPERS ─────────────────────────────────────────────
   function showLoading(show) {

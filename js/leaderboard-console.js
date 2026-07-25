@@ -401,4 +401,19 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
     if (p) p.style.display = "none";
   }
 
+  // ── AUTH REFRESH HOOK (esteso) ──────────────────────────
+  // leaderboard.js definisce già window._refreshLeaderboardAfterAuth per la
+  // tab Card Game, ma lo fa dentro il proprio DOMContentLoaded — quindi
+  // dobbiamo comporre l'estensione anche noi dentro DOMContentLoaded
+  // (registrato dopo, quindi gira dopo, quindi vede già la versione base).
+  document.addEventListener("DOMContentLoaded", () => {
+    const _baseRefresh = window._refreshLeaderboardAfterAuth;
+    window._refreshLeaderboardAfterAuth = () => {
+      const activeTab = document.querySelector(".game-tab.active")?.dataset.game;
+      if (activeTab === "console") { loadConsoleGame(activeConsoleGame); return; }
+      if (activeTab === "pesca")   { loadPesca(); return; }
+      if (_baseRefresh) _baseRefresh();
+    };
+  });
+
 })();

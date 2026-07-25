@@ -23,7 +23,7 @@ const Api = {
   },
 
   // ── REQUEST ────────────────────────────────────────────
-  async request(path, method = "GET", body = null, timeoutMs = 15000) {
+  async request(path, method = "GET", body = null, timeoutMs = 40000) {
     const headers = { "Content-Type": "application/json" };
     const token = this.getToken();
     if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -76,11 +76,14 @@ const Api = {
   },
 
   async forgotPassword(email) {
-    return this.request("/auth/forgot-password", "POST", { email });
+    // Timeout più lungo: il server gratuito (Render) può impiegare fino a
+    // 40-50s a "svegliarsi" se era in stand-by. 15s bastava a farlo fallire
+    // quasi sempre alla prima richiesta dopo un periodo di inattività.
+    return this.request("/auth/forgot-password", "POST", { email }, 50000);
   },
 
   async resetPassword(token, newPassword) {
-    return this.request("/auth/reset-password", "POST", { token, newPassword });
+    return this.request("/auth/reset-password", "POST", { token, newPassword }, 50000);
   },
 
   async verifyToken() {

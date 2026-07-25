@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/leaderboard.css">
   <link rel="stylesheet" href="css/badges.css">
+  <link rel="stylesheet" href="css/auth-modal.css">
   <link rel="stylesheet" href="css/footer.css">
 </head>
 
@@ -51,6 +52,28 @@
       gtag('config', 'G-FDLQKFS0J0');
     </script>
   </header>
+
+  <!-- ── AUTH MODAL (condiviso con project.html) ─────────────── -->
+  <div id="authModal" role="dialog" aria-modal="true" aria-label="Sign in or register">
+    <div id="authModalBox">
+      <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
+
+      <div class="modal-logo">
+        <h2>⚡ LSD SOFTWARE</h2>
+        <p>PLAYER ACCOUNT</p>
+      </div>
+
+      <div class="auth-tabs-row" id="authTabsRow">
+        <button class="auth-tab-btn active" onclick="setAuthModalTab('login')">LOGIN</button>
+        <button class="auth-tab-btn"        onclick="setAuthModalTab('register')">REGISTER</button>
+        <button class="auth-tab-btn"        onclick="setAuthModalTab('forgot')">FORGOT PW</button>
+      </div>
+
+      <div id="authModalFields"></div>
+      <div class="auth-msg" id="authModalMsg"></div>
+      <div id="authLoggedPanel" style="display:none"></div>
+    </div>
+  </div>
 
   <main id="lbContainer">
 
@@ -123,7 +146,7 @@
           </table>
         </div>
         <p id="notLoggedNote" class="not-logged hidden">
-          <a href="cardGameWeb/auth.html">Sign in</a> to see your position in the ranking.
+          <a href="#" onclick="openAuthModal();return false;">Sign in</a> to see your position in the ranking.
         </p>
       </div>
 
@@ -138,7 +161,7 @@
     <!-- SIGN IN CTA (se non loggato) -->
     <div id="lbCta" class="lb-cta hidden">
       <p>Want your name on this board?</p>
-      <a href="cardGameWeb/auth.html" class="cta-btn">SIGN IN / REGISTER</a>
+      <button class="auth-cta-btn" onclick="openAuthModal()">SIGN IN / REGISTER</button>
     </div>
 
   </main>
@@ -199,6 +222,7 @@
   <script src="cardGameWeb/js_cg/api.js"></script>
   <script src="js/script.js"></script>
   <script src="js/cookie-banner.js"></script>
+  <script src="js/auth-modal.js"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/leaderboard-console.js"></script>
   <script src="js/badges.js"></script>

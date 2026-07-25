@@ -1,0 +1,216 @@
+/* ============================================================
+   auth-modal.css — LSD Software shared account modal
+   Used on project.html and leaderboard.html (same look & feel
+   everywhere the sign-in/register experience appears).
+   ============================================================ */
+
+.auth-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg,#a10000,#600000);
+  border: 1.5px solid #baa701;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: #baa701; font-weight: 900;
+}
+
+/* ── AUTH MODAL ─────────────────────────────────── */
+#authModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 20%, rgba(80,0,0,0.35), rgba(0,0,0,0.9) 70%);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+#authModal.open { display: flex; }
+
+#authModalBox {
+  background: linear-gradient(160deg, #131313 0%, #0a0a0a 100%);
+  border: 2px solid #baa701;
+  border-radius: 18px;
+  width: min(460px, 96vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: clamp(26px,5vw,42px) clamp(22px,5vw,42px);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  position: relative;
+  animation: modalIn 0.28s cubic-bezier(.2,.9,.3,1.2);
+  box-shadow: 0 0 0 1px rgba(186,167,1,0.15), 0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(161,0,0,0.15);
+}
+@keyframes modalIn {
+  from { opacity:0; transform:scale(0.92) translateY(14px); }
+  to   { opacity:1; transform:scale(1)    translateY(0); }
+}
+
+#authModalBox .modal-close {
+  position: absolute; top: 14px; right: 16px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  width: 30px; height: 30px; border-radius: 50%;
+  color: #777; font-size: 1.05rem;
+  cursor: pointer; line-height: 1; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+#authModalBox .modal-close:hover { color: #fff; border-color: rgba(255,80,80,0.5); background: rgba(255,0,0,0.08); transform: rotate(90deg); }
+
+#authModalBox .modal-logo {
+  text-align: center; margin-bottom: 2px;
+}
+#authModalBox .modal-logo h2 {
+  color: #a10000; font-family: 'Cinzel',serif;
+  font-size: clamp(1.25rem,4vw,1.65rem);
+  letter-spacing: 4px; margin: 0;
+  text-shadow: 0 0 24px rgba(161,0,0,0.6);
+}
+#authModalBox .modal-logo p {
+  color: #baa701; font-size: 0.72rem; letter-spacing: 3px;
+  font-family: 'Courier New',monospace; margin: 5px 0 0;
+  opacity: 0.75;
+}
+
+.auth-tabs-row {
+  display: flex; gap: 6px;
+  background: rgba(255,255,255,0.03);
+  padding: 4px; border-radius: 10px;
+}
+.auth-tab-btn {
+  flex: 1; padding: 10px 6px;
+  background: transparent; border: 1.5px solid transparent;
+  border-radius: 7px; color: #666;
+  font-family: 'Cinzel',serif; font-size: clamp(0.66rem,2vw,0.8rem);
+  font-weight: 700; letter-spacing: 1.5px; cursor: pointer;
+  transition: all 0.2s; text-transform: uppercase;
+}
+.auth-tab-btn:hover:not(.active) { color: #999; background: rgba(255,255,255,0.04); }
+.auth-tab-btn.active {
+  border-color: #baa701; color: #0d0d0d;
+  background: linear-gradient(135deg,#d4b800,#baa701);
+  box-shadow: 0 2px 12px rgba(186,167,1,0.35);
+}
+
+.auth-field {
+  display: flex; flex-direction: column; gap: 6px;
+  animation: fieldIn 0.25s ease-out both;
+}
+@keyframes fieldIn { from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+.auth-field label {
+  color: rgba(255,255,255,0.45); font-size: 0.72rem;
+  letter-spacing: 2px; font-family: 'Cinzel',serif; text-transform: uppercase;
+}
+.auth-field input {
+  background: #17171a; border: 1.5px solid #2e2e2e; border-radius: 9px;
+  padding: 13px 14px; color: #fff;
+  font-family: 'Courier New',monospace; font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s; outline: none; width: 100%;
+  box-sizing: border-box;
+}
+.auth-field input:focus { border-color: #baa701; box-shadow: 0 0 0 3px rgba(186,167,1,0.12); }
+.auth-field input::placeholder { color: rgba(255,255,255,0.25); }
+
+.auth-submit-btn {
+  background: linear-gradient(135deg,#b30000,#7a0000);
+  color: #ffd700; border: 1.5px solid #baa701;
+  border-radius: 9px; padding: 14px;
+  font-family: 'Cinzel',serif; font-size: clamp(0.82rem,2.5vw,0.95rem);
+  font-weight: 700; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.2s; width: 100%;
+  box-shadow: 0 4px 14px rgba(161,0,0,0.25);
+}
+.auth-submit-btn:hover { filter: brightness(1.18); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(161,0,0,0.4); }
+.auth-submit-btn:active { transform: translateY(0); }
+.auth-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.auth-msg {
+  min-height: 18px; text-align: center;
+  font-family: 'Courier New',monospace; font-size: 0.85rem; border-radius: 7px;
+  padding: 8px; transition: all 0.2s;
+}
+.auth-msg:empty { padding: 0; min-height: 0; }
+.auth-msg.error   { color: #ff6b6b; background: rgba(255,0,0,0.08); border: 1px solid rgba(255,0,0,0.2); }
+.auth-msg.success { color: #5fe000; background: rgba(78,198,0,0.08); border: 1px solid rgba(78,198,0,0.2); }
+
+.auth-divider {
+  border: none; border-top: 1px solid rgba(186,167,1,0.15); margin: 4px 0;
+}
+.auth-forgot {
+  text-align: right; font-size: 0.78rem;
+  color: rgba(186,167,1,0.55); cursor: pointer; font-family: 'Courier New',monospace;
+  transition: color 0.2s;
+}
+.auth-forgot:hover { color: #baa701; text-decoration: underline; }
+
+/* Logged-in state panel */
+#authLoggedPanel {
+  display: flex; flex-direction: column; gap: 16px; align-items: center;
+}
+#authLoggedPanel .user-avatar-big {
+  width: 76px; height: 76px; border-radius: 50%;
+  background: linear-gradient(135deg,#a10000,#600000);
+  border: 3px solid #baa701;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: #ffd700; font-weight: 900;
+  box-shadow: 0 0 0 4px rgba(186,167,1,0.08), 0 0 24px rgba(161,0,0,0.5);
+}
+#authLoggedPanel .welcome-text {
+  color: #fff; font-family: 'Cinzel',serif;
+  font-size: clamp(1rem,3vw,1.2rem); text-align: center; letter-spacing: 2px;
+}
+#authLoggedPanel .welcome-text span { color: #baa701; }
+#authLoggedPanel .user-email {
+  color: rgba(255,255,255,0.3); font-size: 0.8rem;
+  font-family: 'Courier New',monospace; text-align: center;
+}
+.auth-logout-btn {
+  background: #111; border: 1.5px solid #444;
+  color: #888; border-radius: 9px; padding: 12px 28px;
+  font-family: 'Cinzel',serif; font-size: 0.82rem;
+  letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
+  width: 100%;
+}
+.auth-logout-btn:hover { border-color: #ff4444; color: #ff4444; background: rgba(255,0,0,0.05); }
+
+/* ── Riga account dentro il menu mobile (project.html) ──── */
+.menu-auth-row {
+  display: none; /* visibile solo da mobile, vedi media query sotto */
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  margin-bottom: 4px;
+  background: rgba(186,167,1,0.08);
+  border-bottom: 1px solid rgba(186,167,1,0.25);
+  cursor: pointer;
+}
+.menu-auth-row .auth-avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg,#a10000,#600000);
+  border: 1.5px solid #baa701;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: #baa701; font-weight: 900;
+}
+#authNavLabelMobile {
+  font-family: 'Cinzel', serif; color: #baa701; font-weight: 700;
+  font-size: 0.85rem; letter-spacing: 1.5px; text-align: left;
+}
+
+@media (max-width:700px) {
+  /* Il bottone in alto a destra si riduce alla sola icona: il nome
+     completo dell'utente resta comunque leggibile nel menu a tendina */
+  #authNavBtn { padding: 6px; gap: 0; min-width: 40px; justify-content: center; }
+  #authNavBtn #authNavLabel { display: none; }
+  .menu-auth-row { display: flex; }
+}
+
+/* ── Trigger button used on leaderboard.html (standalone "sign in" CTA) ── */
+.auth-cta-btn {
+  display: inline-block;
+  background: linear-gradient(135deg,#b30000,#7a0000);
+  color: #ffd700; border: 1.5px solid #baa701;
+  border-radius: 9px; padding: 12px 26px;
+  font-family: 'Cinzel',serif; font-size: 0.85rem;
+  font-weight: 700; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.2s;
+}
+.auth-cta-btn:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(161,0,0,0.35); }

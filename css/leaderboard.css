@@ -326,21 +326,6 @@
   margin-bottom: 14px;
   letter-spacing: 1px;
 }
-.cta-btn {
-  display: inline-block;
-  background: linear-gradient(145deg,#800000,#4a0000);
-  color: gold;
-  border: 2px solid gold;
-  border-radius: 8px;
-  padding: 12px 32px;
-  font-family: 'Cinzel', serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-.cta-btn:hover { background: gold; color: #800000; box-shadow: 0 0 16px rgba(255,215,0,0.35); }
 
 .hidden { display: none !important; }
 

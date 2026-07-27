@@ -6,7 +6,7 @@ Disallow: /cardGameWeb/game.html
 
 # Auth / account pages — private, thin content, no SEO value
 Disallow: /cardGameWeb/auth.html
-Disallow: /cardGameWeb/reset-password.html
 Disallow: /cardGameWeb/settings.html
+Disallow: /reset-password.html
 
 Sitemap: https://lsd-software.github.io/sitemap.xml

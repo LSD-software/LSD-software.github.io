@@ -1,0 +1,146 @@
+/* ============================================================
+   hub.css — LSD Software Hub (dashboard, profilo, impostazioni, amici)
+   ============================================================ */
+
+#hubBody { background: #0a0a0a; min-height: 100vh; }
+
+/* ── Navbar interna dell'Hub (sostituisce quella del sito mentre sei qui) ── */
+#hubNavbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: linear-gradient(180deg, #151515, #0d0d0d);
+  border-bottom: 2px solid rgba(186,167,1,0.3);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-wrap: wrap;
+}
+#hubNavbar .hub-logo {
+  display: flex; align-items: center; gap: 10px; text-decoration: none;
+  margin-right: 12px; flex-shrink: 0;
+}
+#hubNavbar .hub-logo img { width: 40px; height: 40px; }
+#hubNavbar .hub-logo span {
+  font-family: 'Cinzel', serif; color: #baa701; font-weight: 900;
+  letter-spacing: 2px; font-size: 1rem;
+}
+.hub-nav-links { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.hub-nav-btn {
+  background: transparent; border: 1.5px solid transparent;
+  color: rgba(255,255,255,0.55); padding: 9px 16px; border-radius: 8px;
+  font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 1.5px; cursor: pointer; transition: all 0.2s;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+}
+.hub-nav-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.hub-nav-btn.active {
+  color: #0d0d0d; background: linear-gradient(135deg,#d4b800,#baa701);
+  box-shadow: 0 2px 12px rgba(186,167,1,0.3);
+}
+
+#hubDustPill {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(186,167,1,0.1); border: 1px solid rgba(186,167,1,0.3);
+  border-radius: 20px; padding: 7px 14px; margin-left: auto;
+  font-family: 'Cinzel', serif; font-weight: 900; color: gold; font-size: 0.85rem;
+}
+
+/* ── Contenitore principale ─────────────────────────────────── */
+#hubMain { max-width: 1100px; margin: 0 auto; padding: 32px 20px 60px; }
+.hub-tab { display: none; animation: hubFadeIn 0.3s ease-out; }
+.hub-tab.active { display: block; }
+@keyframes hubFadeIn { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+.hub-section-title {
+  font-family: 'Cinzel', serif; color: #fff; font-size: 1.1rem;
+  letter-spacing: 2px; margin: 0 0 16px; display: flex; align-items: center; gap: 10px;
+}
+
+/* ── Sign-in gate ────────────────────────────────────────────── */
+#hubSignedOut {
+  text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.5);
+}
+#hubSignedOut h2 { font-family: 'Cinzel', serif; color: gold; font-size: 1.4rem; margin-bottom: 12px; }
+
+/* ── HOME: hero + dust card ──────────────────────────────────── */
+.hub-hero {
+  background: linear-gradient(145deg, rgba(186,167,1,0.08), rgba(128,0,0,0.1));
+  border: 1.5px solid rgba(186,167,1,0.3);
+  border-radius: 16px; padding: 28px; margin-bottom: 32px;
+  display: flex; align-items: center; gap: 22px; flex-wrap: wrap;
+}
+.hub-hero-text h2 { font-family: 'Cinzel', serif; color: #fff; font-size: 1.3rem; margin: 0 0 6px; }
+.hub-hero-text p { color: rgba(255,255,255,0.5); font-size: 0.88rem; margin: 0; }
+.hub-hero-stats { display: flex; gap: 14px; margin-left: auto; flex-wrap: wrap; }
+.hub-stat-chip {
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 10px 18px; text-align: center; min-width: 90px;
+}
+.hub-stat-chip .num { font-family: 'Cinzel', serif; font-weight: 900; color: gold; font-size: 1.3rem; display: block; }
+.hub-stat-chip .lbl { font-size: 0.65rem; letter-spacing: 1px; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+
+/* ── Game tiles ──────────────────────────────────────────────── */
+.hub-games-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px; margin-bottom: 36px;
+}
+.hub-game-tile {
+  position: relative; border-radius: 14px; overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,0.1); text-decoration: none;
+  display: block; aspect-ratio: 16/10; transition: transform 0.2s, border-color 0.2s;
+}
+.hub-game-tile:hover { transform: translateY(-4px); border-color: rgba(186,167,1,0.5); }
+.hub-game-tile .tile-bg {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  filter: brightness(0.55);
+}
+.hub-game-tile .tile-overlay {
+  position: relative; height: 100%; display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 16px;
+  background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.85) 100%);
+}
+.hub-game-tile .tile-title {
+  font-family: 'Cinzel', serif; color: #fff; font-weight: 900;
+  font-size: 1.05rem; letter-spacing: 1px;
+}
+.hub-game-tile .tile-sub { color: rgba(255,255,255,0.6); font-size: 0.75rem; margin-top: 4px; }
+
+/* ── Cards generiche (badge preview, coming soon, ecc.) ─────── */
+.hub-card {
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 22px; margin-bottom: 20px;
+}
+.hub-empty-state {
+  text-align: center; padding: 50px 20px; color: rgba(255,255,255,0.35);
+}
+.hub-empty-state .icon { font-size: 2.6rem; margin-bottom: 12px; display: block; }
+.hub-empty-state h3 { font-family: 'Cinzel', serif; color: rgba(255,255,255,0.6); margin: 0 0 8px; }
+
+/* ── PROFILO tab ─────────────────────────────────────────────── */
+.hub-profile-header {
+  display: flex; align-items: center; gap: 20px; margin-bottom: 24px; flex-wrap: wrap;
+}
+.hub-profile-name { font-family: 'Cinzel', serif; color: #fff; font-size: 1.3rem; }
+.hub-profile-email { color: rgba(255,255,255,0.35); font-size: 0.82rem; }
+
+/* ── IMPOSTAZIONI tab ────────────────────────────────────────── */
+.hub-settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap;
+}
+.hub-settings-row:last-child { border-bottom: none; }
+.hub-settings-row .label { color: #fff; font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 1px; }
+.hub-settings-row .desc { color: rgba(255,255,255,0.4); font-size: 0.78rem; margin-top: 4px; }
+
+@media (max-width: 700px) {
+  #hubNavbar { padding: 10px 14px; gap: 6px; }
+  #hubNavbar .hub-logo span { display: none; }
+  .hub-nav-links { gap: 3px; }
+  .hub-nav-btn { padding: 8px 10px; font-size: 0.68rem; }
+  .hub-nav-btn .nav-label { display: none; }
+  #hubDustPill { padding: 6px 10px; font-size: 0.78rem; }
+  .hub-hero { padding: 20px; }
+  .hub-hero-stats { margin-left: 0; width: 100%; justify-content: space-between; }
+}

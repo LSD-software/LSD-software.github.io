@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="img/icon.png">
+
+  <title>Hub | LSD Software</title>
+  <meta name="description" content="Your LSD Software account hub — track your LSD Dust, badges, profile and jump into any game.">
+  <meta name="robots" content="noindex, follow">
+  <link rel="canonical" href="https://lsd-software.github.io/hub.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/auth-modal.css">
+  <link rel="stylesheet" href="css/badges.css">
+  <link rel="stylesheet" href="css/hub.css">
+  <link rel="stylesheet" href="css/footer.css">
+</head>
+<body id="hubBody">
+
+  <!-- ── NAVBAR INTERNA DELL'HUB ─────────────────────────────── -->
+  <nav id="hubNavbar">
+    <a class="hub-logo" href="index.html" aria-label="LSD Software — Back to site home">
+      <img src="img/icon.png" alt="LSD Software">
+      <span>LSD SOFTWARE</span>
+    </a>
+    <div class="hub-nav-links">
+      <button class="hub-nav-btn active" data-tab="home" onclick="setHubTab('home')">🏠 <span class="nav-label">HOME</span></button>
+      <button class="hub-nav-btn" data-tab="profilo" onclick="setHubTab('profilo')">👤 <span class="nav-label">PROFILO</span></button>
+      <button class="hub-nav-btn" data-tab="impostazioni" onclick="setHubTab('impostazioni')">⚙️ <span class="nav-label">IMPOSTAZIONI</span></button>
+      <button class="hub-nav-btn" data-tab="amici" onclick="setHubTab('amici')">👥 <span class="nav-label">AMICI</span></button>
+      <a class="hub-nav-btn" href="leaderboard.html">🏆 <span class="nav-label">LEADERBOARD</span></a>
+    </div>
+    <div id="hubDustPill" class="hidden">✨ <span id="hubDustNum">0</span></div>
+  </nav>
+
+  <!-- ── AUTH MODAL (condiviso con project.html/leaderboard.html) ── -->
+  <div id="authModal" role="dialog" aria-modal="true" aria-label="Sign in or register">
+    <div id="authModalBox">
+      <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
+      <div class="modal-logo">
+        <h2>⚡ LSD SOFTWARE</h2>
+        <p>PLAYER ACCOUNT</p>
+      </div>
+      <div class="auth-tabs-row" id="authTabsRow">
+        <button class="auth-tab-btn active" onclick="setAuthModalTab('login')">LOGIN</button>
+        <button class="auth-tab-btn"        onclick="setAuthModalTab('register')">REGISTER</button>
+        <button class="auth-tab-btn"        onclick="setAuthModalTab('forgot')">FORGOT PW</button>
+      </div>
+      <div id="authModalFields"></div>
+      <div class="auth-msg" id="authModalMsg"></div>
+      <div id="authLoggedPanel" style="display:none"></div>
+    </div>
+  </div>
+
+  <main id="hubMain">
+
+    <!-- ── STATO NON LOGGATO ────────────────────────────────── -->
+    <div id="hubSignedOut" class="hidden">
+      <h2>🔒 Sign in to open your Hub</h2>
+      <p>Track your LSD Dust, badges, profile and friends — all in one place.</p>
+      <br>
+      <button class="auth-cta-btn" onclick="openAuthModal()">SIGN IN / REGISTER</button>
+    </div>
+
+    <!-- ── CONTENUTO (visibile solo da loggati) ────────────────── -->
+    <div id="hubContent" class="hidden">
+
+      <!-- HOME ------------------------------------------------ -->
+      <section class="hub-tab active" id="tab-home">
+        <div class="hub-hero">
+          <div class="hub-hero-text">
+            <h2>Welcome back, <span id="homeUsername">Player</span> 👋</h2>
+            <p>Here's what's happening with your account.</p>
+          </div>
+          <div class="hub-hero-stats">
+            <div class="hub-stat-chip"><span class="num" id="homeDust">0</span><span class="lbl">LSD Dust</span></div>
+            <div class="hub-stat-chip"><span class="num" id="homeStreak">0</span><span class="lbl">Day Streak</span></div>
+            <div class="hub-stat-chip"><span class="num" id="homeBadgeCount">0</span><span class="lbl">Badges</span></div>
+          </div>
+        </div>
+
+        <h3 class="hub-section-title">🎮 Jump into a game</h3>
+        <div class="hub-games-grid">
+          <a class="hub-game-tile" href="cardGameWeb/main.html">
+            <div class="tile-bg" style="background-image:url('img/logoCG.png'); background-color:#3a0000;"></div>
+            <div class="tile-overlay">
+              <div class="tile-title">LSD Card Game</div>
+              <div class="tile-sub">Higher or lower, with a twist</div>
+            </div>
+          </a>
+          <a class="hub-game-tile" href="pescaWeb/pesca.html">
+            <div class="tile-bg" style="background-image:url('img/logoPesca.png'); background-color:#001a2e;"></div>
+            <div class="tile-overlay">
+              <div class="tile-title">P-E-S-C-A</div>
+              <div class="tile-sub">Cast your line, catch it all</div>
+            </div>
+          </a>
+          <a class="hub-game-tile" href="lsdConsole/index.html">
+            <div class="tile-bg" style="background-color:#1a0a2e;"></div>
+            <div class="tile-overlay">
+              <div class="tile-title">LSD Console</div>
+              <div class="tile-sub">Attack Force UE &amp; more</div>
+            </div>
+          </a>
+        </div>
+
+        <h3 class="hub-section-title">🏅 Your badges</h3>
+        <div class="hub-card">
+          <div id="myBadgesPanel" class="hidden" style="margin:0; border:none; padding:0;">
+            <div id="badgesGrid" class="badges-grid"></div>
+          </div>
+          <div id="homeNoBadges" class="hub-empty-state hidden">
+            <span class="icon">🏅</span>
+            <h3>No badges yet</h3>
+            <p>Play any game to start earning them.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROFILO ---------------------------------------------- -->
+      <section class="hub-tab" id="tab-profilo">
+        <h3 class="hub-section-title">👤 Your Profile</h3>
+        <div class="hub-card">
+          <div class="hub-profile-header">
+            <div class="user-avatar-big" id="profileAvatar" style="width:76px;height:76px;font-size:1.8rem;">?</div>
+            <div>
+              <div class="hub-profile-name" id="profileUsername">—</div>
+              <div class="hub-profile-email" id="profileEmail">—</div>
+            </div>
+          </div>
+          <div class="hub-empty-state" style="padding:30px 20px;">
+            <span class="icon">🎨</span>
+            <h3>Cosmetics coming soon</h3>
+            <p>Icons, animated borders and backgrounds — spend your LSD Dust to customize this card.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- IMPOSTAZIONI ------------------------------------------ -->
+      <section class="hub-tab" id="tab-impostazioni">
+        <h3 class="hub-section-title">⚙️ Account Settings</h3>
+        <div class="hub-card">
+          <div class="hub-settings-row">
+            <div>
+              <div class="label">NICKNAME</div>
+              <div class="desc">Visible on the leaderboard and to other players. Can be changed once every 14 days.</div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="text" id="newUsernameInput" placeholder="New nickname" class="auth-field" style="background:#17171a;border:1.5px solid #2e2e2e;border-radius:9px;padding:11px 14px;color:#fff;font-family:'Courier New',monospace;">
+              <button class="auth-submit-btn" style="width:auto; padding:11px 20px;" onclick="submitUsernameChange()">SAVE</button>
+            </div>
+          </div>
+          <div class="auth-msg" id="usernameMsg"></div>
+        </div>
+      </section>
+
+      <!-- AMICI --------------------------------------------------- -->
+      <section class="hub-tab" id="tab-amici">
+        <h3 class="hub-section-title">👥 Friends</h3>
+        <div class="hub-card">
+          <div class="hub-empty-state">
+            <span class="icon">👥</span>
+            <h3>Coming soon</h3>
+            <p>Search for players, send friend requests, and chat — this section is next on our roadmap.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-brand-logo">
+          <img src="img/icon.png" alt="LSD Software logo">
+          <span>LSD SOFTWARE</span>
+        </div>
+        <p>Free indie games &amp; digital experiments, made by a small team of computer science students in Milan, Italy.</p>
+        <div class="footer-social">
+          <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord">💬</a>
+          <a href="contact.html" aria-label="Contact LSD Software">✉️</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="project.html">Games</a></li>
+          <li><a href="hub.html">Hub</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Games</h4>
+        <ul>
+          <li><a href="cardGameWeb/main.html">LSD Card Game</a></li>
+          <li><a href="pescaWeb/pesca.html">P-E-S-C-A</a></li>
+          <li><a href="lsdConsole/index.html">LSD Console</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="cookies.html">Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="footYear">2025</span> <strong style="color:rgba(255,255,255,0.6)">LSD Software</strong> — Milan, Italy</span>
+      <div class="footer-legal-links">
+        <a href="privacy.html">Privacy</a><span>·</span>
+        <a href="cookies.html">Cookies</a><span>·</span>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="cardGameWeb/js_cg/api.js"></script>
+  <script src="js/auth-modal.js"></script>
+  <script src="js/badges.js"></script>
+  <script src="js/dust.js"></script>
+  <script src="js/footer.js"></script>
+  <script>
+    // ── Tab switching ──────────────────────────────────────────
+    function setHubTab(tab) {
+      document.querySelectorAll(".hub-tab").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".hub-nav-btn[data-tab]").forEach(el => el.classList.remove("active"));
+      document.getElementById(`tab-${tab}`)?.classList.add("active");
+      document.querySelector(`.hub-nav-btn[data-tab="${tab}"]`)?.classList.add("active");
+    }
+
+    // ── Gate: mostra contenuto solo se loggato ──────────────────
+    function refreshHubGate() {
+      const user = typeof Api !== "undefined" ? Api.getUser() : null;
+      const loggedIn = user && !user.isGuest;
+
+      document.getElementById("hubSignedOut").classList.toggle("hidden", loggedIn);
+      document.getElementById("hubContent").classList.toggle("hidden", !loggedIn);
+      if (!loggedIn) return;
+
+      document.getElementById("homeUsername").textContent = user.username;
+      document.getElementById("profileUsername").textContent = user.username;
+      document.getElementById("profileEmail").textContent = user.email || "";
+      const initials = user.username.slice(0,2).toUpperCase();
+      document.getElementById("profileAvatar").textContent = initials;
+
+      if (window.LSDBadges) window.LSDBadges.load();
+      if (window.LSDDust)   window.LSDDust.load();
+    }
+
+    window.addEventListener("lsd-dust-earned", () => { if (window.LSDDust) window.LSDDust.load(); });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      refreshHubGate();
+
+      // Popola i numeri della Home leggendo /dust/me e /badges/me
+      const token = localStorage.getItem("lsd_token");
+      const user  = typeof Api !== "undefined" ? Api.getUser() : null;
+      if (token && user && !user.isGuest) {
+        try {
+          const API = "https://lsd-backend-4phu.onrender.com";
+          const [dustRes, badgesRes] = await Promise.all([
+            fetch(`${API}/dust/me`, { headers: { Authorization: `Bearer ${token}` } }),
+            fetch(`${API}/badges/me`, { headers: { Authorization: `Bearer ${token}` } }),
+          ]);
+          if (dustRes.ok) {
+            const d = await dustRes.json();
+            document.getElementById("homeDust").textContent = d.lsdDust.toLocaleString("en-US");
+            document.getElementById("homeStreak").textContent = d.loginStreak;
+            document.getElementById("hubDustNum").textContent = d.lsdDust.toLocaleString("en-US");
+            document.getElementById("hubDustPill").classList.remove("hidden");
+          }
+          if (badgesRes.ok) {
+            const b = await badgesRes.json();
+            document.getElementById("homeBadgeCount").textContent = b.earned.length;
+            document.getElementById("homeNoBadges").classList.toggle("hidden", b.earned.length > 0);
+          }
+        } catch (e) { console.warn("Hub: could not load dashboard stats", e.message); }
+      }
+    });
+
+    // Ricontrolla il gate ogni volta che cambia lo stato di login (dal modal)
+    const _origRefreshLB = window._refreshLeaderboardAfterAuth;
+    window._refreshLeaderboardAfterAuth = () => {
+      refreshHubGate();
+      if (_origRefreshLB) _origRefreshLB();
+    };
+
+    // ── Cambio nickname ──────────────────────────────────────────
+    async function submitUsernameChange() {
+      const input = document.getElementById("newUsernameInput");
+      const msgEl = document.getElementById("usernameMsg");
+      const value = input.value.trim();
+
+      msgEl.textContent = ""; msgEl.className = "auth-msg";
+      if (!value) return;
+
+      try {
+        const data = await Api.changeUsername(value);
+        msgEl.textContent = `Nickname updated to "${data.username}"!`;
+        msgEl.className = "auth-msg success";
+        input.value = "";
+        const user = Api.getUser();
+        user.username = data.username;
+        localStorage.setItem("lsd_user", JSON.stringify(user));
+        refreshHubGate();
+      } catch (err) {
+        msgEl.textContent = err.message;
+        msgEl.className = "auth-msg error";
+      }
+    }
+  </script>
+</body>
+</html>

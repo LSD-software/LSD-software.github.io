@@ -86,6 +86,10 @@ const Api = {
     return this.request("/auth/reset-password", "POST", { token, newPassword }, 50000);
   },
 
+  async changeUsername(username) {
+    return this.request("/auth/username", "PATCH", { username });
+  },
+
   async verifyToken() {
     try {
       const data = await this.request("/auth/me", "GET", null, 8000);

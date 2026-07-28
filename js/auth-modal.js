@@ -163,10 +163,10 @@ async function doAuthAction() {
       if (!id || !pw) throw new Error("All fields required.");
       const d = await _apiCall("/auth/login","POST",{identifier:id, password:pw});
       _saveAuth(d.token, d.user);
-      _setMsg(`Welcome back, ${d.user.username}!`, "success");
+      _setMsg(_dailyBonusMsg(`Welcome back, ${d.user.username}!`, d.dailyBonus), "success");
       _updateNavbar();
       if (window._refreshLeaderboardAfterAuth) window._refreshLeaderboardAfterAuth();
-      setTimeout(() => { closeAuthModal(); }, 1400);
+      setTimeout(() => { closeAuthModal(); }, 2200);
 
     } else if (_authTab === "register") {
       const un = document.getElementById("am_un")?.value.trim();
@@ -176,10 +176,10 @@ async function doAuthAction() {
       if (pw.length < 8) throw new Error("Password must be at least 8 characters.");
       const d = await _apiCall("/auth/register","POST",{username:un, email:em, password:pw});
       _saveAuth(d.token, d.user);
-      _setMsg(`Account created! Welcome, ${d.user.username}!`, "success");
+      _setMsg(_dailyBonusMsg(`Account created! Welcome, ${d.user.username}!`, d.dailyBonus), "success");
       _updateNavbar();
       if (window._refreshLeaderboardAfterAuth) window._refreshLeaderboardAfterAuth();
-      setTimeout(() => { closeAuthModal(); }, 1400);
+      setTimeout(() => { closeAuthModal(); }, 2200);
 
     } else if (_authTab === "forgot") {
       const em = document.getElementById("am_em")?.value.trim();
@@ -219,6 +219,14 @@ function _showLoggedIn() {
     <div class="user-avatar-big">${initials}</div>
     <div class="welcome-text">Welcome back,<br><span>${_authUser?.username || ""}</span></div>
     <div class="user-email">${_authUser?.email || "Guest"}</div>
+
+    <div id="dustPanel" class="hidden" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(186,167,1,0.08); border:1px solid rgba(186,167,1,0.25); border-radius:10px; padding:12px;">
+      <span style="font-size:1.3rem;">✨</span>
+      <span style="font-family:'Cinzel',serif; font-weight:900; color:gold; font-size:1.15rem;" id="dustBalance">0</span>
+      <span style="font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:1px; color:rgba(255,255,255,0.4);">LSD DUST</span>
+      <span id="dustStreak" style="font-size:0.72rem; color:#ff9d2b; margin-left:4px;"></span>
+    </div>
+
     <hr class="auth-divider" style="width:100%">
     <div id="myBadgesPanel" class="hidden" style="width:100%;margin-top:0;border-top:none;padding-top:0;">
       <div class="badges-title" style="text-align:center;">🏅 YOUR BADGES <span id="badgesCount"></span></div>
@@ -228,6 +236,7 @@ function _showLoggedIn() {
     ${ctas.join("\n")}
     <button class="auth-logout-btn" onclick="doLogout()">SIGN OUT</button>`;
   if (window.LSDBadges) window.LSDBadges.load();
+  if (window.LSDDust)   window.LSDDust.load();
 
   // Se siamo sulla classifica, aggiorna la classifica appena si accede
   // (per mostrare subito "YOUR POSITION" senza dover ricaricare la pagina)
@@ -248,4 +257,12 @@ function _setMsg(text, type) {
   if (!el) return;
   el.textContent = text;
   el.className = "auth-msg" + (type ? " " + type : "");
+}
+
+// Compone il messaggio di benvenuto aggiungendo il bonus giornaliero di
+// Polvere LSD, se presente nella risposta di login/registrazione.
+function _dailyBonusMsg(base, dailyBonus) {
+  if (!dailyBonus || dailyBonus.alreadyClaimedToday || !dailyBonus.awarded) return base;
+  const streakPart = dailyBonus.streak > 1 ? ` · 🔥 ${dailyBonus.streak}-day streak` : "";
+  return `${base} +${dailyBonus.awarded} ✨ LSD Dust${streakPart}`;
 }

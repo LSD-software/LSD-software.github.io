@@ -899,7 +899,10 @@ async function doAuth() {
       const d  = await Auth.request("/auth/login","POST",{identifier:id,password:pw});
       Auth.save(d.token, d.user);
       msg.className="auth-msg success"; msg.textContent = `Welcome back, ${d.user.username}!`;
-      // Merge trofei DB con locali
+      // Merge trofei DB con locali (pull) + invia eventuali trofei fatti da
+      // ospite prima di questo login (push) — nessun progresso va perso.
+      const localTrophies = TrophyStorage.load();
+      if (localTrophies.some(Boolean)) await Auth.saveTrophies(localTrophies);
       if (game) await game.mergeTrophiesFromDB();
       setTimeout(closeAuth, 1200);
     } else if (_authTab==="register") {
@@ -909,6 +912,10 @@ async function doAuth() {
       const d  = await Auth.request("/auth/register","POST",{username:un,email:em,password:pw});
       Auth.save(d.token, d.user);
       msg.className="auth-msg success"; msg.textContent = `Account created! Welcome, ${d.user.username}!`;
+      // Se si era giocato come ospite, i trofei fatti finora sono solo in
+      // localStorage: li inviamo al nuovo account appena creato.
+      const localTrophies = TrophyStorage.load();
+      if (localTrophies.some(Boolean)) await Auth.saveTrophies(localTrophies);
       setTimeout(closeAuth, 1200);
     } else {
       const nick = document.getElementById("ai_guest")?.value.trim() || "Guest";

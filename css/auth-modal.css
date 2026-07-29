@@ -12,6 +12,35 @@
   font-size: 0.75rem; color: #baa701; font-weight: 900;
 }
 
+/* ── Account button (navbar) — usato da project.html e hub.html ── */
+#authNavBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 18px;
+  border: 1.5px solid rgba(186,167,1,0.5);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: #baa701;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.72rem, 1.8vw, 0.88rem);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  position: relative;
+  z-index: 200;
+}
+#authNavBtn:hover { border-color: #baa701; background: rgba(161,0,0,0.3); }
+#authNavBtn .auth-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg,#a10000,#600000);
+  border: 1.5px solid #baa701;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: #baa701; font-weight: 900;
+}
+
 /* ── AUTH MODAL ─────────────────────────────────── */
 #authModal {
   display: none;

@@ -35,6 +35,14 @@
       <a class="hub-nav-btn" href="leaderboard.html">🏆 <span class="nav-label">LEADERBOARD</span></a>
     </div>
     <div id="hubDustPill" class="hidden">✨ <span id="hubDustNum">0</span></div>
+
+    <!-- Account: apre il modale (che mostra login o, se già loggato, il
+         pannello account con saldo/badge/logout) — prima mancava del tutto
+         quando si era già loggati, non lasciando modo di uscire da qui. -->
+    <div id="authNavBtn" onclick="openAuthModal()" style="margin-left:8px;">
+      <div class="auth-avatar" id="authAvatar">?</div>
+      <span id="authNavLabel">SIGN IN</span>
+    </div>
   </nav>
 
   <!-- ── AUTH MODAL (condiviso con project.html/leaderboard.html) ── -->
@@ -110,9 +118,7 @@
 
         <h3 class="hub-section-title">🏅 Your badges</h3>
         <div class="hub-card">
-          <div id="myBadgesPanel" class="hidden" style="margin:0; border:none; padding:0;">
-            <div id="badgesGrid" class="badges-grid"></div>
-          </div>
+          <div id="homeBadgesGrid" class="badges-grid"></div>
           <div id="homeNoBadges" class="hub-empty-state hidden">
             <span class="icon">🏅</span>
             <h3>No badges yet</h3>
@@ -281,6 +287,12 @@
             const b = await badgesRes.json();
             document.getElementById("homeBadgeCount").textContent = b.earned.length;
             document.getElementById("homeNoBadges").classList.toggle("hidden", b.earned.length > 0);
+            document.getElementById("homeBadgesGrid").innerHTML = b.earned.map(bd => `
+              <div class="badge-chip" title="${(bd.description||"").replace(/"/g,'&quot;')}">
+                <span class="badge-icon">${bd.icon}</span>
+                <span class="badge-name">${bd.name}</span>
+              </div>
+            `).join("");
           }
         } catch (e) { console.warn("Hub: could not load dashboard stats", e.message); }
       }

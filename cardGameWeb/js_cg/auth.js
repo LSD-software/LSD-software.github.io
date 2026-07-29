@@ -32,6 +32,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // Migrazione progresso ospite: se si era giocato come guest, lo stato di
+  // gioco è già in localStorage (storage.js lo salva sempre lì). Dopo un
+  // login/register riuscito lo inviamo al nuovo token attivo.
+  async function migrateGuestGameState() {
+    try {
+      const raw = localStorage.getItem("lsd_gamestate");
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      await Api.saveState({
+        coins: s.coins, score: s.score, bet: s.bet,
+        equippedDeck: s.deck, equippedBack: s.backDeck, equippedBg: s.background,
+        unlockedDecks: s.unlockedDecks, unlockedBacks: s.unlockedBacks, unlockedBgs: s.unlockedBgs,
+        stats: s.stats,
+      });
+    } catch (e) {
+      console.warn("Guest progress migration failed (non-blocking):", e.message);
+    }
+  }
+
   // ── LOGIN ──────────────────────────────────────────────
   document.getElementById("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -42,6 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setLoading(btn, true);
     try {
       await Api.login(identifier, password);
+      await migrateGuestGameState();
       goToGame();
     } catch (err) {
       const msg = err.message.includes("timed out") || err.message.includes("fetch")
@@ -65,6 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setLoading(btn, true);
     try {
       await Api.register(username, email, password);
+      await migrateGuestGameState();
       goToGame();
     } catch (err) {
       const msg = err.message.includes("timed out") || err.message.includes("fetch")

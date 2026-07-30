@@ -327,7 +327,7 @@
   letter-spacing: 1px;
 }
 
-.hidden { display: none !important; }
+/* .hidden è ora definita globalmente in css/style.css */
 
 /* ── RESPONSIVE ────────────────────────────────────────── */
 @media (max-width: 600px) {

@@ -1,6 +1,13 @@
 /* --- FONT IMPORT --- */
 @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
+/* Utility globale usata in tutto il sito per nascondere elementi via JS.
+   FIX: prima esisteva solo dentro css/leaderboard.css — su ogni pagina che
+   non caricava quel file (es. hub.html) "class=hidden" non aveva alcun
+   effetto, mostrando contemporaneamente stati che dovevano essere alternativi
+   (es. "Sign in" + contenuto già loggato, sovrapposti). */
+.hidden { display: none !important; }
+
 /* --- FONT UTILITY CLASSES --- */
 .courier-prime-regular {
   font-family: "Courier Prime", monospace;

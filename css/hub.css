@@ -134,6 +134,14 @@
 .hub-settings-row .label { color: #fff; font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 1px; }
 .hub-settings-row .desc { color: rgba(255,255,255,0.4); font-size: 0.78rem; margin-top: 4px; }
 
+.hub-input {
+  background: #17171a; border: 1.5px solid #2e2e2e; border-radius: 9px;
+  padding: 11px 14px; color: #fff; font-family: 'Courier New', monospace;
+  font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+}
+.hub-input:focus { border-color: #baa701; }
+.hub-input::placeholder { color: rgba(255,255,255,0.3); }
+
 @media (max-width: 700px) {
   #hubNavbar { padding: 10px 14px; gap: 6px; }
   #hubNavbar .hub-logo span { display: none; }

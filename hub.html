@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="css/auth-modal.css">
   <link rel="stylesheet" href="css/badges.css">
   <link rel="stylesheet" href="css/hub.css">
+  <link rel="stylesheet" href="css/cosmetics.css">
   <link rel="stylesheet" href="css/footer.css">
 </head>
 <body id="hubBody">
@@ -130,19 +131,24 @@
       <!-- PROFILO ---------------------------------------------- -->
       <section class="hub-tab" id="tab-profilo">
         <h3 class="hub-section-title">👤 Your Profile</h3>
-        <div class="hub-card">
-          <div class="hub-profile-header">
-            <div class="user-avatar-big" id="profileAvatar" style="width:76px;height:76px;font-size:1.8rem;">?</div>
+
+        <div class="hub-card lsd-profile-card bg-midnight" id="shopProfileCard" style="margin-bottom:24px;">
+          <div class="hub-profile-header" style="margin-bottom:0;">
+            <div class="lsd-avatar-wrap border-default" id="shopAvatarPreview">
+              <div class="lsd-avatar-inner">?</div>
+            </div>
             <div>
               <div class="hub-profile-name" id="profileUsername">—</div>
               <div class="hub-profile-email" id="profileEmail">—</div>
             </div>
+            <div id="shopDustLabel" style="margin-left:auto; font-family:'Cinzel',serif; font-weight:900; color:gold; font-size:1.1rem;">✨ 0</div>
           </div>
-          <div class="hub-empty-state" style="padding:30px 20px;">
-            <span class="icon">🎨</span>
-            <h3>Cosmetics coming soon</h3>
-            <p>Icons, animated borders and backgrounds — spend your LSD Dust to customize this card.</p>
-          </div>
+        </div>
+
+        <div id="shopRoot">
+          <div class="shop-tabs" id="shopTabs"></div>
+          <div class="shop-grid" id="shopGrid"></div>
+          <div class="auth-msg" id="shopToast" style="margin-top:14px;"></div>
         </div>
       </section>
 
@@ -162,16 +168,80 @@
           </div>
           <div class="auth-msg" id="usernameMsg"></div>
         </div>
+
+        <div class="hub-card" style="margin-top:16px;">
+          <div class="hub-settings-row">
+            <div>
+              <div class="label">🔔 PUSH NOTIFICATIONS</div>
+              <div class="desc" id="pushToggleLabel">Get notified about new messages and friend requests, even when this tab is closed.</div>
+            </div>
+            <button class="auth-submit-btn" style="width:auto; padding:11px 20px;" id="pushToggleBtn">TURN ON</button>
+          </div>
+        </div>
       </section>
 
       <!-- AMICI --------------------------------------------------- -->
       <section class="hub-tab" id="tab-amici">
         <h3 class="hub-section-title">👥 Friends</h3>
-        <div class="hub-card">
-          <div class="hub-empty-state">
+
+        <div class="hub-card" id="friendsRoot">
+          <div class="friends-section-label">🔍 Find players</div>
+          <input type="text" id="friendSearchInput" class="hub-input" style="width:100%; box-sizing:border-box; margin-bottom:10px;" placeholder="Search by username…">
+          <div id="friendSearchResults"></div>
+
+          <div id="friendsIncomingSection" class="hidden">
+            <div class="friends-section-label">📥 Friend requests</div>
+            <div id="friendsIncoming"></div>
+          </div>
+
+          <div id="friendsOutgoingSection" class="hidden">
+            <div class="friends-section-label">📤 Sent requests</div>
+            <div id="friendsOutgoing"></div>
+          </div>
+
+          <div class="friends-section-label">👥 Your friends</div>
+          <div id="friendsList"></div>
+          <div id="friendsEmpty" class="hub-empty-state" style="padding:30px 20px;">
             <span class="icon">👥</span>
-            <h3>Coming soon</h3>
-            <p>Search for players, send friend requests, and chat — this section is next on our roadmap.</p>
+            <h3>No friends yet</h3>
+            <p>Search for players above and send your first request.</p>
+          </div>
+
+          <div id="friendsBlockedSection" class="hidden">
+            <div class="friends-section-label">🚫 Blocked players</div>
+            <div id="friendsBlocked"></div>
+          </div>
+
+          <div class="auth-msg" id="friendsToast" style="margin-top:10px;"></div>
+        </div>
+
+        <!-- ── CHAT (DM + gruppi) ────────────────────────────── -->
+        <h3 class="hub-section-title" style="margin-top:28px;">💬 Messages <span style="font-size:0.65rem; color:rgba(255,255,255,0.35); font-family:'Courier New',monospace; letter-spacing:0;">— disappear after 48h</span></h3>
+        <div class="hub-card" id="messagesRoot" style="padding:0; overflow:hidden;">
+          <div class="chat-layout">
+            <div class="chat-sidebar">
+              <button class="friend-btn add" id="newGroupBtn" style="width:100%; margin-bottom:10px;">+ New group</button>
+              <div id="conversationsList"></div>
+              <div id="conversationsEmpty" class="hub-empty-state" style="padding:20px 10px;">
+                <span class="icon">💬</span>
+                <p style="font-size:0.78rem;">No conversations yet. Message a friend to start one.</p>
+              </div>
+            </div>
+            <div class="chat-main">
+              <div id="chatEmptyState" class="hub-empty-state" style="padding:60px 20px;">
+                <span class="icon">💬</span>
+                <h3>Select a conversation</h3>
+                <p>Or message a friend from the list above.</p>
+              </div>
+              <div id="chatPanel" class="hidden" style="display:flex; flex-direction:column; height:100%;">
+                <div class="chat-header" id="chatTitle">—</div>
+                <div class="chat-thread" id="chatThread"></div>
+                <form class="chat-composer" id="chatComposerForm">
+                  <input type="text" id="chatComposerInput" class="hub-input" placeholder="Type a message…" maxlength="2000" autocomplete="off" style="flex:1;">
+                  <button type="submit" class="friend-btn add">Send</button>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -232,6 +302,10 @@
   <script src="js/auth-modal.js"></script>
   <script src="js/badges.js"></script>
   <script src="js/dust.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/friends.js"></script>
+  <script src="js/messages.js"></script>
+  <script src="js/push.js"></script>
   <script src="js/footer.js"></script>
   <script>
     // ── Tab switching ──────────────────────────────────────────
@@ -254,11 +328,12 @@
       document.getElementById("homeUsername").textContent = user.username;
       document.getElementById("profileUsername").textContent = user.username;
       document.getElementById("profileEmail").textContent = user.email || "";
-      const initials = user.username.slice(0,2).toUpperCase();
-      document.getElementById("profileAvatar").textContent = initials;
 
       if (window.LSDBadges) window.LSDBadges.load();
       if (window.LSDDust)   window.LSDDust.load();
+      if (window.LSDShop)   window.LSDShop.reload();
+      if (window.LSDFriends) window.LSDFriends.reload();
+      if (window.LSDMessages) window.LSDMessages.reload();
     }
 
     window.addEventListener("lsd-dust-earned", () => { if (window.LSDDust) window.LSDDust.load(); });

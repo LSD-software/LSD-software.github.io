@@ -1,0 +1,188 @@
+/* ============================================================
+   cosmetics.css — Rendering dei cosmetici (icone, sfondi, bordi animati)
+   Componente riutilizzabile: .lsd-avatar-wrap
+   ============================================================ */
+
+/* ── Contenitore avatar con bordo ────────────────────────────
+   Markup atteso:
+   <div class="lsd-avatar-wrap border-XXX">
+     <div class="lsd-avatar-ring"></div>   (solo per border-spin)
+     <div class="lsd-avatar-particles">...6 span...</div> (solo per border-orbit)
+     <div class="lsd-avatar-inner">🐉 / XX</div>
+   </div>
+*/
+.lsd-avatar-wrap {
+  position: relative;
+  width: 84px; height: 84px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.lsd-avatar-inner {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#a10000,#600000);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; color: #ffd700; font-weight: 900;
+  position: relative; z-index: 2;
+  box-shadow: 0 0 0 3px #0a0a0a; /* stacca il bordo animato dall'avatar */
+}
+
+/* ── border_default: anello dorato semplice, statico ─────────── */
+.border-default .lsd-avatar-inner { border: 3px solid #baa701; }
+
+/* ── border_pulse: bagliore pulsante ──────────────────────────── */
+.border-pulse .lsd-avatar-inner { border: 3px solid #baa701; }
+.border-pulse::before {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid #baa701;
+  animation: lsdPulse 2s ease-in-out infinite;
+}
+@keyframes lsdPulse {
+  0%, 100% { transform: scale(0.94); opacity: 0.9; }
+  50%      { transform: scale(1.12); opacity: 0; }
+}
+
+/* ── border_spin: anello a gradiente conico che ruota ─────────── */
+.border-spin .lsd-avatar-inner { border: 3px solid #0a0a0a; }
+.lsd-avatar-ring {
+  position: absolute; inset: -5px; border-radius: 50%;
+  background: conic-gradient(from 0deg, #ffd700, #a10000, #baa701, #ffd700);
+  animation: lsdSpin 3.5s linear infinite;
+  z-index: 1;
+}
+@keyframes lsdSpin { to { transform: rotate(360deg); } }
+
+/* ── border_orbit: particelle che orbitano attorno all'avatar ──── */
+.border-orbit .lsd-avatar-inner { border: 3px solid #baa701; }
+.lsd-avatar-particles {
+  position: absolute; inset: 0;
+  animation: lsdOrbitSpin 6s linear infinite;
+  z-index: 1;
+}
+.lsd-avatar-particles span {
+  position: absolute; top: 50%; left: 50%;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #ffd700;
+  box-shadow: 0 0 8px 2px rgba(255,215,0,0.7);
+  transform-origin: 0 0;
+}
+/* 6 particelle distribuite ogni 60°, ciascuna sul proprio raggio */
+.lsd-avatar-particles span:nth-child(1) { transform: rotate(0deg)   translate(46px) rotate(0deg); }
+.lsd-avatar-particles span:nth-child(2) { transform: rotate(60deg)  translate(46px) rotate(0deg); opacity:0.85; }
+.lsd-avatar-particles span:nth-child(3) { transform: rotate(120deg) translate(46px) rotate(0deg); opacity:0.7; }
+.lsd-avatar-particles span:nth-child(4) { transform: rotate(180deg) translate(46px) rotate(0deg); opacity:0.85; }
+.lsd-avatar-particles span:nth-child(5) { transform: rotate(240deg) translate(46px) rotate(0deg); opacity:0.7; }
+.lsd-avatar-particles span:nth-child(6) { transform: rotate(300deg) translate(46px) rotate(0deg); opacity:0.85; }
+@keyframes lsdOrbitSpin { to { transform: rotate(360deg); } }
+
+/* Variante piccola (usata in navbar/liste) — stessa animazione, scala ridotta */
+.lsd-avatar-wrap.sm { width: 34px; height: 34px; }
+.lsd-avatar-wrap.sm .lsd-avatar-inner { font-size: 0.8rem; box-shadow: 0 0 0 2px #0a0a0a; }
+.lsd-avatar-wrap.sm .lsd-avatar-particles span { width: 3px; height: 3px; }
+.lsd-avatar-wrap.sm .lsd-avatar-particles span:nth-child(1) { transform: rotate(0deg)   translate(19px) rotate(0deg); }
+.lsd-avatar-wrap.sm .lsd-avatar-particles span:nth-child(2) { transform: rotate(60deg)  translate(19px) rotate(0deg); }
+.lsd-avatar-wrap.sm .lsd-avatar-particles span:nth-child(3) { transform: rotate(120deg) translate(19px) rotate(0deg); }
+.lsd-avatar-wrap.sm .lsd-avatar-particles span:nth-child(4) { transform: rotate(180deg) translate(19px) rotate(0deg); }
+.lsd-avatar-wrap.sm .lsd-avatar-particles span:nth-child(5) { transform: rotate(240deg) translate(19px) rotate(0deg); }
+.lsd-avatar-wrap.sm .lsd-avatar-particles span:nth-child(6) { transform: rotate(300deg) translate(19px) rotate(0deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .border-pulse::before, .lsd-avatar-ring, .lsd-avatar-particles { animation: none; }
+}
+
+/* ── Sfondi della card profilo ──────────────────────────────── */
+.lsd-profile-card { position: relative; overflow: hidden; border-radius: 14px; }
+
+.bg-midnight { background: linear-gradient(160deg, #141414, #0a0a0a); }
+
+.bg-neon {
+  background: #0a0a14;
+  background-image:
+    linear-gradient(rgba(0,255,200,0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,200,0.12) 1px, transparent 1px);
+  background-size: 26px 26px;
+  animation: lsdGridDrift 12s linear infinite;
+}
+@keyframes lsdGridDrift { to { background-position: 26px 26px; } }
+
+.bg-stars {
+  background: radial-gradient(ellipse at bottom, #0d1a2b 0%, #050508 100%);
+  position: relative;
+}
+.bg-stars::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 60% 70%, #fff, transparent),
+    radial-gradient(1px 1px at 80% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 35% 85%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 90% 55%, #fff, transparent),
+    radial-gradient(1px 1px at 10% 65%, #fff, transparent);
+  opacity: 0.6;
+  animation: lsdTwinkle 3s ease-in-out infinite alternate;
+}
+@keyframes lsdTwinkle { from { opacity: 0.35; } to { opacity: 0.85; } }
+
+.bg-gold {
+  background: linear-gradient(120deg, #1a1400, #3a2c00, #1a1400, #4a3800);
+  background-size: 300% 300%;
+  animation: lsdGoldShift 6s ease infinite;
+}
+@keyframes lsdGoldShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-neon, .bg-stars::before, .bg-gold { animation: none; }
+}
+
+/* ── Shop grid (usata nella tab Profilo) ───────────────────── */
+.shop-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.shop-tab-btn {
+  background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.55); padding: 8px 16px; border-radius: 8px;
+  font-family: 'Cinzel', serif; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+}
+.shop-tab-btn.active { color: #0d0d0d; background: linear-gradient(135deg,#d4b800,#baa701); border-color: transparent; }
+
+.shop-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+.shop-item {
+  background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 14px 10px; text-align: center;
+  cursor: pointer; transition: all 0.2s; position: relative;
+}
+.shop-item:hover { border-color: rgba(186,167,1,0.4); transform: translateY(-2px); }
+.shop-item.owned { border-color: rgba(94, 224, 0, 0.35); }
+.shop-item.equipped { border-color: gold; box-shadow: 0 0 0 1px gold, 0 4px 16px rgba(255,215,0,0.15); }
+.shop-item .item-preview { margin: 0 auto 10px; }
+.shop-item .item-name {
+  font-family: 'Cinzel', serif; color: #fff; font-size: 0.74rem;
+  font-weight: 700; letter-spacing: 0.5px; margin-bottom: 6px;
+}
+.shop-item .item-price {
+  font-family: 'Courier New', monospace; font-size: 0.72rem;
+  color: rgba(255,255,255,0.4);
+}
+.shop-item .item-price.affordable { color: gold; }
+.shop-item .item-badge {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 0.6rem; padding: 2px 7px; border-radius: 10px;
+  font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.5px;
+}
+.item-badge.tier-legendary { background: rgba(255,80,220,0.15); color: #ff6ee0; border: 1px solid rgba(255,80,220,0.4); }
+.item-badge.tier-rare      { background: rgba(79,195,247,0.15); color: #4fc3f7; border: 1px solid rgba(79,195,247,0.4); }
+.item-badge.tier-common    { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.15); }
+.item-badge.tier-default   { display: none; }
+.item-badge.owned-tag      { background: rgba(94,224,0,0.15); color: #5ee000; border: 1px solid rgba(94,224,0,0.4); top: auto; bottom: 8px; right: 8px; }
+
+@media (max-width: 500px) {
+  .shop-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+}

@@ -90,6 +90,27 @@ const Api = {
     return this.request("/auth/username", "PATCH", { username });
   },
 
+  async getShopCatalog() { return this.request("/shop/catalog"); },
+  async getShopProfile() { return this.request("/shop/me"); },
+  async buyCosmetic(itemId, category) { return this.request("/shop/buy", "POST", { itemId, category }); },
+  async equipCosmetic(itemId, category) { return this.request("/shop/equip", "POST", { itemId, category }); },
+
+  async searchFriends(q) { return this.request(`/friends/search?q=${encodeURIComponent(q)}`); },
+  async getFriends() { return this.request("/friends/me"); },
+  async sendFriendRequest(targetUserId) { return this.request("/friends/request", "POST", { targetUserId }); },
+  async respondFriendRequest(requesterId, action) { return this.request("/friends/respond", "POST", { requesterId, action }); },
+  async removeFriend(friendId) { return this.request("/friends/remove", "POST", { friendId }); },
+  async blockUser(targetUserId) { return this.request("/friends/block", "POST", { targetUserId }); },
+  async unblockUser(targetUserId) { return this.request("/friends/unblock", "POST", { targetUserId }); },
+  async pingPresence() { return this.request("/friends/ping", "POST", {}, 8000); },
+
+  async getConversations() { return this.request("/messages/conversations"); },
+  async openDM(targetUserId) { return this.request("/messages/conversations/dm", "POST", { targetUserId }); },
+  async createGroup(name, participantIds) { return this.request("/messages/conversations/group", "POST", { name, participantIds }); },
+  async getConversation(id) { return this.request(`/messages/conversations/${id}`); },
+  async sendMessage(id, text) { return this.request(`/messages/conversations/${id}/send`, "POST", { text }); },
+  async markConversationRead(id) { return this.request(`/messages/conversations/${id}/read`, "POST", {}); },
+
   async verifyToken() {
     try {
       const data = await this.request("/auth/me", "GET", null, 8000);

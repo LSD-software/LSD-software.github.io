@@ -19,7 +19,7 @@
     if (!token || !user || user.isGuest) return; // resta nascosto
 
     try {
-      const res = await fetch(`${API}/badges/me`, {
+      const res = await lsdFetch(`${API}/badges/me`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) return;

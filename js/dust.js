@@ -31,7 +31,7 @@
     if (!token) return; // ospite o non loggato: nessuna polvere
 
     try {
-      const res = await fetch(`${API}/dust/heartbeat`, {
+      const res = await lsdFetch(`${API}/dust/heartbeat`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` },
       });
@@ -59,7 +59,7 @@
     if (!token) { el.closest("#dustPanel")?.classList.add("hidden"); return; }
 
     try {
-      const res = await fetch(`${API}/dust/me`, {
+      const res = await lsdFetch(`${API}/dust/me`, {
         headers: { "Authorization": `Bearer ${token}` },
       });
       if (!res.ok) return;

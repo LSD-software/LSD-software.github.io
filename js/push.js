@@ -36,7 +36,7 @@
     const token = getAuth();
     if (!token) throw new Error("Sign in first.");
 
-    const keyRes = await fetch(`${API}/push/vapid-key`);
+    const keyRes = await lsdFetch(`${API}/push/vapid-key`);
     if (!keyRes.ok) throw new Error("Push isn't configured on the server yet.");
     const { publicKey } = await keyRes.json();
 
@@ -51,7 +51,7 @@
       applicationServerKey: urlBase64ToUint8Array(publicKey),
     });
 
-    await fetch(`${API}/push/subscribe`, {
+    await lsdFetch(`${API}/push/subscribe`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ subscription: sub.toJSON() }),
@@ -66,7 +66,7 @@
     if (!sub) return;
     const token = getAuth();
     if (token) {
-      fetch(`${API}/push/unsubscribe`, {
+      lsdFetch(`${API}/push/unsubscribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ endpoint: sub.endpoint }),

@@ -92,6 +92,11 @@
           </div>
         </div>
 
+        <div id="homeStatsError" class="auth-msg error hidden" style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <span id="homeStatsErrorText"></span>
+          <button class="friend-btn add" onclick="loadHomeStats(false)" style="flex-shrink:0;">Retry</button>
+        </div>
+
         <h3 class="hub-section-title">🎮 Jump into a game</h3>
         <div class="hub-games-grid">
           <a class="hub-game-tile" href="cardGameWeb/main.html">
@@ -299,6 +304,7 @@
   </footer>
 
   <script src="cardGameWeb/js_cg/api.js"></script>
+  <script src="js/fetch-utils.js"></script>
   <script src="js/auth-modal.js"></script>
   <script src="js/badges.js"></script>
   <script src="js/dust.js"></script>
@@ -338,39 +344,76 @@
 
     window.addEventListener("lsd-dust-earned", () => { if (window.LSDDust) window.LSDDust.load(); });
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      refreshHubGate();
-
-      // Popola i numeri della Home leggendo /dust/me e /badges/me
+    async function loadHomeStats(isRetry) {
       const token = localStorage.getItem("lsd_token");
       const user  = typeof Api !== "undefined" ? Api.getUser() : null;
-      if (token && user && !user.isGuest) {
-        try {
-          const API = "https://lsd-backend-4phu.onrender.com";
-          const [dustRes, badgesRes] = await Promise.all([
-            fetch(`${API}/dust/me`, { headers: { Authorization: `Bearer ${token}` } }),
-            fetch(`${API}/badges/me`, { headers: { Authorization: `Bearer ${token}` } }),
-          ]);
-          if (dustRes.ok) {
-            const d = await dustRes.json();
-            document.getElementById("homeDust").textContent = d.lsdDust.toLocaleString("en-US");
-            document.getElementById("homeStreak").textContent = d.loginStreak;
-            document.getElementById("hubDustNum").textContent = d.lsdDust.toLocaleString("en-US");
-            document.getElementById("hubDustPill").classList.remove("hidden");
-          }
-          if (badgesRes.ok) {
-            const b = await badgesRes.json();
-            document.getElementById("homeBadgeCount").textContent = b.earned.length;
-            document.getElementById("homeNoBadges").classList.toggle("hidden", b.earned.length > 0);
-            document.getElementById("homeBadgesGrid").innerHTML = b.earned.map(bd => `
-              <div class="badge-chip" title="${(bd.description||"").replace(/"/g,'&quot;')}">
-                <span class="badge-icon">${bd.icon}</span>
-                <span class="badge-name">${bd.name}</span>
-              </div>
-            `).join("");
-          }
-        } catch (e) { console.warn("Hub: could not load dashboard stats", e.message); }
+      if (!(token && user && !user.isGuest)) return;
+
+      const errEl = document.getElementById("homeStatsError");
+      const errTextEl = document.getElementById("homeStatsErrorText");
+      if (errEl) errEl.classList.add("hidden");
+
+      // FIX: prima queste due fetch non avevano NESSUN timeout — se il
+      // server gratuito (Render) era in stand-by, la richiesta restava
+      // bloccata in silenzio e badge/polvere non comparivano mai, senza
+      // nessun messaggio (sembrava "non carica" ma in realtà era ancora
+      // in attesa). Ora c'è un timeout reale + un retry automatico, come
+      // già fatto per il login.
+      const API = "https://lsd-backend-4phu.onrender.com";
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 45000);
+
+      try {
+        const [dustRes, badgesRes] = await Promise.all([
+          fetch(`${API}/dust/me`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }),
+          fetch(`${API}/badges/me`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }),
+        ]);
+        clearTimeout(timer);
+
+        if (dustRes.ok) {
+          const d = await dustRes.json();
+          document.getElementById("homeDust").textContent = d.lsdDust.toLocaleString("en-US");
+          document.getElementById("homeStreak").textContent = d.loginStreak;
+          document.getElementById("hubDustNum").textContent = d.lsdDust.toLocaleString("en-US");
+          document.getElementById("hubDustPill").classList.remove("hidden");
+        } else if (errEl) {
+          errTextEl.textContent = `Couldn't load LSD Dust (server said: ${dustRes.status}).`;
+          errEl.classList.remove("hidden");
+        }
+
+        if (badgesRes.ok) {
+          const b = await badgesRes.json();
+          document.getElementById("homeBadgeCount").textContent = b.earned.length;
+          document.getElementById("homeNoBadges").classList.toggle("hidden", b.earned.length > 0);
+          document.getElementById("homeBadgesGrid").innerHTML = b.earned.map(bd => `
+            <div class="badge-chip" title="${(bd.description||"").replace(/"/g,'&quot;')}">
+              <span class="badge-icon">${bd.icon}</span>
+              <span class="badge-name">${bd.name}</span>
+            </div>
+          `).join("");
+        } else if (errEl) {
+          errTextEl.textContent = `Couldn't load badges (server said: ${badgesRes.status}).`;
+          errEl.classList.remove("hidden");
+        }
+      } catch (e) {
+        clearTimeout(timer);
+        console.warn("Hub: could not load dashboard stats", e.message);
+        if (!isRetry) {
+          // Primo tentativo fallito (es. server che si stava svegliando):
+          // riprova una volta sola, automaticamente, dopo una breve attesa.
+          setTimeout(() => loadHomeStats(true), 3000);
+          return;
+        }
+        if (errEl) {
+          errTextEl.textContent = "Couldn't reach the server. Check your connection and reload the page.";
+          errEl.classList.remove("hidden");
+        }
       }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      refreshHubGate();
+      loadHomeStats(false);
     });
 
     // Ricontrolla il gate ogni volta che cambia lo stato di login (dal modal)

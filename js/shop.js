@@ -28,8 +28,8 @@
 
     try {
       const [catRes, profRes] = await Promise.all([
-        fetch(`${API}/shop/catalog`),
-        fetch(`${API}/shop/me`, { headers: { Authorization: `Bearer ${token}` } }),
+        lsdFetch(`${API}/shop/catalog`),
+        lsdFetch(`${API}/shop/me`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       CATALOG = await catRes.json();
       PROFILE = await profRes.json();
@@ -154,7 +154,7 @@
           showToast(`Not enough LSD Dust — need ${item.price}, you have ${PROFILE.lsdDust}.`, "error");
           return;
         }
-        const res = await fetch(`${API}/shop/buy`, {
+        const res = await lsdFetch(`${API}/shop/buy`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ itemId, category: cat }),
@@ -167,7 +167,7 @@
       }
 
       // Equipaggia (sia appena comprato, sia già posseduto)
-      const eqRes = await fetch(`${API}/shop/equip`, {
+      const eqRes = await lsdFetch(`${API}/shop/equip`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ itemId, category: cat }),

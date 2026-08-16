@@ -91,7 +91,7 @@
       showChatPanel();
       await openConversation(data.id);
     } catch (e) {
-      alert(e.message);
+      lsdAlert(e.message);
     }
   }
 
@@ -157,33 +157,73 @@
         await loadMessages(true);
         reloadConversationList();
       } catch (e) {
-        alert(e.message);
+        lsdAlert(e.message);
       }
     });
   }
 
-  // ── Creazione gruppo ─────────────────────────────────────
+  // ── Creazione gruppo (dialogo con caselle di spunta, non prompt nativi) ──
   function wireGroupCreate() {
     const btn = document.getElementById("newGroupBtn");
     if (!btn) return;
     btn.addEventListener("click", async () => {
-      const name = prompt("Group name:");
-      if (!name) return;
       try {
         const friendsData = await call("/friends/me");
-        if (!friendsData.friends.length) return alert("Add some friends first before creating a group.");
-        const names = friendsData.friends.map((f, i) => `${i + 1}. ${f.username}`).join("\n");
-        const pick = prompt(`Add friends by number (comma-separated):\n${names}`);
-        if (!pick) return;
-        const idxs = pick.split(",").map(s => parseInt(s.trim()) - 1).filter(i => !isNaN(i) && friendsData.friends[i]);
-        if (!idxs.length) return alert("No valid friends selected.");
-        const participantIds = idxs.map(i => friendsData.friends[i].id);
-        const data = await call("/messages/conversations/group", "POST", { name, participantIds });
+        if (!friendsData.friends.length) return lsdAlert("Add some friends first before creating a group.");
+        const picked = await showGroupCreateDialog(friendsData.friends);
+        if (!picked) return;
+        const data = await call("/messages/conversations/group", "POST", { name: picked.name, participantIds: picked.ids });
         await reloadConversationList();
         await openConversation(data.id);
       } catch (e) {
-        alert(e.message);
+        lsdAlert(e.message);
       }
+    });
+  }
+
+  function showGroupCreateDialog(friends) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      Object.assign(overlay.style, {
+        position: "fixed", inset: "0", zIndex: "10001",
+        background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "16px",
+      });
+      const box = document.createElement("div");
+      Object.assign(box.style, {
+        background: "linear-gradient(160deg,#131313,#0a0a0a)", border: "2px solid #baa701",
+        borderRadius: "14px", padding: "24px", width: "min(380px,100%)",
+        fontFamily: "'Courier New',monospace", color: "#eee",
+      });
+      box.innerHTML = `
+        <div style="font-family:'Cinzel',serif; color:gold; margin-bottom:14px; font-weight:700;">New Group</div>
+        <input id="_groupNameInput" type="text" class="hub-input" placeholder="Group name" style="width:100%; box-sizing:border-box; margin-bottom:14px;">
+        <div style="max-height:220px; overflow-y:auto; margin-bottom:16px; display:flex; flex-direction:column; gap:6px;">
+          ${friends.map(f => `
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; padding:6px 4px;">
+              <input type="checkbox" value="${f.id}" style="accent-color:#baa701;"> ${escHtml(f.username)}
+            </label>
+          `).join("")}
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button id="_groupCancel" class="friend-btn ghost">Cancel</button>
+          <button id="_groupCreate" class="friend-btn add">Create</button>
+        </div>
+      `;
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+      box.querySelector("#_groupNameInput").focus();
+
+      function done(result) { overlay.remove(); resolve(result); }
+      overlay.addEventListener("click", (e) => { if (e.target === overlay) done(null); });
+      box.querySelector("#_groupCancel").addEventListener("click", () => done(null));
+      box.querySelector("#_groupCreate").addEventListener("click", () => {
+        const name = box.querySelector("#_groupNameInput").value.trim();
+        const ids = [...box.querySelectorAll('input[type="checkbox"]:checked')].map(c => c.value);
+        if (!name) return lsdAlert("Please enter a group name.");
+        if (!ids.length) return lsdAlert("Select at least one friend.");
+        done({ name, ids });
+      });
     });
   }
 

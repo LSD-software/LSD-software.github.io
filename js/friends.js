@@ -88,7 +88,7 @@
         <div class="friend-row">
           <div class="friend-info">
             ${presenceDot(u.online)}
-            <span class="friend-name">${escHtml(u.username)}</span>
+            <span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span>
           </div>
           <div class="friend-actions">${searchActionButton(u)}</div>
         </div>
@@ -117,7 +117,7 @@
     sec.classList.toggle("hidden", !list.length);
     el.innerHTML = list.map(u => `
       <div class="friend-row">
-        <div class="friend-info">${presenceDot(u.online)}<span class="friend-name">${escHtml(u.username)}</span></div>
+        <div class="friend-info">${presenceDot(u.online)}<span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
         <div class="friend-actions">
           <button class="friend-btn accept" data-action="accept" data-id="${u.id}">Accept</button>
           <button class="friend-btn decline" data-action="decline" data-id="${u.id}">Decline</button>
@@ -134,7 +134,7 @@
     sec.classList.toggle("hidden", !list.length);
     el.innerHTML = list.map(u => `
       <div class="friend-row">
-        <div class="friend-info"><span class="friend-name">${escHtml(u.username)}</span></div>
+        <div class="friend-info"><span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
         <div class="friend-actions"><span class="friend-tag">Pending…</span></div>
       </div>
     `).join("");
@@ -147,7 +147,7 @@
     if (empty) empty.classList.toggle("hidden", list.length > 0);
     el.innerHTML = list.map(u => `
       <div class="friend-row">
-        <div class="friend-info">${presenceDot(u.online)}<span class="friend-name">${escHtml(u.username)}</span></div>
+        <div class="friend-info">${presenceDot(u.online)}<span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
         <div class="friend-actions">
           <button class="friend-btn add" data-action="message" data-id="${u.id}">💬 Message</button>
           <button class="friend-btn ghost" data-action="remove" data-id="${u.id}">Remove</button>
@@ -165,7 +165,7 @@
     sec.classList.toggle("hidden", !list.length);
     el.innerHTML = list.map(u => `
       <div class="friend-row">
-        <div class="friend-info"><span class="friend-name">${escHtml(u.username)}</span></div>
+        <div class="friend-info"><span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
         <div class="friend-actions"><button class="friend-btn ghost" data-action="unblock" data-id="${u.id}">Unblock</button></div>
       </div>
     `).join("");
@@ -190,8 +190,8 @@
       if (action === "request") { await call("/friends/request", "POST", { targetUserId: id }); showToast("Friend request sent!"); }
       if (action === "accept")  { await call("/friends/respond", "POST", { requesterId: id, action: "accept" }); showToast("Friend request accepted!"); }
       if (action === "decline") { await call("/friends/respond", "POST", { requesterId: id, action: "decline" }); }
-      if (action === "remove")  { if (!confirm("Remove this friend?")) { btn.disabled = false; return; } await call("/friends/remove", "POST", { friendId: id }); }
-      if (action === "block")   { if (!confirm("Block this player? They won't be able to message or friend-request you.")) { btn.disabled = false; return; } await call("/friends/block", "POST", { targetUserId: id }); showToast("Player blocked."); }
+      if (action === "remove")  { if (!await lsdConfirm("Remove this friend?")) { btn.disabled = false; return; } await call("/friends/remove", "POST", { friendId: id }); }
+      if (action === "block")   { if (!await lsdConfirm("Block this player? They won't be able to message or friend-request you.")) { btn.disabled = false; return; } await call("/friends/block", "POST", { targetUserId: id }); showToast("Player blocked."); }
       if (action === "unblock") { await call("/friends/unblock", "POST", { targetUserId: id }); }
 
       await reload();

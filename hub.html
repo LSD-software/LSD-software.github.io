@@ -307,6 +307,7 @@
   <script src="js/fetch-utils.js"></script>
   <script src="js/auth-modal.js"></script>
   <script src="js/badges.js"></script>
+  <script src="js/profile-view.js"></script>
   <script src="js/dust.js"></script>
   <script src="js/shop.js"></script>
   <script src="js/friends.js"></script>
@@ -343,6 +344,7 @@
     }
 
     window.addEventListener("lsd-dust-earned", () => { if (window.LSDDust) window.LSDDust.load(); });
+    window.addEventListener("lsd-session-expired", () => { refreshHubGate(); if (window._updateNavbar) window._updateNavbar(); });
 
     async function loadHomeStats(isRetry) {
       const token = localStorage.getItem("lsd_token");

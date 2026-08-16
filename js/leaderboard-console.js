@@ -106,7 +106,7 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
         ? `<td class="col-wins-afue">${row.wins||0}</td><td class="col-losses-afue">${row.losses||0}</td><td class="col-ratio-afue">${pct}</td>`
         : `<td class="col-bestscore-afue">${row.bestScore||0}</td>`;
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td class="col-rank"><span class="rank-medal medal-n">${row.rank}</span></td><td><span class="player-name">${escHtml(row.username)}</span></td>${cells}`;
+      tr.innerHTML = `<td class="col-rank"><span class="rank-medal medal-n">${row.rank}</span></td><td><span class="player-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></td>${cells}`;
       tbody.appendChild(tr);
     });
     table.classList.remove("hidden");
@@ -133,7 +133,7 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
       div.innerHTML = `
         <div class="podium-medal">${medal}</div>
         <div class="podium-rank-num" style="color:${color}">#${rank}</div>
-        <div class="podium-name">${escHtml(entry.username)}</div>
+        <div class="podium-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${entry.userId}')">${escHtml(entry.username)}</div>
         <div class="podium-val">${val}</div>`;
       el.appendChild(div);
     });
@@ -284,7 +284,7 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td class="col-rank"><span class="rank-medal medal-n">${row.rank}</span></td>
-        <td><span class="player-name">${escHtml(row.username)}</span></td>
+        <td><span class="player-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></td>
         <td style="text-align:right">${(row.pescaTotali||0).toLocaleString()}</td>
         <td style="text-align:right;color:#ce93d8">${row.pescaMiticiTotali||0}</td>
         <td style="text-align:right;color:#FFD700">${row.vhsTotali||0}</td>
@@ -315,7 +315,7 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
       div.innerHTML = `
         <div class="podium-medal">${medal}</div>
         <div class="podium-rank-num" style="color:${color}">#${rank}</div>
-        <div class="podium-name">${escHtml(entry.username)}</div>
+        <div class="podium-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${entry.userId}')">${escHtml(entry.username)}</div>
         <div class="podium-val">
           🐟 <span style="color:#fff">${(entry.pescaTotali||0).toLocaleString()}</span>
         </div>

@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tr.className = rankClass;
       tr.innerHTML = `
         <td class="col-rank">${medalHtml}</td>
-        <td><span class="player-name ${isMe ? "is-me" : ""}">${escHtml(row.username)}</span></td>
+        <td><span class="player-name player-clickable ${isMe ? "is-me" : ""}" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></td>
         <td class="col-score" style="text-align:right"><span class="${scoreClass}">${fmt(row.score)}</span></td>
         <td class="col-coins" style="text-align:right"><span class="${coinsClass}">${fmt(row.coins)}</span></td>
         <td class="col-streak" style="text-align:right"><span class="${streakClass}">${fmt(row.winStreak)}</span></td>

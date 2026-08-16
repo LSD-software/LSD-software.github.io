@@ -266,3 +266,11 @@ function _dailyBonusMsg(base, dailyBonus) {
   const streakPart = dailyBonus.streak > 1 ? ` · 🔥 ${dailyBonus.streak}-day streak` : "";
   return `${base} +${dailyBonus.awarded} ✨ LSD Dust${streakPart}`;
 }
+
+// Quando il token scade (rilevato in fetch-utils.js), ricarica lo stato
+// locale e aggiorna subito la navbar — niente più UI che finge di essere
+// ancora loggata mentre ogni chiamata al server fallisce in silenzio.
+window.addEventListener("lsd-session-expired", () => {
+  _loadAuth();
+  _updateNavbar();
+});

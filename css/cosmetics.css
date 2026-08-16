@@ -186,3 +186,37 @@
 @media (max-width: 500px) {
   .shop-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
 }
+
+/* ── Profile view modal (classifica / amici → profilo pubblico) ── */
+#profileViewModal {
+  display: none;
+  position: fixed; inset: 0;
+  background: radial-gradient(circle at 50% 20%, rgba(80,0,0,0.35), rgba(0,0,0,0.9) 70%);
+  z-index: 9999;
+  align-items: center; justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+#profileViewModal.open { display: flex; }
+#profileViewBox {
+  background: linear-gradient(160deg, #131313 0%, #0a0a0a 100%);
+  border: 2px solid #baa701;
+  border-radius: 18px;
+  width: min(380px, 100%);
+  padding: 30px;
+  position: relative;
+  animation: modalIn 0.28s cubic-bezier(.2,.9,.3,1.2);
+  box-shadow: 0 0 0 1px rgba(186,167,1,0.15), 0 30px 80px rgba(0,0,0,0.7);
+}
+#profileViewBox .modal-close {
+  position: absolute; top: 12px; right: 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  width: 28px; height: 28px; border-radius: 50%;
+  color: #777; font-size: 1rem; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+#profileViewBox .modal-close:hover { color: #fff; border-color: rgba(255,80,80,0.5); }
+
+/* Nome/username cliccabile per aprire il profilo, usato in classifica e amici */
+.player-clickable { cursor: pointer; transition: color 0.15s; }
+.player-clickable:hover { color: gold !important; text-decoration: underline; }

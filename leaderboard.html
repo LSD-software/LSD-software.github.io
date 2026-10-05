@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PWA meta: icona su home screen mobile e tablet -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#baa701">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/pwa/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/pwa/favicon-16.png">
   <link rel="icon" type="image/png" href="img/icon.png">
 
   <title>LSD Software | Leaderboard — Top Players</title>
@@ -22,6 +30,7 @@
   <link rel="stylesheet" href="css/cosmetics.css">
   <link rel="stylesheet" href="css/auth-modal.css">
   <link rel="stylesheet" href="css/footer.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js"></script>
 </head>
 
 <body>
@@ -35,11 +44,11 @@
         <span></span><span></span><span></span>
       </div>
       <nav id="menu" aria-label="Main navigation">
-        <a href="index.html">HOME</a>
-        <a href="about.html">ABOUT</a>
-        <a href="project.html">PROJECTS</a>
-        <a href="hub.html">HUB</a>
-        <a href="contact.html">CONTACTS</a>
+        <a href="index.html"><i data-lucide="home"></i> <span class="nav-text">HOME</span></a>
+        <a href="about.html"><i data-lucide="info"></i> <span class="nav-text">ABOUT</span></a>
+        <a href="project.html"><i data-lucide="gamepad-2"></i> <span class="nav-text">PROJECTS</span></a>
+        <a href="hub.html"><i data-lucide="layout-dashboard"></i> <span class="nav-text">HUB</span></a>
+        <a href="contact.html"><i data-lucide="mail"></i> <span class="nav-text">CONTACTS</span></a>
       </nav>
     </div>
 
@@ -162,7 +171,7 @@
     <!-- SIGN IN CTA (se non loggato) -->
     <div id="lbCta" class="lb-cta hidden">
       <p>Want your name on this board?</p>
-      <button class="auth-cta-btn" onclick="openAuthModal()">SIGN IN / REGISTER</button>
+      <button class="auth-cta-btn" onclick="openAuthModal()"><i data-lucide="log-in"></i> SIGN IN / REGISTER</button>
     </div>
 
   </main>
@@ -176,8 +185,8 @@
         </div>
         <p>Free indie games &amp; digital experiments, made by a small team of computer science students in Milan, Italy.</p>
         <div class="footer-social">
-          <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord">💬</a>
-          <a href="contact.html" aria-label="Contact LSD Software">✉️</a>
+          <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord"><i data-lucide="message-square"></i></a>
+          <a href="contact.html" aria-label="Contact LSD Software"><i data-lucide="mail"></i></a>
         </div>
       </div>
 
@@ -224,6 +233,7 @@
   <script src="js/fetch-utils.js"></script>
   <script src="js/script.js"></script>
   <script src="js/cookie-banner.js"></script>
+  <script <script src="js/icons.js"></script>
   <script src="js/auth-modal.js"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/leaderboard-console.js"></script>

@@ -316,3 +316,31 @@ footer {
   #menu a { font-size: 15px; }
   #menu { gap: 14px; }
 }
+
+/* ── Lucide icons globali ───────────────────────────────────── */
+/* Icone nella navbar principale */
+#menu a i[data-lucide],
+#menu a svg {
+  width: 15px; height: 15px;
+  vertical-align: middle;
+  margin-right: 4px;
+  stroke-width: 2;
+  display: inline-block;
+}
+/* Su mobile la nav si apre verticalmente — le icone restano proporzionate */
+@media (max-width: 700px) {
+  #menu a i[data-lucide],
+  #menu a svg { width: 14px; height: 14px; }
+  .nav-text { display: inline; }
+}
+
+/* #authNavBtn icon */
+#authNavBtn i[data-lucide],
+#authNavBtn svg { width: 14px; height: 14px; vertical-align: middle; margin-right: 4px; }
+
+/* Footer social icons */
+.footer-social a i[data-lucide],
+.footer-social a svg { width: 18px; height: 18px; vertical-align: middle; }
+
+/* Utility: tutte le istanze lucide ereditano il colore corrente */
+[data-lucide], svg.lucide { color: inherit; stroke: currentColor; }

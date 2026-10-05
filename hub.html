@@ -2,8 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="img/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- ── PWA ──────────────────────────────────────────────── -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#baa701">
+  <meta name="mobile-web-app-capable" content="yes">
+  <!-- iPhone: icona e splash screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LSD Hub">
+  <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png">
+  <!-- Favicon aggiornato dalle icone PWA generate -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/pwa/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/pwa/favicon-16.png">
+  <link rel="icon" href="/img/pwa/favicon.ico">
 
   <title>Hub | LSD Software</title>
   <meta name="description" content="Your LSD Software account hub — track your LSD Dust, badges, profile and jump into any game.">
@@ -19,6 +32,7 @@
   <link rel="stylesheet" href="css/hub.css">
   <link rel="stylesheet" href="css/cosmetics.css">
   <link rel="stylesheet" href="css/footer.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js"></script>
 </head>
 <body id="hubBody">
 
@@ -29,11 +43,11 @@
       <span>LSD SOFTWARE</span>
     </a>
     <div class="hub-nav-links">
-      <button class="hub-nav-btn active" data-tab="home" onclick="setHubTab('home')">🏠 <span class="nav-label">HOME</span></button>
-      <button class="hub-nav-btn" data-tab="profilo" onclick="setHubTab('profilo')">👤 <span class="nav-label">PROFILO</span></button>
-      <button class="hub-nav-btn" data-tab="impostazioni" onclick="setHubTab('impostazioni')">⚙️ <span class="nav-label">IMPOSTAZIONI</span></button>
-      <button class="hub-nav-btn" data-tab="amici" onclick="setHubTab('amici')">👥 <span class="nav-label">AMICI</span></button>
-      <a class="hub-nav-btn" href="leaderboard.html">🏆 <span class="nav-label">LEADERBOARD</span></a>
+      <button class="hub-nav-btn active" data-tab="home" onclick="setHubTab('home')"><i data-lucide="home"></i> <span class="nav-label">HOME</span></button>
+      <button class="hub-nav-btn" data-tab="profilo" onclick="setHubTab('profilo')"><i data-lucide="user"></i> <span class="nav-label">PROFILO</span></button>
+      <button class="hub-nav-btn" data-tab="impostazioni" onclick="setHubTab('impostazioni')"><i data-lucide="settings"></i> <span class="nav-label">IMPOSTAZIONI</span></button>
+      <button class="hub-nav-btn" data-tab="amici" onclick="setHubTab('amici')"><i data-lucide="users"></i> <span class="nav-label">AMICI</span></button>
+      <a class="hub-nav-btn" href="leaderboard.html"><i data-lucide="trophy"></i> <span class="nav-label">LEADERBOARD</span></a>
     </div>
     <div id="hubDustPill" class="hidden">✨ <span id="hubDustNum">0</span></div>
 
@@ -72,7 +86,7 @@
       <h2>🔒 Sign in to open your Hub</h2>
       <p>Track your LSD Dust, badges, profile and friends — all in one place.</p>
       <br>
-      <button class="auth-cta-btn" onclick="openAuthModal()">SIGN IN / REGISTER</button>
+      <button class="auth-cta-btn" onclick="openAuthModal()"><i data-lucide="log-in"></i> SIGN IN / REGISTER</button>
     </div>
 
     <!-- ── CONTENUTO (visibile solo da loggati) ────────────────── -->
@@ -97,7 +111,7 @@
           <button class="friend-btn add" onclick="loadHomeStats(false)" style="flex-shrink:0;">Retry</button>
         </div>
 
-        <h3 class="hub-section-title">🎮 Jump into a game</h3>
+        <h3 class="hub-section-title"><i data-lucide="gamepad-2"></i> Jump into a game</h3>
         <div class="hub-games-grid">
           <a class="hub-game-tile" href="cardGameWeb/main.html">
             <div class="tile-bg" style="background-image:url('img/logoCG.png'); background-color:#3a0000;"></div>
@@ -122,7 +136,7 @@
           </a>
         </div>
 
-        <h3 class="hub-section-title">🏅 Your badges</h3>
+        <h3 class="hub-section-title"><i data-lucide="medal"></i> Your badges</h3>
         <div class="hub-card">
           <div id="homeBadgesGrid" class="badges-grid"></div>
           <div id="homeNoBadges" class="hub-empty-state hidden">
@@ -135,7 +149,7 @@
 
       <!-- PROFILO ---------------------------------------------- -->
       <section class="hub-tab" id="tab-profilo">
-        <h3 class="hub-section-title">👤 Your Profile</h3>
+        <h3 class="hub-section-title"><i data-lucide="user-circle"></i> Your Profile</h3>
 
         <div class="hub-card lsd-profile-card bg-midnight" id="shopProfileCard" style="margin-bottom:24px;">
           <div class="hub-profile-header" style="margin-bottom:0;">
@@ -159,7 +173,7 @@
 
       <!-- IMPOSTAZIONI ------------------------------------------ -->
       <section class="hub-tab" id="tab-impostazioni">
-        <h3 class="hub-section-title">⚙️ Account Settings</h3>
+        <h3 class="hub-section-title"><i data-lucide="settings-2"></i> Account Settings</h3>
         <div class="hub-card">
           <div class="hub-settings-row">
             <div>
@@ -187,7 +201,7 @@
 
       <!-- AMICI --------------------------------------------------- -->
       <section class="hub-tab" id="tab-amici">
-        <h3 class="hub-section-title">👥 Friends</h3>
+        <h3 class="hub-section-title"><i data-lucide="users"></i> Friends</h3>
 
         <div class="hub-card" id="friendsRoot">
           <div class="friends-section-label">🔍 Find players</div>
@@ -221,7 +235,7 @@
         </div>
 
         <!-- ── CHAT (DM + gruppi) ────────────────────────────── -->
-        <h3 class="hub-section-title" style="margin-top:28px;">💬 Messages <span style="font-size:0.65rem; color:rgba(255,255,255,0.35); font-family:'Courier New',monospace; letter-spacing:0;">— disappear after 48h</span></h3>
+        <h3 class="hub-section-title" style="margin-top:28px;"><i data-lucide="message-circle"></i> Messages <span style="font-size:0.65rem; color:rgba(255,255,255,0.35); font-family:'Courier New',monospace; letter-spacing:0;">— disappear after 48h</span></h3>
         <div class="hub-card" id="messagesRoot" style="padding:0; overflow:hidden;">
           <div class="chat-layout">
             <div class="chat-sidebar">
@@ -263,8 +277,8 @@
         </div>
         <p>Free indie games &amp; digital experiments, made by a small team of computer science students in Milan, Italy.</p>
         <div class="footer-social">
-          <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord">💬</a>
-          <a href="contact.html" aria-label="Contact LSD Software">✉️</a>
+          <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord"><i data-lucide="message-square"></i></a>
+          <a href="contact.html" aria-label="Contact LSD Software"><i data-lucide="mail"></i></a>
         </div>
       </div>
       <div class="footer-col">
@@ -303,8 +317,39 @@
     </div>
   </footer>
 
+  <!-- PWA loading screen: visibile solo durante aggiornamenti -->
+  <div id="pwaLoadingScreen" style="display:none; position:fixed; inset:0; z-index:99999;
+       background:#0a0a0a; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+    <img src="/img/pwa/icon-192.png" alt="LSD Hub" style="width:80px; height:80px; border-radius:50%; border:2px solid #baa701;">
+    <div style="font-family:'Cinzel',serif; color:#baa701; font-size:1rem; letter-spacing:3px;">LSD SOFTWARE</div>
+    <div id="pwaLoadingMsg" style="color:rgba(255,255,255,0.5); font-family:'Courier New',monospace; font-size:0.78rem;">Checking for updates…</div>
+    <div style="width:200px; height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
+      <div id="pwaLoadingBar" style="height:100%; width:0%; background:linear-gradient(90deg,#a10000,#baa701); border-radius:2px; transition:width 0.4s ease;"></div>
+    </div>
+  </div>
+
+  <!-- Install banner: appare solo quando la PWA è installabile -->
+  <div id="pwaInstallBanner" style="display:none; position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+       z-index:9998; background:linear-gradient(135deg,#141414,#0a0a0a); border:1.5px solid #baa701;
+       border-radius:14px; padding:14px 20px; max-width:min(420px,calc(100vw - 32px));
+       box-shadow:0 8px 32px rgba(0,0,0,0.6); display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+    <img src="/img/pwa/icon-96.png" style="width:42px; height:42px; border-radius:10px; flex-shrink:0;">
+    <div style="flex:1; min-width:0;">
+      <div style="font-family:'Cinzel',serif; color:#fff; font-size:0.85rem; font-weight:700;">Install LSD Hub</div>
+      <div style="color:rgba(255,255,255,0.5); font-size:0.72rem;">Add to home screen for the full experience</div>
+    </div>
+    <div style="display:flex; gap:8px; flex-shrink:0;">
+      <button id="pwaInstallBtn" style="background:linear-gradient(135deg,#d4b800,#baa701); color:#0d0d0d;
+              border:none; border-radius:8px; padding:8px 16px; font-family:'Cinzel',serif;
+              font-weight:700; font-size:0.75rem; cursor:pointer; letter-spacing:1px;">INSTALL</button>
+      <button id="pwaInstallDismiss" style="background:transparent; border:1px solid rgba(255,255,255,0.15);
+              color:rgba(255,255,255,0.5); border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem;">✕</button>
+    </div>
+  </div>
+
   <script src="cardGameWeb/js_cg/api.js"></script>
   <script src="js/fetch-utils.js"></script>
+  <script src="js/icons.js"></script>
   <script src="js/auth-modal.js"></script>
   <script src="js/badges.js"></script>
   <script src="js/profile-view.js"></script>
@@ -314,6 +359,91 @@
   <script src="js/messages.js"></script>
   <script src="js/push.js"></script>
   <script src="js/footer.js"></script>
+
+  <script>
+  // ── PWA: Registrazione Service Worker + controllo versione ──
+  (function () {
+    const API = "https://lsd-backend-4phu.onrender.com";
+    const VERSION_KEY = "lsd_app_version";
+    const screen = document.getElementById("pwaLoadingScreen");
+    const bar    = document.getElementById("pwaLoadingBar");
+    const msg    = document.getElementById("pwaLoadingMsg");
+
+    function setProgress(pct, text) {
+      bar.style.width = pct + "%";
+      if (text) msg.textContent = text;
+    }
+
+    async function checkVersionAndUpdate() {
+      if (!("serviceWorker" in navigator)) return;
+
+      // Mostra la schermata solo se c'è già un SW (= app già installata)
+      const existing = await navigator.serviceWorker.getRegistration();
+      if (existing) {
+        screen.style.display = "flex";
+        setProgress(20, "Checking for updates…");
+      }
+
+      try {
+        // 1) Registra / aggiorna il SW
+        const reg = await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
+        setProgress(50, "Loading…");
+
+        // 2) Controlla la versione sul backend
+        const res = await lsdFetch(API + "/version", {}, 12000);
+        if (res.ok) {
+          const { version: serverVersion } = await res.json();
+          const localVersion = localStorage.getItem(VERSION_KEY);
+
+          if (localVersion && localVersion !== serverVersion && reg.waiting) {
+            // Nuova versione disponibile — attiva il nuovo SW
+            setProgress(75, "Installing update…");
+            reg.waiting.postMessage({ type: "SKIP_WAITING" });
+            await new Promise(r => setTimeout(r, 800));
+            setProgress(100, "Updated! Reloading…");
+            localStorage.setItem(VERSION_KEY, serverVersion);
+            await new Promise(r => setTimeout(r, 600));
+            window.location.reload();
+            return;
+          }
+          localStorage.setItem(VERSION_KEY, serverVersion);
+        }
+      } catch (e) {
+        console.warn("PWA version check failed (offline?):", e.message);
+      }
+
+      setProgress(100, "Ready!");
+      await new Promise(r => setTimeout(r, 200));
+      screen.style.display = "none";
+    }
+
+    // Aspetta che fetch-utils.js sia caricato (lsdFetch disponibile)
+    document.addEventListener("DOMContentLoaded", checkVersionAndUpdate);
+
+    // ── Install prompt (Android Chrome / Edge) ──────────────
+    let installPrompt = null;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      installPrompt = e;
+      // Non mostrare se già installata o se l'utente l'ha già rifiutata
+      if (localStorage.getItem("lsd_pwa_dismissed")) return;
+      document.getElementById("pwaInstallBanner").style.display = "flex";
+    });
+
+    document.getElementById("pwaInstallBtn")?.addEventListener("click", async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      document.getElementById("pwaInstallBanner").style.display = "none";
+      installPrompt = null;
+    });
+
+    document.getElementById("pwaInstallDismiss")?.addEventListener("click", () => {
+      document.getElementById("pwaInstallBanner").style.display = "none";
+      localStorage.setItem("lsd_pwa_dismissed", "1");
+    });
+  })();
+  </script>
   <script>
     // ── Tab switching ──────────────────────────────────────────
     function setHubTab(tab) {

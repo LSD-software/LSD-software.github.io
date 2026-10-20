@@ -4,7 +4,7 @@
 // ============================================================
 (function () {
   const API = "https://lsd-backend-4phu.onrender.com";
-  const POLL_INTERVAL_MS = 4000;
+  const POLL_INTERVAL_MS = 8000;
 
   let activeConvoId = null;
   let pollTimer = null;
@@ -50,7 +50,9 @@
     wireComposer();
     wireGroupCreate();
     await reloadConversationList();
-    setInterval(reloadConversationList, 10000); // aggiorna la lista ogni 10s
+    setInterval(() => {
+      if (!document.hidden) reloadConversationList();
+    }, 20000); // riduce il polling, soprattutto sulle schede in background
   }
 
   // ── Lista conversazioni ──────────────────────────────────
@@ -105,7 +107,9 @@
     call(`/messages/conversations/${id}/read`, "POST", {}).then(reloadConversationList).catch(() => {});
 
     clearInterval(pollTimer);
-    pollTimer = setInterval(() => loadMessages(false), POLL_INTERVAL_MS);
+    pollTimer = setInterval(() => {
+      if (!document.hidden) loadMessages(false);
+    }, POLL_INTERVAL_MS);
   }
 
   function showChatPanel() {

@@ -1,6 +1,6 @@
 // cookie-banner.js — lightweight GDPR/ePrivacy notice
 (function () {
-  if (localStorage.getItem("cookie_consent") === "1") return;
+  if (["1", "0"].includes(localStorage.getItem("cookie_consent"))) return;
 
   const banner = document.createElement("div");
   banner.id = "cookie-banner";
@@ -16,13 +16,13 @@
   banner.innerHTML = `
     <span style="flex:1;min-width:260px;line-height:1.6;">
       🍪 We use only essential cookies and localStorage to keep you logged in and save your game progress.
-      No advertising or analytics tracking.
+      No advertising or analytics tracking is loaded.
       <a href="cookies.html" style="color:gold;text-decoration:underline;">Cookie Policy</a> &nbsp;·&nbsp;
       <a href="privacy.html" style="color:gold;text-decoration:underline;">Privacy Policy</a>
     </span>
     <div style="display:flex;gap:10px;flex-shrink:0;">
       <button id="cookie-accept" style="background:#a10000;color:#baa701;border:none;padding:9px 22px;cursor:pointer;font-family:inherit;font-size:0.88rem;border-radius:5px;letter-spacing:1px;">
-        ✓ ACCEPT
+        ✓ OK
       </button>
       <button id="cookie-decline" style="background:transparent;color:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.2);padding:9px 16px;cursor:pointer;font-family:inherit;font-size:0.82rem;border-radius:5px;">
         Decline optional

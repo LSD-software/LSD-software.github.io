@@ -38,7 +38,7 @@ try {
 } catch(e) {}
 
 let audio = new Audio();
-audio.preload = "auto";
+audio.preload = "none"; // Do not download multi-MB tracks before playback is requested.
 
 function _loadTrack(idx) {
   audio.src = _shuffledPlaylist[idx % _shuffledPlaylist.length];
@@ -82,11 +82,15 @@ function tryPlay() {
   });
 }
 
-// Salva volume e mute ogni 500ms
-setInterval(() => {
+// Persist settings only when they change instead of writing to localStorage twice per second.
+audio.addEventListener("volumechange", () => {
   _saveVolume(audio.volume);
   _saveMuted(audio.muted);
-}, 500);
+});
+window.addEventListener("pagehide", () => {
+  _saveVolume(audio.volume);
+  _saveMuted(audio.muted);
+});
 
 // Riprendi se la tab torna in foreground
 document.addEventListener("visibilitychange", () => {

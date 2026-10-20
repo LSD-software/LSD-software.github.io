@@ -1,138 +1,130 @@
-// ============================================================
-// sw.js — Service Worker: PWA caching + notifiche push
-// ============================================================
-// VERSIONE CACHE — incrementata automaticamente ad ogni deploy
-// (il frontend la confronta con /version sul backend per decidere
-// se mostrare la schermata di aggiornamento)
-const CACHE_NAME = "lsd-hub-v1.0.1";
-const CACHE_FIRST = ["/img/", "/css/", "/js/", "/fonts/", "manifest.json"];
-const ALWAYS_NETWORK = ["/api/", "lsd-backend-4phu.onrender.com", "/version"];
-
-// File da precachare subito all'installazione (la shell dell'app)
+// LSD Software PWA service worker.
+// Keep this version in sync with each frontend release.
+const CACHE_NAME = "lsd-shell-v1.0.2";
+const STATIC_CACHE = "lsd-static-v1.0.2";
+const MAX_RUNTIME_ENTRIES = 80;
 const PRECACHE_URLS = [
   "/hub.html",
-  "/css/style.css",
-  "/css/hub.css",
-  "/css/auth-modal.css",
-  "/css/badges.css",
-  "/css/cosmetics.css",
-  "/css/footer.css",
-  "/js/fetch-utils.js",
-  "/js/icons.js",
-  "/js/auth-modal.js",
-  "/js/badges.js",
-  "/js/dust.js",
-  "/js/shop.js",
-  "/js/friends.js",
-  "/js/messages.js",
-  "/js/push.js",
-  "/js/profile-view.js",
-  "/js/footer.js",
-  "/js/script.js",
-  "/js/cookie-banner.js",
+  "/css/style.css", "/css/hub.css", "/css/auth-modal.css",
+  "/css/badges.css", "/css/cosmetics.css", "/css/footer.css",
+  "/js/fetch-utils.js", "/js/icons.js", "/js/auth-modal.js",
+  "/js/badges.js", "/js/dust.js", "/js/shop.js", "/js/friends.js",
+  "/js/messages.js", "/js/push.js", "/js/profile-view.js",
+  "/js/footer.js", "/js/script.js", "/js/cookie-banner.js",
   "/cardGameWeb/js_cg/api.js",
-  "/img/icon.png",
-  "/img/pwa/icon-192.png",
-  "/img/pwa/icon-512.png",
-  "/img/pwa/apple-touch-icon.png",
-  "/manifest.json",
+  "/img/icon.png", "/img/pwa/icon-192.png", "/img/pwa/icon-512.png",
+  "/img/pwa/apple-touch-icon.png", "/manifest.json"
 ];
 
-// ── Installazione ────────────────────────────────────────────
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS).catch(() => {}))
-  );
-  // Prendi subito il controllo senza aspettare che le vecchie tab vengano chiuse
-  self.skipWaiting();
+async function trimCache(cacheName, maxEntries = MAX_RUNTIME_ENTRIES) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxEntries) {
+    await Promise.all(keys.slice(0, keys.length - maxEntries).map(key => cache.delete(key)));
+  }
+}
+
+self.addEventListener("install", event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // Cache valid shell files individually so a single missing asset won't cancel all caching.
+    await Promise.all(PRECACHE_URLS.map(async path => {
+      try {
+        const response = await fetch(path, { cache: "reload" });
+        if (response.ok) await cache.put(path, response);
+      } catch (_) { /* Offline or optional asset: continue installing. */ }
+    }));
+    await self.skipWaiting();
+  })());
 });
 
-// ── Attivazione (pulisce cache vecchie) ──────────────────────
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+self.addEventListener("activate", event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key.startsWith("lsd-") && key !== CACHE_NAME && key !== STATIC_CACHE)
+      .map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
-// ── Strategia di fetch ───────────────────────────────────────
-self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.method !== "GET") return;
 
-  // Sempre dalla rete: API backend, dati real-time
-  if (ALWAYS_NETWORK.some((p) => url.href.includes(p))) {
-    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+  const url = new URL(request.url);
+  // Never cache cross-origin requests (API, CDN, external resources) or media.
+  if (url.origin !== self.location.origin) return;
+  if (request.destination === "audio" || request.destination === "video") return;
+
+  // Never store API or account-sensitive endpoints in the service-worker cache.
+  if (/\/(auth|game|console|messages|friends|profiles|shop|push|pesca|dust|trophies|badges)(\/|$)/i.test(url.pathname)) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
     return;
   }
 
-  // Immagini, CSS, JS, font: cache-first (veloce offline)
-  if (
-    CACHE_FIRST.some((p) => url.pathname.startsWith(p)) ||
-    event.request.destination === "image" ||
-    event.request.destination === "style" ||
-    event.request.destination === "script" ||
-    event.request.destination === "font"
-  ) {
-    event.respondWith(
-      caches.match(event.request).then((cached) => {
-        if (cached) return cached;
-        return fetch(event.request).then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(event.request, clone));
-          return res;
-        });
-      })
-    );
+  const isStatic = /\.(?:css|js|png|jpe?g|webp|svg|ico|woff2?|ttf)$/i.test(url.pathname)
+    || url.pathname.endsWith("/manifest.json");
+  if (isStatic) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      const response = await fetch(request);
+      if (response.ok && response.type === "basic") {
+        await cache.put(request, response.clone());
+        await trimCache(CACHE_NAME);
+      }
+      return response;
+    })());
     return;
   }
 
-  // HTML e tutto il resto: network-first, fallback su cache
-  event.respondWith(
-    fetch(event.request)
-      .then((res) => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(event.request, clone));
+  // Navigation: fresh content first, cached shell as offline fallback.
+  if (request.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname === "/") {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request);
+        if (response.ok && response.type === "basic") {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+          await trimCache(CACHE_NAME);
         }
-        return res;
-      })
-      .catch(() => caches.match(event.request))
-  );
+        return response;
+      } catch (_) {
+        return (await caches.match(request)) || (await caches.match("/hub.html")) || Response.error();
+      }
+    })());
+  }
 });
 
-// ── Notifiche push ───────────────────────────────────────────
-self.addEventListener("push", (event) => {
+self.addEventListener("push", event => {
   if (!event.data) return;
   let payload;
-  try { payload = event.data.json(); } catch { payload = { title: "LSD Software", body: event.data.text() }; }
-
-  event.waitUntil(
-    self.registration.showNotification(payload.title || "LSD Software", {
-      body: payload.body || "",
-      icon: "/img/pwa/icon-192.png",
-      badge: "/img/pwa/icon-96.png",
-      tag: payload.tag || "lsd-notification",
-      data: { url: payload.url || "/hub.html" },
-      renotify: true,
-    })
-  );
+  try { payload = event.data.json(); }
+  catch (_) { payload = { title: "LSD Software", body: event.data.text() }; }
+  event.waitUntil(self.registration.showNotification(payload.title || "LSD Software", {
+    body: payload.body || "",
+    icon: "/img/pwa/icon-192.png",
+    badge: "/img/pwa/icon-96.png",
+    tag: payload.tag || "lsd-notification",
+    data: { url: payload.url || "/hub.html" },
+    renotify: true
+  }));
 });
 
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener("notificationclick", event => {
   event.notification.close();
-  const url = event.notification.data?.url || "/hub.html";
-  event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
-      const existing = clients.find((c) => c.url.includes("hub.html"));
-      if (existing) return existing.focus();
-      return self.clients.openWindow(url);
-    })
-  );
+  const requested = event.notification.data?.url || "/hub.html";
+  // Notifications may only navigate within this app's origin.
+  const target = new URL(requested, self.location.origin);
+  const safeUrl = target.origin === self.location.origin ? target.href : new URL("/hub.html", self.location.origin).href;
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(clients => {
+    const existing = clients.find(client => new URL(client.url).origin === self.location.origin);
+    if (existing) return existing.focus();
+    return self.clients.openWindow(safeUrl);
+  }));
 });
 
-// ── Messaggio dall'app (es. skipWaiting forzato) ────────────
-self.addEventListener("message", (event) => {
+self.addEventListener("message", event => {
   if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });

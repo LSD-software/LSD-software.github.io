@@ -4,7 +4,7 @@
 // VERSIONE CACHE — incrementata automaticamente ad ogni deploy
 // (il frontend la confronta con /version sul backend per decidere
 // se mostrare la schermata di aggiornamento)
-const CACHE_NAME = "lsd-hub-v1.0.0";
+const CACHE_NAME = "lsd-hub-v1.0.1";
 const CACHE_FIRST = ["/img/", "/css/", "/js/", "/fonts/", "manifest.json"];
 const ALWAYS_NETWORK = ["/api/", "lsd-backend-4phu.onrender.com", "/version"];
 
@@ -18,6 +18,7 @@ const PRECACHE_URLS = [
   "/css/cosmetics.css",
   "/css/footer.css",
   "/js/fetch-utils.js",
+  "/js/icons.js",
   "/js/auth-modal.js",
   "/js/badges.js",
   "/js/dust.js",

@@ -267,3 +267,57 @@
   .hub-hero { padding: 20px; }
   .hub-hero-stats { margin-left: 0; width: 100%; justify-content: space-between; }
 }
+
+
+/* ── Responsive refinements: mobile browser + installed PWA ── */
+*, *::before, *::after { box-sizing: border-box; }
+#hubBody { width: 100%; overflow-x: hidden; padding-bottom: env(safe-area-inset-bottom, 0px); }
+#hubNavbar { padding-top: max(10px, env(safe-area-inset-top, 0px)); }
+#hubMain { width: 100%; min-width: 0; }
+.hub-tab, .hub-panel, .hub-card, .hub-section, .chat-layout, .friends-layout { min-width: 0; }
+.hub-games-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: clamp(12px, 2.5vw, 22px); }
+.hub-game-tile { min-width: 0; }
+.hub-hero { gap: 18px; }
+.hub-hero-text, .hub-hero-stats { min-width: 0; }
+.hub-section-title { line-height: 1.35; overflow-wrap: anywhere; }
+#hubMain input, #hubMain select, #hubMain textarea, #hubMain button { max-width: 100%; }
+#hubMain input, #hubMain select, #hubMain textarea { min-width: 0; }
+
+@media (max-width: 700px) {
+  #hubNavbar { position: sticky; padding: 8px 10px; gap: 8px; align-items: center; }
+  #hubNavbar .hub-logo { margin-right: 0; gap: 0; }
+  #hubNavbar .hub-logo img { width: 34px; height: 34px; object-fit: contain; }
+  .hub-nav-links { flex: 1 1 100%; order: 3; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; width: 100%; }
+  .hub-nav-btn { min-width: 0; justify-content: center; padding: 9px 4px; font-size: .62rem; letter-spacing: 0; border-radius: 9px; gap: 0; }
+  .hub-nav-btn .nav-label { display: none; }
+  .hub-nav-btn svg, .hub-nav-btn i[data-lucide] { width: 19px; height: 19px; }
+  #hubDustPill { margin-left: auto; padding: 6px 9px; font-size: .75rem; }
+  #authNavBtn { margin-left: 0 !important; padding: 5px 7px; display: flex; align-items: center; gap: 6px; font-size: .72rem; }
+  #hubMain { padding: 18px 12px calc(34px + env(safe-area-inset-bottom, 0px)); }
+  .hub-hero { padding: 17px; border-radius: 14px; }
+  .hub-hero h2 { font-size: clamp(1.15rem, 5vw, 1.65rem); line-height: 1.25; overflow-wrap: anywhere; }
+  .hub-hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+  .hub-stat-chip { min-width: 0; padding: 9px 5px; text-align: center; }
+  .hub-stat-chip .num { font-size: clamp(1rem, 4.5vw, 1.4rem); }
+  .hub-stat-chip .lbl { font-size: .62rem; overflow-wrap: anywhere; }
+  .hub-games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .hub-game-tile { min-height: 135px; border-radius: 12px; }
+  .tile-overlay { padding: 11px; }
+  .tile-title { font-size: clamp(.78rem, 3.5vw, .98rem); overflow-wrap: anywhere; }
+  .tile-sub { font-size: .68rem; line-height: 1.35; }
+  .hub-section-title { margin-bottom: 12px; font-size: .95rem; letter-spacing: 1px; gap: 7px; }
+  .hub-section-title svg { flex: 0 0 auto; width: 17px; height: 17px; }
+  .chat-layout { grid-template-columns: minmax(0, 1fr); max-height: none; }
+  .chat-sidebar { max-height: 180px; padding: 10px; }
+  .chat-thread { padding: 12px; }
+  .chat-msg { max-width: 90%; }
+  .chat-composer { padding: 10px; }
+  #hubMain .friend-btn, #hubMain .auth-cta-btn { min-height: 40px; }
+}
+@media (max-width: 380px) {
+  #hubMain { padding-left: 9px; padding-right: 9px; }
+  .hub-games-grid { gap: 8px; }
+  .hub-game-tile { min-height: 120px; }
+  .hub-hero-stats { gap: 5px; }
+  .hub-stat-chip .lbl { font-size: .58rem; }
+}

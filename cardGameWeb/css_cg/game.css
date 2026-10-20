@@ -604,3 +604,20 @@ body {
   #debuffsPanel { min-width:32px; max-width:44px; }
   .debuff-item { width:clamp(26px,3.2vw,38px);height:clamp(26px,3.2vw,38px);font-size:clamp(11px,1.6vw,17px); }
 }
+
+
+/* Mobile/PWA refinements: safe-area spacing, touch targets and landscape fit. */
+#gameBody { width: 100%; min-width: 0; min-height: 100dvh; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+#gameWrapper, #table { min-width: 0; }
+button { touch-action: manipulation; }
+@media screen and (max-width: 700px) and (orientation: landscape) {
+  #topbar { padding: 4px 8px; }
+  #homeBtn { min-height: 34px; padding: 5px 8px; }
+  #table { gap: clamp(4px, 1vw, 10px); }
+  #controls button { min-width: 42px; min-height: 42px; }
+  #betControls button { min-width: 34px; min-height: 34px; }
+}
+@media screen and (max-width: 380px) and (orientation: landscape) {
+  .stat { font-size: 11px; }
+  #homeBtn { font-size: 9px; letter-spacing: 0; }
+}

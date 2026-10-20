@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, minimum-scale=0.4, maximum-scale=3.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" type="image/png" href="data_cg/logo.png">
+  <link rel="manifest" href="../manifest.json">
 
   <!-- SEO PRIMARY -->
   <title>LSD Card Game | Free Psychedelic Casino Card Game — Play in Browser</title>
@@ -105,5 +106,6 @@
   <script src="js_cg/storage.js"></script>
   <script src="js_cg/audio.js"></script>
   <script src="js_cg/main.js"></script>
+  <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("../sw.js", { updateViaCache: "none" }).catch(err => console.warn("PWA service worker registration failed", err)));</script>
 </body>
 </html>

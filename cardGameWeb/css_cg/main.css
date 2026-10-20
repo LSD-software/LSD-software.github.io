@@ -110,10 +110,15 @@ body {
   to   { transform: rotate(360deg); }
 }
 
-/* Portrait — mostra overlay */
+/* Menu responsive anche in verticale: la schermata di gioco può richiedere landscape. */
 @media screen and (orientation: portrait) {
-  #container, #sezioneBT { display: none !important; }
-  #rotate-device { display: flex; }
+  body { min-height: 100dvh; height: auto; overflow-y: auto; overflow-x: hidden; }
+  #container { min-height: 100dvh; height: auto; padding: max(18px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom)); }
+  #sezioneBT { width: min(100%, 420px); max-width: 100%; padding: clamp(18px, 5vw, 30px) clamp(16px, 6vw, 28px); gap: clamp(12px, 3vh, 20px); }
+  #sezioneBT img { width: clamp(130px, 48vw, 240px); max-height: 24vh; }
+  #sezioneBT a, #sezioneBT button { width: 100%; }
+  #sezioneBT button { min-height: 46px; padding: 12px 16px; font-size: clamp(15px, 4vw, 19px); }
+  #rotate-device { display: none !important; }
 }
 
 /* Landscape piccolo — rimane comunque colonna, solo più compatto */
@@ -136,3 +141,5 @@ body {
     font-size: clamp(12px, 3vw, 17px);
   }
 }
+
+@media (prefers-reduced-motion: reduce) { #sezioneBT button { transition: none; } #sezioneBT button:hover { transform: none; } }

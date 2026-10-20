@@ -13,8 +13,8 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/img/pwa/favicon-16.png">
   <link rel="icon" type="image/png" href="img/icon.png">
 
-  <title>Contact LSD Software | Discord Community & Direct Lines — Milan</title>
-  <meta name="description" content="Contact LSD Software indie game studio from Milan. Call developers directly or join the official Discord server for game support, dev-logs, community chat and updates.">
+  <title>Contact LSD Software | Official Discord Community</title>
+  <meta name="description" content="Contact LSD Software through the official Discord community for game support, dev-logs, community chat and updates.">
   <meta name="keywords" content="contact LSD Software, LSD Software Discord, indie game support Milan, reach indie developers Italy, LSD Software community, Discord indie games">
   <meta name="author" content="LSD Software">
   <meta name="robots" content="index, follow">
@@ -23,15 +23,15 @@
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://lsd-software.github.io/contact.html">
-  <meta property="og:title" content="Contact LSD Software | Discord & Direct Lines">
-  <meta property="og:description" content="Reach the LSD Software team or join our Discord community for support and dev-logs.">
+  <meta property="og:title" content="Contact LSD Software | Official Discord Community">
+  <meta property="og:description" content="Contact the LSD Software team through our Discord community for support, dev-logs and updates.">
   <meta property="og:image" content="https://lsd-software.github.io/img/icon.png">
   <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="LSD Software">
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Contact LSD Software">
-  <meta name="twitter:description" content="Reach the LSD Software team or join our Discord.">
+  <meta name="twitter:description" content="Contact the LSD Software team through our official Discord community.">
   <meta name="twitter:image" content="https://lsd-software.github.io/img/icon.png">
 
   <script type="application/ld+json">
@@ -40,7 +40,7 @@
     "@type": "ContactPage",
     "name": "Contact LSD Software",
     "url": "https://lsd-software.github.io/contact.html",
-    "description": "Contact page for LSD Software indie game studio from Milan, Italy.",
+    "description": "Contact LSD Software through its official Discord community.",
     "breadcrumb": {
       "@type": "BreadcrumbList",
       "itemListElement": [
@@ -54,7 +54,8 @@
       "url": "https://lsd-software.github.io/",
       "contactPoint": {
         "@type": "ContactPoint",
-        "contactType": "customer support",
+        "contactType": "community support",
+        "url": "https://discord.gg/c4xhySpw7c",
         "availableLanguage": ["English", "Italian"]
       }
     }
@@ -65,6 +66,23 @@
   <link rel="stylesheet" href="css/contact.css">
   <link rel="stylesheet" href="css/footer.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js"></script>
+<script>
+(function () {
+  try {
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (!standalone) return;
+    const path = window.location.pathname;
+    const allowed = path === '/hub.html' || path.startsWith('/lsdConsole/') || path.startsWith('/cardGameWeb/') || path.startsWith('/pescaWeb/');
+    if (allowed) return;
+    const requested = window.location.href;
+    // A new tab normally escapes the installed-app window; browser policy may block
+    // automatic opening, so the Hub remains the safe fallback regardless.
+    try { window.open(requested, '_blank', 'noopener,noreferrer'); } catch (_) {}
+    window.location.replace('/hub.html');
+  } catch (_) {}
+})();
+</script>
+  <link rel="stylesheet" href="css/mobile-optimization.css">
 </head>
 <body>
   <header>
@@ -83,33 +101,18 @@
       </nav>
     </div>
 
-    <!-- Google tag (gtag.js) -->
   </header>
 
   <main id="container">
-    <div id="call-Module">
-      <h2 class="gold-text courier-prime-bold">DIRECT LINES</h2>
-      <p class="white-text">Need support or have a business inquiry? Call the team directly.</p>
-
-      <div class="button-grid">
-        <a href="tel:+393921182352" aria-label="Call Leonardo from LSD Software">
-          <button class="callB">📞 Call Leonardo</button>
-        </a>
-        <a href="tel:+393516087709" aria-label="Call SkyWalker from LSD Software">
-          <button class="callB">📞 Call SkyWalker</button>
-        </a>
-        <a href="tel:+393516087709" aria-label="Call Dario from LSD Software">
-          <button class="callB">📞 Call Dario</button>
-        </a>
-      </div>
-
-      <h2 class="gold-text courier-prime-bold">DIGITAL COMMUNITY</h2>
-      <p class="white-text">Join our Discord for patches, dev-logs, and community chat.</p>
-
-      <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join LSD Software Discord server">
-        <button class="dsB">JOIN DISCORD SERVER</button>
+    <section id="contact-module" aria-labelledby="contact-title">
+      <h2 id="contact-title" class="gold-text courier-prime-bold">CONTACT US ON DISCORD</h2>
+      <p class="white-text">For support, questions, feedback, patches and dev-logs, join the official LSD Software Discord community.</p>
+      <a class="dsB" href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the official LSD Software Discord server">
+        <i data-lucide="message-circle" aria-hidden="true"></i>
+        <span>JOIN DISCORD SERVER</span>
+        <i data-lucide="external-link" aria-hidden="true"></i>
       </a>
-    </div>
+    </section>
   </main>
 
     <footer class="site-footer">

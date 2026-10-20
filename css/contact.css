@@ -1,18 +1,18 @@
 h2.gold-text {
   color: gold;
   font-size: clamp(1.2rem, 4vw, 1.8rem);
-  margin-top: 36px;
-  margin-bottom: 10px;
+  margin: 0 0 12px;
   text-transform: uppercase;
   letter-spacing: 2px;
   font-family: "Courier Prime", monospace;
   text-align: center;
 }
 
-#call-Module {
+#contact-module {
+  box-sizing: border-box;
+  width: min(100% - 32px, 860px);
   text-align: center;
-  padding: 24px 20px 32px;
-  max-width: 860px;
+  padding: clamp(24px, 5vw, 44px) clamp(16px, 4vw, 32px);
   margin: 0 auto;
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 215, 0, 0.25);
@@ -21,96 +21,71 @@ h2.gold-text {
 
 .white-text {
   color: white;
-  margin-bottom: 20px;
+  margin: 0 auto 24px;
+  max-width: 58ch;
   font-family: "Courier Prime", monospace;
-  font-size: clamp(0.85rem, 2vw, 0.95rem);
-  line-height: 1.6;
-}
-
-.button-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 36px;
-}
-
-.callB {
-  min-width: 200px;
-  background: #800000;
-  color: white;
-  border: 2px solid gold;
-  border-radius: 5px;
-  padding: 16px 20px;
-  font-family: "Courier Prime", monospace;
-  font-weight: 700;
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
-  white-space: nowrap;
-}
-
-.callB:hover {
-  background: gold;
-  color: #800000;
-  transform: scale(1.04);
-  box-shadow: 0 0 14px rgba(255, 215, 0, 0.4);
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  line-height: 1.7;
 }
 
 .dsB {
-  min-width: 260px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: 100%;
+  min-height: 52px;
+  padding: 16px 24px;
   background: #5865F2;
   color: white;
   border: 2px solid white;
-  border-radius: 5px;
-  padding: 18px 28px;
+  border-radius: 8px;
   font-family: "Courier Prime", monospace;
   font-weight: 700;
   font-size: clamp(0.9rem, 2.5vw, 1rem);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.3s ease, color 0.3s ease, transform 0.25s ease, box-shadow 0.25s ease;
-  margin-top: 10px;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
-.dsB:hover {
+.dsB:hover,
+.dsB:focus-visible {
   background: white;
   color: #5865F2;
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(88, 101, 242, 0.45);
+  transform: translateY(-2px);
 }
 
-a {
-  text-decoration: none;
+.dsB:focus-visible {
+  outline: 3px solid gold;
+  outline-offset: 4px;
+}
+
+.dsB svg {
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
 }
 
 @media (max-width: 600px) {
-  .button-grid {
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
+  #contact-module {
+    width: calc(100% - 24px);
+    padding: 24px 16px;
   }
-  .callB {
-    width: 90%;
-    min-width: unset;
-    padding: 18px 24px;   /* padding orizzontale esplicito su mobile */
-    font-size: 1rem;
-    white-space: normal;  /* wrap del testo se necessario */
-  }
-  .dsB {
-    width: 90%;
-    min-width: unset;
-    padding: 18px 24px;
-    font-size: 1rem;
-  }
-  #call-Module {
-    padding: 20px 16px 28px;
-    margin: 0 10px;       /* margine laterale per non toccare i bordi */
-  }
+
   h2.gold-text {
-    font-size: 1.2rem;
     letter-spacing: 1px;
-    margin-top: 24px;
+    font-size: 1.15rem;
   }
+
+  .dsB {
+    width: 100%;
+    padding: 15px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dsB { transition: none; }
+  .dsB:hover, .dsB:focus-visible { transform: none; }
 }

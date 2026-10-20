@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>LSD Console — Play</title>
+<link rel="icon" type="image/png" href="console-icon.png">
+<link rel="apple-touch-icon" href="console-icon.png">
 <meta name="description" content="LSD Console: 6 games in one — LSD Attack Force, Target Shooting, Nation Builder, Attack of Zombies, Ball, Artist Maker.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
 <style>
@@ -462,6 +464,21 @@ body{
   </div>
 </div>
 
+<!-- Native DOM dialog: clipboard actions must run directly from a real user click. -->
+<div id="inviteLinkOverlay" role="dialog" aria-modal="true" aria-labelledby="inviteLinkTitle" style="display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.88);align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(6px);">
+  <div style="width:min(560px,100%);background:#0d0d0d;border:1px solid #baa701;border-radius:14px;padding:22px;box-shadow:0 0 35px #baa70122;color:#eee;font-family:monospace;">
+    <h3 id="inviteLinkTitle" style="margin:0 0 8px;color:#baa701;letter-spacing:2px;">INVITE A FRIEND</h3>
+    <p style="margin:0 0 14px;color:#aaa;line-height:1.5;">Share this link. Your friend can open it and join the room after choosing a fighter.</p>
+    <input id="inviteLinkField" readonly aria-label="Invite link" style="box-sizing:border-box;width:100%;padding:12px;border-radius:8px;border:1px solid #444;background:#050505;color:#fff;font:14px monospace;margin-bottom:12px;" />
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      <button id="copyInviteLinkButton" type="button" style="flex:1;min-width:130px;padding:12px;border:1px solid #baa701;border-radius:8px;background:#211f00;color:#ffe56b;font-weight:700;cursor:pointer;">📋 COPY LINK</button>
+      <button id="shareInviteLinkButton" type="button" style="flex:1;min-width:130px;padding:12px;border:1px solid #444;border-radius:8px;background:#222;color:#fff;font-weight:700;cursor:pointer;">↗ SHARE</button>
+      <button id="closeInviteLinkButton" type="button" style="flex:1;min-width:100px;padding:12px;border:1px solid #444;border-radius:8px;background:#111;color:#ccc;cursor:pointer;">CLOSE</button>
+    </div>
+    <p id="inviteLinkStatus" role="status" aria-live="polite" style="min-height:1.2em;margin:12px 0 0;color:#8ee58e;font-size:13px;"></p>
+  </div>
+</div>
+
 <script>
 // ============================================================
 //  LSD CONSOLE v4 — Complete rewrite with all fixes
@@ -469,6 +486,75 @@ body{
 
 const API_URL  = "https://lsd-backend-4phu.onrender.com";
 const SITE_URL = "https://lsd-software.github.io";
+
+function buildAFUEInviteUrl(code) {
+  const safeCode = String(code || "").trim();
+  if (!/^\d{6}$/.test(safeCode)) throw new Error("Codice stanza non valido");
+  // Use the current GitHub Pages project path instead of a hard-coded URL.
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("room", safeCode);
+  return url.toString();
+}
+
+function showAFUEInviteDialog(code) {
+  const overlay = document.getElementById("inviteLinkOverlay");
+  const field = document.getElementById("inviteLinkField");
+  const status = document.getElementById("inviteLinkStatus");
+  if (!overlay || !field || !status) return;
+  try {
+    field.value = buildAFUEInviteUrl(code);
+    status.textContent = "";
+    overlay.style.display = "flex";
+    field.focus();
+    field.select();
+  } catch (error) {
+    status.textContent = error.message || "Impossibile creare il link.";
+  }
+}
+
+async function copyAFUEInviteLink() {
+  const field = document.getElementById("inviteLinkField");
+  const status = document.getElementById("inviteLinkStatus");
+  if (!field || !status || !field.value) return;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(field.value);
+    } else {
+      field.focus(); field.select();
+      const copied = document.execCommand("copy");
+      if (!copied) throw new Error("Copia automatica non disponibile");
+    }
+    status.textContent = "Link copiato. Invialo al tuo amico!";
+  } catch {
+    field.focus(); field.select();
+    status.textContent = "Seleziona il link e copialo manualmente.";
+  }
+}
+
+(function bindAFUEInviteDialog() {
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("copyInviteLinkButton")?.addEventListener("click", copyAFUEInviteLink);
+    document.getElementById("closeInviteLinkButton")?.addEventListener("click", () => {
+      document.getElementById("inviteLinkOverlay").style.display = "none";
+    });
+    document.getElementById("shareInviteLinkButton")?.addEventListener("click", async () => {
+      const field = document.getElementById("inviteLinkField");
+      const status = document.getElementById("inviteLinkStatus");
+      if (!field?.value || !status) return;
+      if (navigator.share) {
+        try { await navigator.share({ title: "LSD Attack Force UE", text: "Unisciti alla mia partita!", url: field.value }); }
+        catch (error) { if (error?.name !== "AbortError") status.textContent = "Condivisione non disponibile: copia il link."; }
+      } else {
+        await copyAFUEInviteLink();
+      }
+    });
+    document.getElementById("inviteLinkOverlay")?.addEventListener("click", event => {
+      if (event.target.id === "inviteLinkOverlay") event.currentTarget.style.display = "none";
+    });
+  });
+})();
 
 // ── Canvas & Scale ──────────────────────────────────────────
 const canvas = document.getElementById("canvas");
@@ -1580,7 +1666,7 @@ class LSDAttackForceUE {
       }
       if(isButtonPressed(BASE_W/2,490,400,85)){ this.mode="cpu";   this.menuPhase="cpuDiff"; }
       if(isButtonPressed(BASE_W/2,610,400,85)){
-        if(!Auth.token){ showAuth(); return; }
+        // Online rooms support guest players; authenticated users still receive leaderboard stats.
         this.mode="online"; this.menuPhase="charSelect"; this.selectingFor=1;
       }
       return;
@@ -1626,6 +1712,12 @@ class LSDAttackForceUE {
               if(this.mode==="cpu"){
                 this.p2Char=this.p1Char==="grax"?"yuke":"grax";
                 this._finishSelection();
+              } else if(this.mode==="online" && this._autoJoinCode){
+                // Invite recipients choose one fighter and join the supplied room directly.
+                this.p2Char=c.key;
+                const inviteCode=this._autoJoinCode;
+                this._autoJoinCode=null;
+                this.joinRoom(inviteCode);
               } else {
                 this.selectingFor=2;
               }
@@ -1705,15 +1797,13 @@ class LSDAttackForceUE {
         }
         if(this._copyMsg&&millis()-this._copyMsg<2000) fillText("✓ Copied!",BASE_W/2+240,600,"#4EC600",16);
         // Share Link button
-        const shareUrl=`https://lsd-software.github.io/lsdConsole/?room=${code}`;
         fillRoundRect(BASE_W/2-220,610,440,48,"#1a1a00",1,10);
         strokeRoundRect(BASE_W/2-220,610,440,48,"#baa701",1.5,10);
-        fillText("🔗 COPY INVITE LINK",BASE_W/2,634,"#baa701",20);
+        fillText("🔗 SHARE INVITE LINK",BASE_W/2,634,"#baa701",20);
         if(isButtonPressed(BASE_W/2,634,440,48)){
-          navigator.clipboard?.writeText(shareUrl).catch(()=>{});
+          showAFUEInviteDialog(code);
           this._copyLinkMsg=millis();
         }
-        if(this._copyLinkMsg&&millis()-this._copyLinkMsg<2000) fillText("✓ Link copied!",BASE_W/2,672,"#4EC600",18);
         fillText("Waiting for opponent...",BASE_W/2,700,"#baa701",22);
       }
       if(this.onlineMsg) fillText(this.onlineMsg,BASE_W/2,720,"#ff6666",24);
@@ -4427,14 +4517,16 @@ function startGame() {
   document.getElementById("metaViewport").content =
     "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";
   requestAnimationFrame(loop);
-  fetch(API_URL+"/health").catch(()=>{});
 
   // Auto-join se URL contiene ?room=CODICE (link invito)
   const urlParams = new URLSearchParams(window.location.search);
   const roomCode  = urlParams.get("room");
   if(roomCode && /^\d{6}$/.test(roomCode)){
-    // Aspetta che l'utente scelga il personaggio, poi propone il join automatico
+    // Invite links open directly in online character selection; one fighter choice joins the room.
     game._autoJoinCode = roomCode;
+    game.mode = "online";
+    game.menuPhase = "charSelect";
+    game.selectingFor = 1;
   }
 }
 document.addEventListener("fullscreenchange",       () => setTimeout(resizeCanvas, 80));

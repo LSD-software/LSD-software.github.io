@@ -135,13 +135,15 @@ const Api = {
     return this.request(`/game/leaderboard?sortBy=${sortBy}`, "GET", null, 10000);
   },
 
-  // ── WAKE UP (sveglia Render free tier) ─────────────────
+  // ── OPTIONAL HEALTH CHECK ──────────────────────────────
+  // Do not ping /health automatically on every page load: privacy extensions may
+  // block the request (ERR_BLOCKED_BY_CLIENT). Real API calls wake Render when needed.
   async wakeUp() {
     try {
-      const res = await fetch(`${API_URL}/health`, { method: "GET" });
-      if (res.ok) console.log("🟢 Server awake");
-    } catch(e) {
-      console.warn("⚠️ Server warming up, first request may be slow…");
+      const res = await fetch(`${API_URL}/health`, { method: "GET", cache: "no-store" });
+      return res.ok;
+    } catch (_) {
+      return false;
     }
   },
 
@@ -155,9 +157,3 @@ const Api = {
   }
 };
 
-// Sveglia il server appena la pagina si carica
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => Api.wakeUp());
-} else {
-  Api.wakeUp();
-}

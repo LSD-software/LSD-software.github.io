@@ -1,8 +1,8 @@
 /* LSD Software — robust Lucide icon initializer. */
 (function () {
   const CDN_URLS = [
-    "https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js",
-    "https://unpkg.com/lucide@0.383.0/dist/umd/lucide.min.js"
+    "https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js",
+    "https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"
   ];
   let loading = false;
   let observerStarted = false;

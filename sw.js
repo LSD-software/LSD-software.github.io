@@ -1,7 +1,7 @@
 // LSD Software PWA service worker.
 // Keep this version in sync with each frontend release.
-const CACHE_NAME = "lsd-shell-v1.0.2";
-const STATIC_CACHE = "lsd-static-v1.0.2";
+const CACHE_NAME = "lsd-shell-v1.0.3";
+const STATIC_CACHE = "lsd-static-v1.0.3";
 const MAX_RUNTIME_ENTRIES = 80;
 const PRECACHE_URLS = [
   "/hub.html",
@@ -12,7 +12,7 @@ const PRECACHE_URLS = [
   "/js/messages.js", "/js/push.js", "/js/profile-view.js",
   "/js/footer.js", "/js/script.js", "/js/cookie-banner.js",
   "/cardGameWeb/js_cg/api.js",
-  "/img/icon.png", "/img/pwa/icon-192.png", "/img/pwa/icon-512.png",
+  "/lsdConsole/console-icon.png", "/img/icon.png", "/img/pwa/icon-192.png", "/img/pwa/icon-512.png",
   "/img/pwa/apple-touch-icon.png", "/manifest.json"
 ];
 

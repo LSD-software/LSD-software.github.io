@@ -93,6 +93,23 @@
   </script>
   <link rel="stylesheet" href="css/footer.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js"></script>
+<script>
+(function () {
+  try {
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (!standalone) return;
+    const path = window.location.pathname;
+    const allowed = path === '/hub.html' || path.startsWith('/lsdConsole/') || path.startsWith('/cardGameWeb/') || path.startsWith('/pescaWeb/');
+    if (allowed) return;
+    const requested = window.location.href;
+    // A new tab normally escapes the installed-app window; browser policy may block
+    // automatic opening, so the Hub remains the safe fallback regardless.
+    try { window.open(requested, '_blank', 'noopener,noreferrer'); } catch (_) {}
+    window.location.replace('/hub.html');
+  } catch (_) {}
+})();
+</script>
+  <link rel="stylesheet" href="css/mobile-optimization.css">
 </head>
 <body>
   <header>

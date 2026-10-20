@@ -1,91 +1,97 @@
-h2.gold-text {
-  color: gold;
-  font-size: clamp(1.2rem, 4vw, 1.8rem);
-  margin: 0 0 12px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-family: "Courier Prime", monospace;
-  text-align: center;
+/* Contact page: centered community card and sticky-footer page layout. */
+.contact-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
-
+.contact-page > header { flex: 0 0 auto; }
+.contact-page > #container {
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(90%, 1120px);
+  padding: clamp(24px, 5vw, 56px) 0;
+  margin: 0 auto;
+}
 #contact-module {
   box-sizing: border-box;
-  width: min(100% - 32px, 860px);
-  text-align: center;
-  padding: clamp(24px, 5vw, 44px) clamp(16px, 4vw, 32px);
+  width: min(100%, 860px);
   margin: 0 auto;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 215, 0, 0.25);
-  border-radius: 10px;
+  padding: clamp(28px, 5vw, 52px) clamp(20px, 5vw, 56px);
+  text-align: center;
+  background: linear-gradient(145deg, rgba(12, 5, 5, .94), rgba(0, 0, 0, .86));
+  border: 1px solid rgba(255, 215, 0, .38);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.035);
 }
-
-.white-text {
-  color: white;
-  margin: 0 auto 24px;
+.contact-copy { max-width: 650px; margin: 0 auto; }
+.contact-eyebrow {
+  margin: 0 0 12px;
+  color: rgba(255,215,0,.78);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+#contact-module h2.gold-text {
+  margin: 0 0 18px;
+  color: #fff;
+  font-size: clamp(1.25rem, 3.5vw, 1.8rem);
+  line-height: 1.3;
+  letter-spacing: clamp(.5px, .2vw, 2px);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+#contact-module .white-text {
   max-width: 58ch;
-  font-family: "Courier Prime", monospace;
-  font-size: clamp(0.9rem, 2vw, 1rem);
-  line-height: 1.7;
+  margin: 0 auto 28px;
+  color: rgba(255,255,255,.82);
+  font-size: clamp(.92rem, 1.5vw, 1rem);
+  line-height: 1.8;
+  text-align: center;
 }
-
-.dsB {
+#contact-module .dsB {
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   max-width: 100%;
-  min-height: 52px;
-  padding: 16px 24px;
+  min-height: 54px;
+  padding: 15px 24px;
   background: #5865F2;
-  color: white;
-  border: 2px solid white;
-  border-radius: 8px;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,.9);
+  border-radius: 7px;
   font-family: "Courier Prime", monospace;
   font-weight: 700;
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  font-size: clamp(.82rem, 2vw, .98rem);
+  line-height: 1.35;
   text-align: center;
   text-decoration: none;
   overflow-wrap: anywhere;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition: background .2s ease, color .2s ease, transform .2s ease;
 }
-
-.dsB:hover,
-.dsB:focus-visible {
-  background: white;
-  color: #5865F2;
-  transform: translateY(-2px);
-}
-
-.dsB:focus-visible {
-  outline: 3px solid gold;
-  outline-offset: 4px;
-}
-
-.dsB svg {
-  width: 1.15em;
-  height: 1.15em;
-  flex: 0 0 auto;
-}
-
+#contact-module .dsB:hover,
+#contact-module .dsB:focus-visible { background: #fff; color: #4652d5; transform: translateY(-2px); }
+#contact-module .dsB:focus-visible { outline: 3px solid gold; outline-offset: 4px; }
+#contact-module .discord-mark { width: 25px; height: 25px; flex: 0 0 25px; }
+#contact-module .external-mark { width: 18px; height: 18px; flex: 0 0 18px; }
+.contact-page > .site-footer { flex: 0 0 auto; margin-top: 0; }
 @media (max-width: 600px) {
-  #contact-module {
-    width: calc(100% - 24px);
-    padding: 24px 16px;
-  }
-
-  h2.gold-text {
-    letter-spacing: 1px;
-    font-size: 1.15rem;
-  }
-
-  .dsB {
-    width: 100%;
-    padding: 15px 12px;
-  }
+  .contact-page > #container { width: calc(100% - 24px); padding: 24px 0; }
+  #contact-module { padding: 28px 18px; border-radius: 10px; }
+  .contact-eyebrow { font-size: .68rem; letter-spacing: .12em; }
+  #contact-module h2.gold-text { font-size: clamp(1.1rem, 5vw, 1.35rem); margin-bottom: 14px; }
+  #contact-module .white-text { margin-bottom: 22px; line-height: 1.7; }
+  #contact-module .dsB { width: 100%; padding: 14px 10px; gap: 9px; }
 }
-
+@media (max-width: 360px) {
+  #contact-module { padding: 24px 14px; }
+  #contact-module .dsB { font-size: .78rem; gap: 7px; }
+  #contact-module .discord-mark { width: 22px; height: 22px; flex-basis: 22px; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .dsB { transition: none; }
-  .dsB:hover, .dsB:focus-visible { transform: none; }
+  #contact-module .dsB, #contact-module .dsB:hover { transition: none; transform: none; }
 }

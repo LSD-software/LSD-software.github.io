@@ -6,3 +6,6 @@ LSD Console update
 - Updated Lucide CDN fallback URLs to valid package distribution paths.
 
 Note: opening a separate browser tab from an installed PWA can be blocked by browser policy; the app always falls back to Hub in that case.
+
+
+Cover correction: the classic LSD Software logo is used on the LSD Console loading splash; the hand-drawn console/controller illustration is used as the LSD Console cover on Hub and Projects. Game logic was not modified.

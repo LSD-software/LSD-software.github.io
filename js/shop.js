@@ -53,6 +53,35 @@
   }
   function categoryPropKey(cat) { return cat; } // equipped.icon / .background / .border
 
+  // Artwork già presente in img/cosmetics/: usa questi file nel negozio
+  // invece di mostrare soltanto emoji o riquadri CSS.
+  const COSMETIC_ART = {
+    icon_default: "avatar-arcade-core.webp",
+    icon_cards: "avatar-skull.webp",
+    icon_fish: "avatar-lsd-logo.webp",
+    icon_pad: "avatar-pixel-pad.webp",
+    icon_ghost: "avatar-neon-mask.webp",
+    icon_dragon: "avatar-dragon.webp",
+    bg_default: "banner-lsd-classic.webp",
+    bg_neon: "banner-neon-city.webp",
+    bg_stars: "banner-moonlight.webp",
+    bg_gold: "banner-sunset.webp",
+    border_default: "frame-classic.webp",
+    border_pulse: "frame-fire.webp",
+    border_spin: "frame-rainbow.webp",
+    border_orbit: "frame-neon-blue.webp"
+  };
+
+  function cosmeticArt(item) {
+    const file = COSMETIC_ART[item?.id];
+    return file ? `img/cosmetics/${file}` : "";
+  }
+
+  function artImage(item, className, alt) {
+    const src = cosmeticArt(item);
+    return src ? `<img class="${className}" src="${src}" alt="${alt || item.name || "Cosmetic"}" loading="lazy" decoding="async">` : "";
+  }
+
   function renderAvatarPreview() {
     const wrap = document.getElementById("shopAvatarPreview");
     if (!wrap) return;
@@ -64,11 +93,19 @@
     wrap.innerHTML = `
       ${borderItem?.css === "border-spin" ? '<div class="lsd-avatar-ring"></div>' : ""}
       ${borderItem?.css === "border-orbit" ? '<div class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>' : ""}
-      <div class="lsd-avatar-inner">${iconItem?.icon || "🙂"}</div>
+      <div class="lsd-avatar-inner">${artImage(iconItem, "cosmetic-avatar-art", iconItem?.name) || iconItem?.icon || "🙂"}</div>
     `;
 
     const card = document.getElementById("shopProfileCard");
-    if (card) card.className = `hub-card lsd-profile-card ${bgItem?.css || "bg-midnight"}`;
+    if (card) {
+      card.className = `hub-card lsd-profile-card ${bgItem?.css || "bg-midnight"}`;
+      const banner = cosmeticArt(bgItem);
+      card.style.backgroundImage = banner
+        ? `linear-gradient(90deg, rgba(8,8,8,.72), rgba(8,8,8,.40)), url("${banner}")`
+        : "";
+      card.style.backgroundSize = banner ? "cover" : "";
+      card.style.backgroundPosition = banner ? "center" : "";
+    }
   }
 
   function renderDustLabel() {
@@ -94,18 +131,21 @@
 
   function itemPreviewHtml(cat, item) {
     if (cat === "icon") {
-      return `<div class="lsd-avatar-wrap sm border-default"><div class="lsd-avatar-inner" style="width:34px;height:34px;font-size:1rem;">${item.icon}</div></div>`;
+      return `<div class="lsd-avatar-wrap sm border-default"><div class="lsd-avatar-inner" style="width:34px;height:34px;font-size:1rem;">${artImage(item, "cosmetic-avatar-art", item.name) || item.icon || "🙂"}</div></div>`;
     }
     if (cat === "border") {
       return `
         <div class="lsd-avatar-wrap sm ${item.css}">
           ${item.css === "border-spin" ? '<div class="lsd-avatar-ring"></div>' : ""}
           ${item.css === "border-orbit" ? '<div class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>' : ""}
-          <div class="lsd-avatar-inner" style="width:34px;height:34px;font-size:1rem;">✨</div>
+          <div class="lsd-avatar-inner" style="width:34px;height:34px;font-size:1rem;">${artImage(item, "cosmetic-frame-art", item.name) || "✨"}</div>
         </div>`;
     }
-    // background
-    return `<div class="${item.css}" style="width:52px;height:36px;border-radius:8px;margin:0 auto;"></div>`;
+    // Anteprima visuale dello sfondo/banner.
+    const src = cosmeticArt(item);
+    return src
+      ? `<div class="cosmetic-banner-preview" style="background-image:linear-gradient(0deg,rgba(0,0,0,.12),rgba(0,0,0,.12)),url('${src}')"></div>`
+      : `<div class="${item.css}" style="width:52px;height:36px;border-radius:8px;margin:0 auto;"></div>`;
   }
 
   function renderGrid() {

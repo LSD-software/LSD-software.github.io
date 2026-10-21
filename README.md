@@ -1,3 +1,8 @@
+
+## Cosmetic artwork rendering fix
+
+The profile shop and public profile modal now reference the local files in `img/cosmetics/` for cosmetic previews. The profile banner preview uses the corresponding local banner artwork, while CSS-rendered effects remain as fallbacks. This change is frontend-only; purchase/equip API behavior and backend prices are unchanged.
+
 # LSD Software — Frontend
 
 Frontend ufficiale di **LSD Software**, pubblicato come sito statico su GitHub Pages. Il progetto raccoglie le pagine pubbliche, LSD Hub, la Progressive Web App (PWA), le interfacce di profilo e social, le classifiche e le pagine web dei giochi.

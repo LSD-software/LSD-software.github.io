@@ -30,13 +30,26 @@
     return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   }
 
+  const PUBLIC_COSMETIC_ART = {
+    icon_default: "avatar-arcade-core.webp",
+    icon_cards: "avatar-skull.webp",
+    icon_fish: "avatar-lsd-logo.webp",
+    icon_pad: "avatar-pixel-pad.webp",
+    icon_ghost: "avatar-neon-mask.webp",
+    icon_dragon: "avatar-dragon.webp"
+  };
+
   function avatarHtml(cosmetics, initials) {
     const border = cosmetics.border?.css || "border-default";
+    const art = PUBLIC_COSMETIC_ART[cosmetics.icon?.id];
+    const icon = art
+      ? `<img class="cosmetic-avatar-art" src="img/cosmetics/${art}" alt="${escHtml(cosmetics.icon?.name || "Profile icon")}" loading="lazy">`
+      : (cosmetics.icon?.icon || "🙂");
     return `
       <div class="lsd-avatar-wrap ${border}">
         ${border === "border-spin" ? '<div class="lsd-avatar-ring"></div>' : ""}
         ${border === "border-orbit" ? '<div class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>' : ""}
-        <div class="lsd-avatar-inner">${cosmetics.icon?.icon || "🙂"}</div>
+        <div class="lsd-avatar-inner">${icon}</div>
       </div>
     `;
   }

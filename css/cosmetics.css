@@ -239,3 +239,35 @@
   .shop-item .item-name { font-size: .7rem; letter-spacing: .2px; }
   .shop-item .item-price { font-size: .68rem; }
 }
+
+
+/* Artwork cosmetici locali: icone, banner e frame del negozio */
+.cosmetic-avatar-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.lsd-avatar-inner:has(.cosmetic-avatar-art) {
+  overflow: hidden;
+  padding: 0;
+}
+.cosmetic-frame-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.cosmetic-banner-preview {
+  width: 100%;
+  max-width: 150px;
+  height: 72px;
+  margin: 0 auto;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255,215,0,.24);
+}
+.shop-item .item-preview img { pointer-events: none; }

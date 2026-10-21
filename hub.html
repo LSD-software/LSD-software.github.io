@@ -48,7 +48,7 @@
       <button class="hub-nav-btn" data-tab="profilo" onclick="setHubTab('profilo')"><i data-lucide="user"></i> <span class="nav-label">PROFILO</span></button>
       <button class="hub-nav-btn" data-tab="impostazioni" onclick="setHubTab('impostazioni')"><i data-lucide="settings"></i> <span class="nav-label">IMPOSTAZIONI</span></button>
       <button class="hub-nav-btn" data-tab="amici" onclick="setHubTab('amici')"><i data-lucide="users"></i> <span class="nav-label">AMICI</span></button>
-      <a class="hub-nav-btn" href="./leaderboard.html" data-pwa-allow="true"><i data-lucide="trophy"></i> <span class="nav-label">LEADERBOARD</span></a>
+      <a class="hub-nav-btn" href="leaderboard.html"><i data-lucide="trophy"></i> <span class="nav-label">LEADERBOARD</span></a>
     </div>
     <div id="hubDustPill" class="hidden">✨ <span id="hubDustNum">0</span></div>
 
@@ -81,6 +81,7 @@
   </div>
 
   <main id="hubMain">
+    <div id="pwaUpdateStatus" hidden role="status" aria-live="polite" style="position:relative; width:fit-content; max-width:calc(100% - 24px); margin:10px auto 0; padding:7px 12px; border:1px solid rgba(212,184,0,.55); border-radius:999px; background:#14110a; color:#e5cf38; font:600 12px/1.4 system-ui,sans-serif; text-align:center; box-sizing:border-box; z-index:2;">Downloading LSD Hub update…</div>
 
     <!-- ── STATO NON LOGGATO ────────────────────────────────── -->
     <div id="hubSignedOut" class="hidden">
@@ -362,65 +363,8 @@
   <script src="js/footer.js"></script>
 
   <script>
-  // ── PWA: Registrazione Service Worker + controllo versione ──
+  // Automatic updates are handled by /js/app-update.js.
   (function () {
-    const API = "https://lsd-backend-4phu.onrender.com";
-    const VERSION_KEY = "lsd_app_version";
-    const screen = document.getElementById("pwaLoadingScreen");
-    const bar    = document.getElementById("pwaLoadingBar");
-    const msg    = document.getElementById("pwaLoadingMsg");
-
-    function setProgress(pct, text) {
-      bar.style.width = pct + "%";
-      if (text) msg.textContent = text;
-    }
-
-    async function checkVersionAndUpdate() {
-      if (!("serviceWorker" in navigator)) return;
-
-      // Mostra la schermata solo se c'è già un SW (= app già installata)
-      const existing = await navigator.serviceWorker.getRegistration();
-      if (existing) {
-        screen.style.display = "flex";
-        setProgress(20, "Checking for updates…");
-      }
-
-      try {
-        // 1) Registra / aggiorna il SW
-        const reg = await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
-        setProgress(50, "Loading…");
-
-        // 2) Controlla la versione sul backend
-        const res = await lsdFetch(API + "/version", {}, 12000);
-        if (res.ok) {
-          const { version: serverVersion } = await res.json();
-          const localVersion = localStorage.getItem(VERSION_KEY);
-
-          if (localVersion && localVersion !== serverVersion && reg.waiting) {
-            // Nuova versione disponibile — attiva il nuovo SW
-            setProgress(75, "Installing update…");
-            reg.waiting.postMessage({ type: "SKIP_WAITING" });
-            await new Promise(r => setTimeout(r, 800));
-            setProgress(100, "Updated! Reloading…");
-            localStorage.setItem(VERSION_KEY, serverVersion);
-            await new Promise(r => setTimeout(r, 600));
-            window.location.reload();
-            return;
-          }
-          localStorage.setItem(VERSION_KEY, serverVersion);
-        }
-      } catch (e) {
-        console.warn("PWA version check failed (offline?):", e.message);
-      }
-
-      setProgress(100, "Ready!");
-      await new Promise(r => setTimeout(r, 200));
-      screen.style.display = "none";
-    }
-
-    // Aspetta che fetch-utils.js sia caricato (lsdFetch disponibile)
-    document.addEventListener("DOMContentLoaded", checkVersionAndUpdate);
-
     // ── Install prompt (Android Chrome / Edge) ──────────────
     let installPrompt = null;
     window.addEventListener("beforeinstallprompt", (e) => {
@@ -580,5 +524,7 @@
       }
     }
   </script>
+
+<script src="/js/app-update.js" defer></script>
 </body>
 </html>

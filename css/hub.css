@@ -321,3 +321,15 @@
   .hub-hero-stats { gap: 5px; }
   .hub-stat-chip .lbl { font-size: .58rem; }
 }
+
+/* Equipped public cosmetics in friend/search lists; robust wrapping on mobile. */
+.friend-info { min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.friend-avatar { width: 30px !important; height: 30px !important; flex: 0 0 30px; }
+.friend-avatar .lsd-avatar-inner { width: 30px; height: 30px; font-size: .8rem; }
+.friend-name { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .friend-row { gap: 8px; flex-wrap: wrap; }
+  .friend-info { flex: 1 1 100%; }
+  .friend-actions { display: flex; flex-wrap: wrap; gap: 6px; max-width: 100%; }
+  .friend-actions button { max-width: 100%; white-space: normal; }
+}

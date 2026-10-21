@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td class="col-rank" style="font-family:'Cinzel',serif;font-weight:700;color:gold;">${rankEmoji}</td>
-      <td><span class="player-name is-me">${escHtml(myRank.username)}</span></td>
+      <td class="col-name"><span class="lb-player-cell">${playerAvatarHtml(myRank.cosmetics)}<span class="player-name is-me">${escHtml(myRank.username)}</span></span></td>
       <td class="col-score" style="text-align:right"><span class="${scoreClass}">${fmt(myRank.score)}</span></td>
       <td class="col-coins" style="text-align:right"><span class="${coinsClass}">${fmt(myRank.coins)}</span></td>
       <td class="col-streak" style="text-align:right"><span class="${streakClass}">${fmt(myRank.winStreak)}</span></td>

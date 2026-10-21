@@ -1,7 +1,7 @@
 // LSD Software PWA service worker.
 // Keep this version in sync with each frontend release.
-const CACHE_NAME = "lsd-shell-v1.0.3";
-const STATIC_CACHE = "lsd-static-v1.0.3";
+const CACHE_NAME = "lsd-shell-v1.0.5";
+const STATIC_CACHE = "lsd-static-v1.0.5";
 const MAX_RUNTIME_ENTRIES = 80;
 const PRECACHE_URLS = [
   "/hub.html",
@@ -65,16 +65,19 @@ self.addEventListener("fetch", event => {
   const isStatic = /\.(?:css|js|png|jpe?g|webp|svg|ico|woff2?|ttf)$/i.test(url.pathname)
     || url.pathname.endsWith("/manifest.json");
   if (isStatic) {
+    // Prefer fresh deployed assets; use the cache only when offline.
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(request);
-      if (cached) return cached;
-      const response = await fetch(request);
-      if (response.ok && response.type === "basic") {
-        await cache.put(request, response.clone());
-        await trimCache(CACHE_NAME);
+      try {
+        const response = await fetch(request, { cache: "no-store" });
+        if (response.ok && response.type === "basic") {
+          await cache.put(request, response.clone());
+          await trimCache(CACHE_NAME);
+        }
+        return response;
+      } catch (_) {
+        return (await cache.match(request)) || Response.error();
       }
-      return response;
     })());
     return;
   }

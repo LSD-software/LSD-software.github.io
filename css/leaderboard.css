@@ -462,3 +462,10 @@
 }
 
 /* ── MY BADGES: vedi css/badges.css (widget condiviso con project.html) ── */
+
+/* Public equipped cosmetics in leaderboard rows */
+.lb-player-cell { display:flex; align-items:center; gap:9px; min-width:0; }
+.lb-player-avatar { width:30px !important; height:30px !important; flex:0 0 30px; }
+.lb-player-avatar .lsd-avatar-inner { width:30px; height:30px; font-size:.8rem; }
+.lb-player-cell .player-name { min-width:0; overflow-wrap:anywhere; }
+@media (max-width:600px) { .lb-player-cell { gap:6px; } .lb-player-avatar { width:26px !important; height:26px !important; flex-basis:26px; } .lb-player-avatar .lsd-avatar-inner { width:26px; height:26px; font-size:.7rem; } }

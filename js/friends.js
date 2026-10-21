@@ -61,6 +61,13 @@
     return `<span class="friend-dot ${online ? "online" : "offline"}" title="${online ? "Online" : "Offline"}"></span>`;
   }
 
+  function avatarHtml(cosmetics) {
+    const c = cosmetics || {};
+    const border = c.border?.css || "border-default";
+    const icon = escHtml(c.icon?.icon || "🙂");
+    return `<span class="friend-avatar lsd-avatar-wrap sm ${escHtml(border)}" aria-hidden="true">${border === "border-spin" ? '<span class="lsd-avatar-ring"></span>' : ""}${border === "border-orbit" ? '<span class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></span>' : ""}<span class="lsd-avatar-inner">${icon}</span></span>`;
+  }
+
   // ── Ricerca ──────────────────────────────────────────────
   function wireSearch() {
     const input = document.getElementById("friendSearchInput");
@@ -87,6 +94,7 @@
       results.innerHTML = data.results.map(u => `
         <div class="friend-row">
           <div class="friend-info">
+            ${avatarHtml(u.cosmetics)}
             ${presenceDot(u.online)}
             <span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span>
           </div>
@@ -117,7 +125,7 @@
     sec.classList.toggle("hidden", !list.length);
     el.innerHTML = list.map(u => `
       <div class="friend-row">
-        <div class="friend-info">${presenceDot(u.online)}<span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
+        <div class="friend-info">${avatarHtml(u.cosmetics)}${presenceDot(u.online)}<span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
         <div class="friend-actions">
           <button class="friend-btn accept" data-action="accept" data-id="${u.id}">Accept</button>
           <button class="friend-btn decline" data-action="decline" data-id="${u.id}">Decline</button>
@@ -134,7 +142,7 @@
     sec.classList.toggle("hidden", !list.length);
     el.innerHTML = list.map(u => `
       <div class="friend-row">
-        <div class="friend-info"><span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
+        <div class="friend-info">${avatarHtml(u.cosmetics)}<span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
         <div class="friend-actions"><span class="friend-tag">Pending…</span></div>
       </div>
     `).join("");
@@ -147,7 +155,7 @@
     if (empty) empty.classList.toggle("hidden", list.length > 0);
     el.innerHTML = list.map(u => `
       <div class="friend-row">
-        <div class="friend-info">${presenceDot(u.online)}<span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
+        <div class="friend-info">${avatarHtml(u.cosmetics)}${presenceDot(u.online)}<span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
         <div class="friend-actions">
           <button class="friend-btn add" data-action="message" data-id="${u.id}">💬 Message</button>
           <button class="friend-btn ghost" data-action="remove" data-id="${u.id}">Remove</button>
@@ -165,7 +173,7 @@
     sec.classList.toggle("hidden", !list.length);
     el.innerHTML = list.map(u => `
       <div class="friend-row">
-        <div class="friend-info"><span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
+        <div class="friend-info">${avatarHtml(u.cosmetics)}<span class="friend-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${u.id}')">${escHtml(u.username)}</span></div>
         <div class="friend-actions"><button class="friend-btn ghost" data-action="unblock" data-id="${u.id}">Unblock</button></div>
       </div>
     `).join("");

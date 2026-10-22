@@ -30,13 +30,26 @@
     return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   }
 
+  const PROFILE_AVATAR_ART = {
+    icon_default: "avatar-hood.webp",
+    icon_cards: "avatar-lsd-logo.webp",
+    icon_fish: "avatar-neon-mask.webp",
+    icon_pad: "avatar-pixel-pad.webp",
+    icon_ghost: "avatar-skull.webp",
+    icon_dragon: "avatar-dragon.webp"
+  };
+
   function avatarHtml(cosmetics, initials) {
     const border = cosmetics.border?.css || "border-default";
+    const file = PROFILE_AVATAR_ART[cosmetics.icon?.id];
+    const visual = file
+      ? `<img class="cosmetic-avatar-art" src="img/cosmetics/${file}" alt="${escHtml(cosmetics.icon?.name || "Avatar")}" loading="lazy" decoding="async">`
+      : (cosmetics.icon?.icon || "🙂");
     return `
       <div class="lsd-avatar-wrap ${border}">
         ${border === "border-spin" ? '<div class="lsd-avatar-ring"></div>' : ""}
         ${border === "border-orbit" ? '<div class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>' : ""}
-        <div class="lsd-avatar-inner">${cosmetics.icon?.icon || "🙂"}</div>
+        <div class="lsd-avatar-inner">${visual}</div>
       </div>
     `;
   }
@@ -59,8 +72,11 @@
       const bg = data.cosmetics.background?.css || "bg-midnight";
       const memberSince = new Date(data.memberSince).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
+      const bannerFiles = { bg_default: "banner-lsd-classic.webp", bg_neon: "banner-cyber.webp", bg_stars: "banner-moonlight.webp", bg_gold: "banner-sunset.webp" };
+      const bannerFile = bannerFiles[data.cosmetics.background?.id];
+      const bannerStyle = bannerFile ? `background-image:linear-gradient(90deg,rgba(7,7,7,.7),rgba(7,7,7,.4)),url('img/cosmetics/${bannerFile}');background-size:cover;background-position:center;` : "";
       content.innerHTML = `
-        <div class="lsd-profile-card ${bg}" style="padding:30px 24px; text-align:center; border-radius:14px;">
+        <div class="lsd-profile-card ${bg}" style="padding:30px 24px; text-align:center; border-radius:14px; ${bannerStyle}">
           ${avatarHtml(data.cosmetics)}
           <div class="hub-profile-name" style="margin-top:14px; font-size:1.2rem;">${escHtml(data.username)}</div>
           <div class="hub-profile-email">Member since ${memberSince}</div>

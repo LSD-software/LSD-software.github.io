@@ -53,6 +53,40 @@
   }
   function categoryPropKey(cat) { return cat; } // equipped.icon / .background / .border
 
+  // Mappa esplicita tra gli ID del catalogo backend e gli artwork già presenti nel repository.
+  const COSMETIC_ART = {
+    icon_default: "avatar-hood.webp",
+    icon_cards: "avatar-lsd-logo.webp",
+    icon_fish: "avatar-neon-mask.webp",
+    icon_pad: "avatar-pixel-pad.webp",
+    icon_ghost: "avatar-skull.webp",
+    icon_dragon: "avatar-dragon.webp",
+    bg_default: "banner-lsd-classic.webp",
+    bg_neon: "banner-cyber.webp",
+    bg_stars: "banner-moonlight.webp",
+    bg_gold: "banner-sunset.webp",
+    border_default: "frame-classic.webp",
+    border_pulse: "frame-fire.webp",
+    border_spin: "frame-rainbow.webp",
+    border_orbit: "frame-neon-blue.webp"
+  };
+
+  function cosmeticArt(item) {
+    const file = item && COSMETIC_ART[item.id];
+    return file ? `img/cosmetics/${file}` : "";
+  }
+
+  function safeAttr(value) {
+    return String(value || "").replace(/[&<>"']/g, ch => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[ch]));
+  }
+
+  function artImg(item, className) {
+    const src = cosmeticArt(item);
+    return src ? `<img class="${className}" src="${src}" alt="${safeAttr(item.name)}" loading="lazy" decoding="async">` : "";
+  }
+
   function renderAvatarPreview() {
     const wrap = document.getElementById("shopAvatarPreview");
     if (!wrap) return;
@@ -64,11 +98,19 @@
     wrap.innerHTML = `
       ${borderItem?.css === "border-spin" ? '<div class="lsd-avatar-ring"></div>' : ""}
       ${borderItem?.css === "border-orbit" ? '<div class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>' : ""}
-      <div class="lsd-avatar-inner">${iconItem?.icon || "🙂"}</div>
+      <div class="lsd-avatar-inner">${artImg(iconItem, "cosmetic-avatar-art") || iconItem?.icon || "🙂"}</div>
     `;
 
     const card = document.getElementById("shopProfileCard");
-    if (card) card.className = `hub-card lsd-profile-card ${bgItem?.css || "bg-midnight"}`;
+    if (card) {
+      card.className = `hub-card lsd-profile-card ${bgItem?.css || "bg-midnight"}`;
+      const banner = cosmeticArt(bgItem);
+      card.style.backgroundImage = banner
+        ? `linear-gradient(90deg, rgba(7,7,7,.68), rgba(7,7,7,.32)), url("${banner}")`
+        : "";
+      card.style.backgroundSize = banner ? "cover" : "";
+      card.style.backgroundPosition = banner ? "center" : "";
+    }
   }
 
   function renderDustLabel() {
@@ -80,9 +122,9 @@
     const el = document.getElementById("shopTabs");
     if (!el) return;
     const tabs = [
-      { id: "icon",       label: "🙂 Icons" },
-      { id: "background",  label: "🖼️ Backgrounds" },
-      { id: "border",      label: "💍 Borders" },
+      { id: "icon",       label: "Avatar" },
+      { id: "background",  label: "Banner" },
+      { id: "border",      label: "Frame" },
     ];
     el.innerHTML = tabs.map(t => `
       <button class="shop-tab-btn ${t.id === activeCategory ? "active" : ""}" data-cat="${t.id}">${t.label}</button>
@@ -94,18 +136,21 @@
 
   function itemPreviewHtml(cat, item) {
     if (cat === "icon") {
-      return `<div class="lsd-avatar-wrap sm border-default"><div class="lsd-avatar-inner" style="width:34px;height:34px;font-size:1rem;">${item.icon}</div></div>`;
+      return `<div class="lsd-avatar-wrap sm border-default"><div class="lsd-avatar-inner">${artImg(item, "cosmetic-avatar-art") || item.icon || "🙂"}</div></div>`;
     }
     if (cat === "border") {
       return `
         <div class="lsd-avatar-wrap sm ${item.css}">
           ${item.css === "border-spin" ? '<div class="lsd-avatar-ring"></div>' : ""}
           ${item.css === "border-orbit" ? '<div class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>' : ""}
-          <div class="lsd-avatar-inner" style="width:34px;height:34px;font-size:1rem;">✨</div>
+          <div class="lsd-avatar-inner">${artImg(item, "cosmetic-frame-art") || "✨"}</div>
         </div>`;
     }
-    // background
-    return `<div class="${item.css}" style="width:52px;height:36px;border-radius:8px;margin:0 auto;"></div>`;
+    // Banner: mostra l'immagine reale del catalogo, non solo il gradiente CSS.
+    const src = cosmeticArt(item);
+    return src
+      ? `<div class="cosmetic-banner-preview" style="background-image:linear-gradient(0deg,rgba(0,0,0,.12),rgba(0,0,0,.12)),url('${src}')"></div>`
+      : `<div class="${item.css}" style="width:100%;height:56px;border-radius:8px;margin:0 auto;"></div>`;
   }
 
   function renderGrid() {

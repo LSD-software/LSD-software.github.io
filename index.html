@@ -120,6 +120,8 @@
 </script>
   <link rel="stylesheet" href="css/mobile-optimization.css">
   <link rel="stylesheet" href="css/lsd-immersive-motion.css?v=20261024-motion1">
+  <link rel="stylesheet" href="css/navbar-wow.css?v=20261024-nav1">
+  <link rel="stylesheet" href="css/motion-wow.css?v=20261024-motion1">
 </head>
 <body>
   <header>
@@ -128,9 +130,9 @@
         <picture><source srcset="img/home/lsd-logo-transparent.avif" type="image/avif"><source srcset="img/home/lsd-logo-transparent.webp" type="image/webp"><img src="img/home/lsd-logo-transparent.png" alt="LSD Software logo" width="64" height="64" fetchpriority="high"></picture>
       </a>
       <h1>LSD Software</h1>
-      <div id="hamburger" aria-label="Open navigation menu" role="button" tabindex="0" aria-expanded="false">
+      <button id="hamburger" type="button" aria-label="Open navigation menu" aria-controls="menu" aria-expanded="false">
         <span></span><span></span><span></span>
-      </div>
+      </button>
       <nav id="menu" aria-label="Main navigation">
         <a href="index.html"><i data-lucide="home"></i> <span class="nav-text">HOME</span></a>
         <a href="about.html"><i data-lucide="info"></i> <span class="nav-text">ABOUT</span></a>
@@ -287,5 +289,6 @@
 
 <script src="/js/app-update.js" defer></script>
   <script src="js/lsd-immersive-motion.js?v=20261024-motion1" defer></script>
+  <script src="js/motion-wow.js?v=20261024-motion1" defer></script>
 </body>
 </html>

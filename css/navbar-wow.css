@@ -1,0 +1,65 @@
+/* LSD Software — immersive, accessible navigation system */
+:root {
+  --nav-gold: var(--lsd-gold-bright, #f5c451);
+  --nav-red: var(--lsd-maroon, #690d1b);
+  --nav-glass: rgba(8, 8, 10, .88);
+  --nav-line: rgba(245, 196, 81, .24);
+}
+header {
+  width: min(94%, 1480px);
+  margin: 14px auto 0;
+  position: sticky;
+  top: 10px;
+  z-index: 1000;
+  border: 1px solid var(--nav-line);
+  border-radius: 18px;
+  background: linear-gradient(115deg, rgba(17,17,19,.96), rgba(5,5,6,.88) 58%, rgba(48,7,15,.91));
+  box-shadow: 0 12px 38px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.045);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  backdrop-filter: blur(18px) saturate(125%);
+  isolation: isolate;
+}
+header::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background: linear-gradient(110deg, rgba(245,196,81,.5), transparent 35%, rgba(105,13,27,.6) 72%, rgba(245,196,81,.22));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: .72;
+}
+#navbar { display:flex; align-items:center; gap: clamp(10px, 1.7vw, 26px); padding: 9px clamp(12px, 2vw, 26px); min-height: 76px; }
+#logo { display:flex; align-items:center; justify-content:center; flex:0 0 auto; width:54px; height:54px; border-radius:14px; position:relative; transition: transform .28s ease, filter .28s ease; }
+#logo::after { content:""; position:absolute; inset:7px; border-radius:50%; background:rgba(245,196,81,.12); filter:blur(12px); opacity:.65; z-index:-1; transition:opacity .28s ease; }
+#logo:hover { transform:translateY(-2px) rotate(-2deg); filter:drop-shadow(0 0 11px rgba(245,196,81,.35)); }
+#logo:hover::after { opacity:1; }
+#logo img { width:100%; height:100%; padding:0; object-fit:contain; }
+#navbar > h1 { flex:0 0 auto; text-align:left; padding:0; margin:0; color:#fff; font-size:clamp(1rem,1.65vw,1.4rem); letter-spacing:.075em; text-shadow:0 0 18px rgba(245,196,81,.12); white-space:nowrap; }
+#menu { margin-left:auto; display:flex; align-items:center; gap:clamp(4px,.65vw,10px); }
+#menu a { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:0 clamp(10px,1.15vw,17px); border:1px solid transparent; border-radius:12px; color:rgba(255,255,255,.82); font-family:inherit; font-size:clamp(.76rem,.92vw,.9rem); font-weight:750; letter-spacing:.075em; text-decoration:none; position:relative; isolation:isolate; overflow:hidden; transition:color .22s ease, border-color .22s ease, background .22s ease, transform .22s ease, box-shadow .22s ease; }
+#menu a::before { content:""; position:absolute; inset:0; z-index:-1; opacity:0; background:linear-gradient(135deg,rgba(245,196,81,.16),rgba(105,13,27,.28)); transition:opacity .22s ease; }
+#menu a::after { content:""; position:absolute; height:2px; left:18%; right:18%; bottom:5px; border-radius:2px; background:linear-gradient(90deg,transparent,var(--nav-gold),transparent); transform:scaleX(0); transform-origin:center; transition:transform .25s ease; }
+#menu a:hover, #menu a:focus-visible { color:#fff; border-color:rgba(245,196,81,.28); background:rgba(255,255,255,.035); transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.18),0 0 20px rgba(245,196,81,.055); }
+#menu a:hover::before, #menu a:focus-visible::before { opacity:1; }
+#menu a:hover::after, #menu a:focus-visible::after, #menu a[aria-current="page"]::after { transform:scaleX(1); }
+#menu a[aria-current="page"] { color:var(--nav-gold); border-color:rgba(245,196,81,.2); background:rgba(245,196,81,.065); }
+#menu a i[data-lucide], #menu a svg { width:16px; height:16px; flex:0 0 auto; margin:0; stroke-width:1.9; }
+#hamburger { display:none; align-items:center; justify-content:center; flex-direction:column; gap:5px; width:46px; height:46px; padding:0; flex:0 0 auto; border:1px solid rgba(245,196,81,.32); border-radius:13px; color:var(--nav-gold); background:linear-gradient(145deg,rgba(245,196,81,.12),rgba(105,13,27,.18)); box-shadow:inset 0 1px rgba(255,255,255,.06); cursor:pointer; transition:transform .2s ease, background .2s ease, box-shadow .2s ease; }
+#hamburger:hover { transform:translateY(-1px); box-shadow:0 5px 18px rgba(0,0,0,.28),0 0 15px rgba(245,196,81,.1); }
+#hamburger span { display:block; width:19px; height:2px; border-radius:4px; background:currentColor; transform-origin:center; transition:transform .24s ease, opacity .18s ease, width .24s ease; }
+#hamburger span:nth-child(2) { width:14px; margin-left:5px; }
+#hamburger.active span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+#hamburger.active span:nth-child(2) { opacity:0; width:19px; }
+#hamburger.active span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+@media (max-width: 860px) {
+  header { width:calc(100% - 20px); top:6px; margin-top:8px; border-radius:16px; }
+  #navbar { min-height:64px; padding:7px 10px; gap:10px; }
+  #logo { width:45px; height:45px; }
+  #navbar > h1 { font-size:clamp(.9rem,3.5vw,1.15rem); letter-spacing:.04em; overflow:hidden; text-overflow:ellipsis; }
+  #hamburger { display:flex; margin-left:auto; }
+  #menu { display:flex; position:absolute; top:calc(100% + 9px); left:0; right:0; margin:0; padding:9px; flex-direction:column; align-items:stretch; gap:5px; border:1px solid rgba(245,196,81,.28); border-radius:16px; background:linear-gradient(150deg,rgba(13,13,15,.985),rgba(24,5,10,.985)); box-shadow:0 22px 50px rgba(0,0,0,.55),0 0 28px rgba(105,13,27,.18); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); opacity:0; visibility:hidden; pointer-events:none; transform:translateY(-8px) scale(.985); transform-origin:top center; transition:opacity .22s ease, transform .22s ease, visibility .22s; }
+  #menu.active { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0) scale(1); }
+  #menu a { width:100%; min-height:49px; justify-content:flex-start; padding:0 15px; font-size:.88rem; border-radius:11px; border-bottom:0; }
+  #menu a::after { left:15px; right:auto; width:34px; bottom:5px; }
+  #menu a:hover, #menu a:focus-visible { transform:translateX(3px); }
+  #menu a i[data-lucide], #menu a svg { width:18px; height:18px; }
+}
+@media (max-width: 380px) { #navbar > h1 { max-width:42vw; font-size:.85rem; } #logo { width:39px; height:39px; } #hamburger { width:42px; height:42px; } }
+@media (prefers-reduced-motion: reduce) { header *, header *::before, header *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; } }

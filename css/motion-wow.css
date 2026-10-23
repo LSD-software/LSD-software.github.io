@@ -1,0 +1,29 @@
+/* LSD Software — cinematic motion layer. Progressive enhancement only. */
+:root { --motion-gold: #f5c451; --motion-red: #690d1b; --motion-x: 50%; --motion-y: 30%; }
+html { scroll-behavior: smooth; }
+body { --motion-pointer-x: 50vw; --motion-pointer-y: 35vh; }
+body.motion-wow-ready::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(560px circle at var(--motion-pointer-x) var(--motion-pointer-y), rgba(245,196,81,.055), transparent 68%),
+              radial-gradient(760px circle at 88% 12%, rgba(105,13,27,.075), transparent 68%);
+  opacity: .95; transition: opacity .35s ease;
+}
+body.motion-wow-ready > * { position: relative; }
+body.motion-wow-ready header { transition: box-shadow .35s ease, border-color .35s ease, background .35s ease; }
+body.motion-wow-ready header:hover { border-color: rgba(245,196,81,.36); box-shadow: 0 18px 48px rgba(0,0,0,.38), 0 0 32px rgba(105,13,27,.12), inset 0 1px 0 rgba(255,255,255,.055); }
+.motion-reveal { opacity: 0; transform: translate3d(0, 24px, 0) scale(.99); transition: opacity .72s cubic-bezier(.2,.7,.2,1), transform .72s cubic-bezier(.2,.7,.2,1); transition-delay: var(--motion-delay, 0ms); will-change: opacity, transform; }
+.motion-reveal.motion-visible { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+.motion-tilt { transform-style: preserve-3d; transition: transform .22s ease, border-color .3s ease, box-shadow .3s ease; will-change: transform; }
+.motion-tilt.motion-tilt-active { border-color: rgba(245,196,81,.28); box-shadow: 0 20px 44px rgba(0,0,0,.25), 0 0 25px rgba(245,196,81,.055); }
+.motion-tilt > * { transform: translateZ(0); }
+a, button { -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) and (pointer: fine) {
+  body.motion-wow-ready a:not(#menu a), body.motion-wow-ready button { transition-timing-function: cubic-bezier(.2,.7,.2,1); }
+  body.motion-wow-ready main a:not(#menu a):hover { filter: drop-shadow(0 5px 12px rgba(245,196,81,.10)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  body.motion-wow-ready::before { display: none; }
+  .motion-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .motion-tilt { transform: none !important; transition: none !important; will-change: auto; }
+}

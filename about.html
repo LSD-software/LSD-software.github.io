@@ -83,8 +83,8 @@
 </script>
   <link rel="stylesheet" href="css/mobile-optimization.css">
   <link rel="stylesheet" href="css/lsd-immersive-motion.css?v=20261024-motion1">
-  <link rel="stylesheet" href="css/navbar-wow.css?v=20261024-nav1">
-  <link rel="stylesheet" href="css/motion-wow.css?v=20261024-motion1">
+  <link rel="stylesheet" href="css/navbar-wow.css?v=20261024-nav2">
+  <link rel="stylesheet" href="css/motion-wow.css?v=20261024-motion2">
 </head>
 <body>
   <header>
@@ -104,57 +104,110 @@
     </div>
   </header>
 
-  <main id="container">
-    <article itemscope itemtype="https://schema.org/Organization">
-      <fieldset id="about-lsd" class="retro-card">
-        <legend>WHO ARE LSD?</legend>
-        <div class="about-content">
-
-          <h2 class="gold-text courier-prime-bold" itemprop="name">INDEPENDENT GAME DEVELOPMENT MILAN</h2>
-
-          <section>
-            <h3 class="white-title">The Team &amp; The Mission</h3>
-            <p itemprop="description">
-              <strong>LSD Software</strong> is an emerging indie game development collective founded by
-              dedicated <strong>computer science students in Milan</strong>. Our mission is to bridge the gap
-              between technical expertise and artistic storytelling, creating 100% free digital experiences
-              for gamers worldwide.
-            </p>
-          </section>
-
-          <section>
-            <h3 class="white-title">Creative Trilogies &amp; Lore</h3>
-            <p>
-              We specialise in crafting deep, narrative-driven experiences. Our portfolio includes
-              indie titles and trilogies such as <strong>Arcana</strong>, <strong>The Machine</strong>, and
-              <strong>In the Name of God</strong>. Every project features original dialogues, atmospheric
-              low-poly graphics, and immersive soundtracks designed to push the boundaries of the indie genre.
-            </p>
-          </section>
-
-          <div class="status-bar">
-            <span class="status-dot"></span> CURRENT STATUS: DEVELOPING_NEW_REALITIES
-          </div>
-
-          <section class="philosophy">
-            <h3 class="white-title">Our Philosophy: Art for Art's Sake</h3>
-            <p>
-              In an industry driven by profit, LSD Software stands for <strong>free access to art</strong>.
-              We believe games should be an accessible medium for everyone. That's why all our software,
-              assets, and stories are available at no cost to our community — forever.
-            </p>
-          </section>
-
-          <div class="donation-box">
-            <p class="gold-text">SUPPORT OUR VISION</p>
-            <p>Our work is fuelled by passion (and quite a bit of stress). While our games are free,
-            we accept small donations to help keep the servers running and the coffee flowing.</p>
-            <a href="contact.html" class="retro-btn">DONATE CIGARETTES &amp; COFFEE</a>
-          </div>
-
+  <main id="container" class="about-page">
+    <section class="about-hero" aria-labelledby="about-title">
+      <div class="about-hero-copy">
+        <p class="about-eyebrow"><span class="about-eyebrow-dot"></span> INDEPENDENT WORLDS. ONE CREATIVE SPIRIT.</p>
+        <h2 id="about-title">WE MAKE<br><span>WORLDS TO PLAY.</span></h2>
+        <p class="about-lead">LSD Software is an independent game development collective from Milan, Italy, building free digital experiences shaped by curiosity, retro energy and creative experimentation.</p>
+        <div class="about-actions">
+          <a class="about-cta about-cta-primary" href="project.html">EXPLORE OUR GAMES <span aria-hidden="true">↗</span></a>
+          <a class="about-cta about-cta-secondary" href="contact.html">GET IN TOUCH <span aria-hidden="true">→</span></a>
         </div>
-      </fieldset>
-    </article>
+        <div class="about-hero-tags" aria-label="What we create">
+          <span><i data-lucide="gamepad-2" aria-hidden="true"></i> Browser games</span>
+          <span><i data-lucide="layers-3" aria-hidden="true"></i> Original worlds</span>
+          <span><i data-lucide="sparkles" aria-hidden="true"></i> Creative experiments</span>
+        </div>
+      </div>
+      <div class="about-hero-art" aria-label="LSD Software logo artwork">
+        <div class="about-orbit about-orbit-one"></div>
+        <div class="about-orbit about-orbit-two"></div>
+        <div class="about-art-glow"></div>
+        <picture class="about-main-logo">
+          <source srcset="img/home/lsd-logo-transparent.avif" type="image/avif">
+          <source srcset="img/home/lsd-logo-transparent.webp" type="image/webp">
+          <img src="img/home/lsd-logo-transparent.png" alt="LSD Software graffiti logo" width="900" height="900" fetchpriority="high">
+        </picture>
+        <span class="about-art-chip about-chip-top">CREATIVE MODE: ON</span>
+        <span class="about-art-chip about-chip-bottom"><span class="about-live-dot"></span> MADE FOR PLAYERS</span>
+      </div>
+      <div class="about-hero-grid" aria-hidden="true"></div>
+    </section>
+
+    <section class="about-principles" aria-label="Our approach">
+      <article class="about-principle-card">
+        <span class="about-principle-icon"><i data-lucide="gamepad-2" aria-hidden="true"></i></span>
+        <p class="about-card-kicker">01 / PLAY</p>
+        <h3>Games first</h3>
+        <p>We build playful experiences that invite people to jump in, experiment and discover their own way to play.</p>
+      </article>
+      <article class="about-principle-card">
+        <span class="about-principle-icon"><i data-lucide="palette" aria-hidden="true"></i></span>
+        <p class="about-card-kicker">02 / CREATE</p>
+        <h3>Art with attitude</h3>
+        <p>Retro inspiration, bold visuals and curious ideas meet in worlds with a personality of their own.</p>
+      </article>
+      <article class="about-principle-card">
+        <span class="about-principle-icon"><i data-lucide="users" aria-hidden="true"></i></span>
+        <p class="about-card-kicker">03 / SHARE</p>
+        <h3>Open to everyone</h3>
+        <p>Our games are designed to be accessible to players and curious minds, with free experiences at the heart of the project.</p>
+      </article>
+    </section>
+
+    <section class="about-projects" aria-labelledby="about-projects-title">
+      <div class="about-section-heading">
+        <div>
+          <p class="about-eyebrow">A FEW WORLDS TO EXPLORE</p>
+          <h2 id="about-projects-title">BUILT TO BE <span>PLAYED.</span></h2>
+        </div>
+        <a class="about-text-link" href="project.html">VIEW ALL GAMES <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="about-project-grid">
+        <a class="about-project-card" href="project.html">
+          <img src="img/home/afue-cover.avif" alt="AFUE action game cover" width="640" height="420" loading="lazy">
+          <span class="about-project-overlay"></span><span class="about-project-type">ACTION</span>
+          <span class="about-project-title">AFUE <span aria-hidden="true">↗</span></span>
+        </a>
+        <a class="about-project-card" href="project.html">
+          <img src="img/home/cardgame-cover.avif" alt="LSD Card Game cover" width="640" height="420" loading="lazy">
+          <span class="about-project-overlay"></span><span class="about-project-type">STRATEGY</span>
+          <span class="about-project-title">LSD CARD GAME <span aria-hidden="true">↗</span></span>
+        </a>
+        <a class="about-project-card" href="project.html">
+          <img src="img/home/pesca-cover.avif" alt="P-E-S-C-A fishing game cover" width="640" height="420" loading="lazy">
+          <span class="about-project-overlay"></span><span class="about-project-type">EXPLORATION</span>
+          <span class="about-project-title">P-E-S-C-A <span aria-hidden="true">↗</span></span>
+        </a>
+        <a class="about-project-card" href="project.html">
+          <img src="img/home/console-cover.avif" alt="LSD Console retro arcade cover" width="640" height="420" loading="lazy">
+          <span class="about-project-overlay"></span><span class="about-project-type">ARCADE</span>
+          <span class="about-project-title">LSD CONSOLE <span aria-hidden="true">↗</span></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="about-manifesto" aria-labelledby="about-manifesto-title">
+      <div class="about-manifesto-mark" aria-hidden="true">“</div>
+      <div class="about-manifesto-copy">
+        <p class="about-eyebrow">THE MANIFESTO</p>
+        <h2 id="about-manifesto-title">ART FOR ART'S <span>SAKE.</span></h2>
+        <p>We believe games can be more than a product: they can be experiments, shared memories and small worlds worth getting lost in. We create because we love making things, and we want more people to experience what we build.</p>
+        <div class="about-status"><span class="about-live-dot"></span> STATUS: BUILDING WHAT'S NEXT</div>
+      </div>
+      <div class="about-manifesto-decoration" aria-hidden="true"><span></span><span></span><span></span></div>
+    </section>
+
+    <section class="about-support" aria-labelledby="about-support-title">
+      <div class="about-support-symbol" aria-hidden="true"><i data-lucide="coffee"></i></div>
+      <div>
+        <p class="about-eyebrow">HELP KEEP THE WORLDS RUNNING</p>
+        <h2 id="about-support-title">LIKE WHAT WE MAKE?</h2>
+        <p>Our projects are powered by curiosity, time and a lot of coffee. If you'd like to support the work or discuss a collaboration, we'd love to hear from you.</p>
+      </div>
+      <a class="about-cta about-cta-primary" href="contact.html">CONTACT THE TEAM <span aria-hidden="true">↗</span></a>
+    </section>
   </main>
 
     <footer class="site-footer">
@@ -217,6 +270,5 @@
 
 <script src="/js/app-update.js" defer></script>
   <script src="js/lsd-immersive-motion.js?v=20261024-motion1" defer></script>
-  <script src="js/motion-wow.js?v=20261024-motion1" defer></script>
 </body>
 </html>

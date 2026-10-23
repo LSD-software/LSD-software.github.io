@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentSort = "score";
   let currentGame = "cardgame";
   let myUser      = typeof Api !== "undefined" ? Api.getUser() : null;
+  let loadSequence = 0;
 
   // Local artwork for the equipped public avatar.
   const LB_AVATAR_ART = {
@@ -56,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ── LOAD ────────────────────────────────────────────────
   async function loadLeaderboard() {
+    const sequence = ++loadSequence;
     showLoading(true);
     hideError();
     document.getElementById("lbTable").classList.add("hidden");
@@ -63,10 +65,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       // Solo Card Game per ora
-      if (currentGame !== "cardgame") return;
+      if (currentGame !== "cardgame") {
+        showError("This leaderboard is coming soon. Try the Card Game ranking for now.");
+        return;
+      }
 
       const data = await Api.getLeaderboard(currentSort);
-      const rows = data.leaderboard || [];
+      if (sequence !== loadSequence) return;
+      const rows = Array.isArray(data.leaderboard) ? data.leaderboard : [];
       renderTable(rows);
 
       // Fallback: se myRank non arriva dal server (es. token scaduto,
@@ -80,9 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
       renderMyRank(myRank);
 
     } catch (err) {
-      showError(err.message || "Could not load leaderboard. Make sure you're connected.");
+      if (sequence === loadSequence) showError("We couldn't load the ranking. Check your connection and try again.");
     } finally {
-      showLoading(false);
+      if (sequence === loadSequence) showLoading(false);
     }
   }
 
@@ -92,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tbody.innerHTML = "";
 
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:32px;font-family:'Cinzel',serif;letter-spacing:2px;">NO DATA YET — BE THE FIRST</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:32px;font-family:'Cinzel',serif;letter-spacing:2px;">No scores yet — play a round to be first!</td></tr>`;
       document.getElementById("lbTable").classList.remove("hidden");
       return;
     }
@@ -140,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!myRank) {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);font-family:'Cinzel',serif;font-size:0.82rem;letter-spacing:1px;">Play some rounds to appear in the ranking!</td>`;
+      tr.innerHTML = `<td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);font-family:'Cinzel',serif;font-size:0.82rem;letter-spacing:1px;">Play a few rounds to join the ranking!</td>`;
       tbody.appendChild(tr);
       return;
     }

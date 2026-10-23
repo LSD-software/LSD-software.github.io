@@ -1,0 +1,24 @@
+/* LSD immersive UX layer — balanced motion, black/gold/dark-red palette */
+:root{--lsd-gold:#ffd447;--lsd-gold-soft:#baa701;--lsd-red:#7d111b;--lsd-motion-fast:160ms;--lsd-motion-mid:280ms;--lsd-motion-slow:650ms;--lsd-glow:0 0 24px rgba(255,212,71,.18)}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{background-color:#080808}
+:where(a,button,[role=button],input,select,textarea):focus-visible{outline:2px solid var(--lsd-gold);outline-offset:3px;box-shadow:0 0 0 5px rgba(255,212,71,.13)}
+:where(.hub-card,.hub-game-tile,.shop-item,.cosmetic-card,.leaderboard-row,.game-card,.project-card,.badge-card,.stat-card){transform:translateZ(0);transition:transform var(--lsd-motion-mid) cubic-bezier(.2,.75,.2,1),border-color var(--lsd-motion-mid),box-shadow var(--lsd-motion-mid),filter var(--lsd-motion-mid)}
+:where(.hub-game-tile,.shop-item,.cosmetic-card,.game-card,.project-card):hover{transform:translateY(-4px);border-color:rgba(255,212,71,.62);box-shadow:0 12px 32px rgba(0,0,0,.28),var(--lsd-glow)}
+:where(button,.btn,.hub-nav-btn,.shop-tab,.leaderboard-tab){transition:transform var(--lsd-motion-fast) ease,background-color var(--lsd-motion-fast) ease,border-color var(--lsd-motion-fast) ease,box-shadow var(--lsd-motion-fast) ease}
+:where(button,.btn):active{transform:translateY(1px) scale(.985)}
+:where(.hub-game-tile,.game-card,.project-card) img{transition:transform 500ms cubic-bezier(.2,.75,.2,1),filter 500ms ease}
+@media(hover:hover) and (pointer:fine){:where(.hub-game-tile,.game-card,.project-card):hover img{transform:scale(1.045);filter:saturate(1.08)}}
+/* Entry animation only for major content, never for game canvases */
+.lsd-motion-ready .lsd-reveal{opacity:0;transform:translateY(14px);transition:opacity 480ms ease,transform 480ms cubic-bezier(.2,.75,.2,1)}
+.lsd-motion-ready .lsd-reveal.lsd-in-view{opacity:1;transform:translateY(0)}
+.lsd-sheen{position:relative;isolation:isolate;overflow:hidden}
+.lsd-sheen::after{content:"";position:absolute;inset:-80% auto -80% -45%;width:28%;transform:rotate(18deg) translateX(-240%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);pointer-events:none;z-index:2}
+@media(hover:hover) and (pointer:fine){.lsd-sheen:hover::after{transform:rotate(18deg) translateX(700%);transition:transform 850ms ease}}
+.lsd-ripple{position:relative;overflow:hidden;isolation:isolate}
+.lsd-ripple-wave{position:absolute;border-radius:50%;pointer-events:none;z-index:5;background:rgba(255,212,71,.24);transform:scale(0);animation:lsdRipple 520ms ease-out forwards}
+@keyframes lsdRipple{to{transform:scale(1);opacity:0}}
+.lsd-toast-motion{animation:lsdToastIn 260ms cubic-bezier(.2,.8,.2,1) both}
+@keyframes lsdToastIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Avoid forced animation for users who request reduced motion */
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}.lsd-motion-ready .lsd-reveal{opacity:1;transform:none}}

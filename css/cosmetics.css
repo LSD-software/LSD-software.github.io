@@ -163,7 +163,7 @@
   overflow: hidden; overflow-wrap: anywhere;
 }
 .shop-item:hover { border-color: rgba(186,167,1,0.4); }
-.shop-item.owned { border-color: rgba(94, 224, 0, 0.35); }
+.shop-item.owned { border-color: rgba(186,167,1,0.32); }
 .shop-item.equipped { border-color: gold; box-shadow: 0 0 0 1px gold, 0 4px 16px rgba(255,215,0,0.15); }
 .shop-item .item-preview { margin: 2px auto 5px; flex: 0 0 auto; max-width: 100%; }
 .shop-item .item-preview img { display:block; max-width:100%; height:auto; object-fit:contain; }
@@ -185,8 +185,8 @@
   font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.35px;
   overflow-wrap: anywhere;
 }
-.item-badge.tier-legendary { background: rgba(255,80,220,0.15); color: #ff6ee0; border: 1px solid rgba(255,80,220,0.4); }
-.item-badge.tier-rare      { background: rgba(79,195,247,0.15); color: #4fc3f7; border: 1px solid rgba(79,195,247,0.4); }
+.item-badge.tier-legendary { background: rgba(128,0,0,0.24); color: #f1d85b; border: 1px solid rgba(186,167,1,0.5); }
+.item-badge.tier-rare      { background: rgba(255,255,255,0.07); color: #f2f2f2; border: 1px solid rgba(255,255,255,0.25); }
 .item-badge.tier-common    { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.15); }
 .item-badge.tier-default   { display: none; }
 .item-badge.owned-tag      { background: rgba(186,167,1,0.15); color: #baa701; border: 1px solid rgba(186,167,1,0.4); }
@@ -203,7 +203,7 @@
   z-index: 9999;
   align-items: center; justify-content: center;
   padding: 16px;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
 }
 #profileViewModal.open { display: flex; }
 #profileViewBox {
@@ -256,3 +256,17 @@
 .lb-player-cell .player-name { min-width:0; overflow-wrap:anywhere; }
 .friend-info { min-width:0; }
 .friend-name { overflow-wrap:anywhere; }
+
+
+/* Storefront polish: clearer thumbnails, touch targets and reduced layout shifts. */
+.shop-tabs { flex-wrap: wrap; }
+.shop-tab-btn { min-height: 42px; }
+.shop-item { min-height: 168px; }
+.shop-item:focus-visible, .shop-tab-btn:focus-visible { outline: 2px solid #d4b800; outline-offset: 3px; }
+.shop-item[aria-busy="true"] { opacity: .72; cursor: progress; pointer-events: none; }
+.shop-item .item-preview img { image-rendering: auto; }
+@media (max-width: 500px) {
+  .shop-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .shop-tab-btn { padding: 8px 5px; font-size: .65rem; letter-spacing: .2px; min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) { #profileViewBox { animation: none !important; } }

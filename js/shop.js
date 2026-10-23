@@ -11,6 +11,7 @@
   let CATALOG = null;
   let PROFILE = null; // { owned:[], equipped:{icon,background,border}, lsdDust }
   let activeCategory = "icon";
+  const pendingItems = new Set();
 
   function getAuth() {
     const token = localStorage.getItem("lsd_token");
@@ -31,12 +32,15 @@
         lsdFetch(`${API}/shop/catalog`),
         lsdFetch(`${API}/shop/me`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
+      if (!catRes.ok || !profRes.ok) throw new Error("shop_unavailable");
       CATALOG = await catRes.json();
       PROFILE = await profRes.json();
+      if (!CATALOG || !Array.isArray(CATALOG.icons) || !Array.isArray(CATALOG.backgrounds) || !Array.isArray(CATALOG.borders) || !PROFILE || !PROFILE.equipped || !Array.isArray(PROFILE.owned)) throw new Error("shop_invalid_response");
+      PROFILE.lsdDust = Number.isFinite(Number(PROFILE.lsdDust)) ? Number(PROFILE.lsdDust) : 0;
       renderAll();
     } catch (e) {
       console.warn("Shop: could not load", e.message);
-      root.innerHTML = `<p style="color:rgba(255,255,255,0.4); text-align:center; padding:30px;">Could not load the shop. Try refreshing the page.</p>`;
+      root.innerHTML = `<p style="color:rgba(255,255,255,0.4); text-align:center; padding:30px;">The shop is taking a break. Check your connection and try again.</p>`;
     }
   }
 
@@ -160,7 +164,7 @@
       const equipped = item.id === equippedId;
       const affordable = PROFILE.lsdDust >= item.price;
       return `
-        <div class="shop-item ${owned ? "owned" : ""} ${equipped ? "equipped" : ""}" data-id="${item.id}">
+        <div class="shop-item ${owned ? "owned" : ""} ${equipped ? "equipped" : ""}" data-id="${safeAttr(item.id)}" role="button" tabindex="0" aria-label="${safeAttr(item.name)}${equipped ? ', equipped' : owned ? ', owned' : `, costs ${item.price} LSD Dust`}" ${pendingItems.has(item.id) ? 'aria-busy="true"' : ''}>
           ${item.tier !== "default" ? `<span class="item-badge tier-${item.tier}">${item.tier}</span>` : ""}
           ${owned && !equipped ? `<span class="item-badge owned-tag">OWNED</span>` : ""}
           <div class="item-preview">${itemPreviewHtml(activeCategory, item)}</div>
@@ -173,12 +177,17 @@
     }).join("");
 
     el.querySelectorAll(".shop-item").forEach(card => {
-      card.addEventListener("click", () => handleItemClick(card.dataset.id));
+      const activate = () => handleItemClick(card.dataset.id, card);
+      card.addEventListener("click", activate);
+      card.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") { event.preventDefault(); activate(); }
+      });
     });
   }
 
   // ── Azioni ───────────────────────────────────────────────
-  async function handleItemClick(itemId) {
+  async function handleItemClick(itemId, card) {
+    if (pendingItems.has(itemId)) return;
     const cat = activeCategory;
     const item = categoryItems(cat).find(i => i.id === itemId);
     if (!item) return;
@@ -189,6 +198,8 @@
     const equipped = PROFILE.equipped[categoryPropKey(cat)] === itemId;
     if (equipped) return; // già equipaggiato, nulla da fare
 
+    pendingItems.add(itemId);
+    if (card) card.setAttribute("aria-busy", "true");
     try {
       if (!owned) {
         if (PROFILE.lsdDust < item.price) {
@@ -225,7 +236,10 @@
       if (homeDustEl) homeDustEl.textContent = PROFILE.lsdDust.toLocaleString("en-US");
       if (navDustEl)  navDustEl.textContent  = PROFILE.lsdDust.toLocaleString("en-US");
     } catch (e) {
-      showToast("Network error, try again.", "error");
+      showToast("We couldn't complete that action. Check your connection and try again.", "error");
+    } finally {
+      pendingItems.delete(itemId);
+      renderGrid();
     }
   }
 

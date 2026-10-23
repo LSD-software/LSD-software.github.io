@@ -162,14 +162,14 @@
             <p class="games-lead">Pick up and play in your browser, jump into the two featured LSD Console games, or follow the projects being built for bigger adventures.</p>
             <div class="projects-status-legend" aria-label="Game availability"><span><i class="status-pip status-play" aria-hidden="true"></i> Play in browser</span><span><i class="status-pip status-dev" aria-hidden="true"></i> In development</span><span><i class="status-pip status-download" aria-hidden="true"></i> PC download planned</span></div>
           </div>
-          <a class="games-all-link" href="#container-pj">ALL GAMES <span aria-hidden="true">↗</span></a>
+          <a class="games-all-link" href="#container-pj">EXPLORE ALL <span aria-hidden="true">↗</span></a>
         </div>
       </section>
 
       <div id="container-pj" class="games-grid">
-        <article class="pj game-card game-card-afue" itemscope itemtype="https://schema.org/VideoGame">
+        <article data-project-reveal class="pj game-card game-card-afue" itemscope itemtype="https://schema.org/VideoGame">
           <a class="game-cover-link" href="lsdConsole/index.html" aria-label="Play AFUE in LSD Console" onclick="openConsole(event)">
-            <picture class="game-cover"><source srcset="img/home/afue-cover.avif" type="image/avif"><img src="lsdConsole/data/copertineGiochi/LSDAFUE.png" alt="AFUE — arcade combat game cover" width="600" height="360" loading="lazy" decoding="async" itemprop="image"></picture>
+            <span class="logo-stage logo-stage-afue"><span class="logo-stage-orbit" aria-hidden="true"></span><img class="game-feature-logo" src="lsdConsole/data/copertineGiochi/LSDAFUE.png" alt="AFUE game logo" width="360" height="240" decoding="async" itemprop="image"><span class="logo-stage-caption">ENTER THE ARENA</span></span>
             <span class="game-category">ACTION</span><span class="game-availability"><i class="status-pip status-play" aria-hidden="true"></i> PLAYABLE</span>
           </a>
           <div class="game-card-body">
@@ -179,9 +179,9 @@
           </div>
         </article>
 
-        <article class="pj game-card game-card-cards" itemscope itemtype="https://schema.org/VideoGame">
+        <article data-project-reveal class="pj game-card game-card-cards" itemscope itemtype="https://schema.org/VideoGame">
           <a class="game-cover-link" href="cardGameWeb/main.html" aria-label="Play LSD Card Game in your browser">
-            <picture class="game-cover"><source srcset="img/home/cardgame-cover.avif" type="image/avif"><img src="img/logoCG.webp" alt="LSD Card Game — strategy card game cover" width="600" height="360" loading="lazy" decoding="async" itemprop="image"></picture>
+            <span class="logo-stage logo-stage-cards"><span class="logo-stage-grid" aria-hidden="true"></span><img class="game-feature-logo" src="img/logoCG.webp" alt="LSD Card Game logo" width="360" height="240" decoding="async" itemprop="image"><span class="logo-stage-caption">READ · PREDICT · COLLECT</span></span>
             <span class="game-category">STRATEGY</span><span class="game-availability"><i class="status-pip status-play" aria-hidden="true"></i> BROWSER</span>
           </a>
           <div class="game-card-body">
@@ -191,9 +191,9 @@
           </div>
         </article>
 
-        <article class="pj game-card game-card-fishing" itemscope itemtype="https://schema.org/VideoGame">
+        <article data-project-reveal class="pj game-card game-card-fishing" itemscope itemtype="https://schema.org/VideoGame">
           <a class="game-cover-link" href="pescaWeb/pesca.html" aria-label="Play P-E-S-C-A fishing simulator">
-            <picture class="game-cover"><source srcset="img/home/pesca-cover.avif" type="image/avif"><img src="img/logoPesca.webp" alt="P-E-S-C-A — fishing and exploration game cover" width="600" height="360" loading="lazy" decoding="async" itemprop="image"></picture>
+            <span class="logo-stage logo-stage-fishing"><span class="logo-stage-ripple ripple-one" aria-hidden="true"></span><span class="logo-stage-ripple ripple-two" aria-hidden="true"></span><img class="game-feature-logo" src="img/logoPesca.webp" alt="P-E-S-C-A game logo" width="360" height="240" decoding="async" itemprop="image"><span class="logo-stage-caption">FIND YOUR QUIET PLACE</span></span>
             <span class="game-category">EXPLORATION</span><span class="game-availability"><i class="status-pip status-play" aria-hidden="true"></i> BROWSER</span>
           </a>
           <div class="game-card-body">
@@ -203,9 +203,9 @@
           </div>
         </article>
 
-        <article class="pj game-card game-card-console" itemscope itemtype="https://schema.org/VideoGame">
+        <article data-project-reveal class="pj game-card game-card-console" itemscope itemtype="https://schema.org/VideoGame">
           <a class="game-cover-link" href="lsdConsole/index.html" aria-label="Explore LSD Console arcade games" onclick="openConsole(event)">
-            <picture class="game-cover"><source srcset="img/home/console-cover.avif" type="image/avif"><img src="img/logoConsole.webp" alt="LSD Console — retro arcade game cover" width="600" height="360" loading="lazy" decoding="async" itemprop="image"></picture>
+            <span class="logo-stage logo-stage-console"><span class="console-scanlines" aria-hidden="true"></span><img class="game-feature-logo" src="img/logoConsole.webp" alt="LSD Console logo" width="360" height="240" decoding="async" itemprop="image"><span class="logo-stage-caption">2 WORLDS · ONE CONSOLE</span></span>
             <span class="game-category">ARCADE</span><span class="game-availability"><i class="status-pip status-play" aria-hidden="true"></i> 2 FEATURED GAMES</span>
           </a>
           <div class="game-card-body">
@@ -216,12 +216,12 @@
           </div>
         </article>
 
-        <article class="pj game-card coming-soon" aria-label="Project Arcana coming soon">
-          <div class="game-cover-link game-cover-placeholder"><div class="pj-placeholder" aria-hidden="true">✦</div><span class="game-category">ADVENTURE</span></div>
+        <article data-project-reveal class="pj game-card coming-soon" aria-label="Project Arcana coming soon">
+          <div class="game-cover-link game-cover-placeholder logo-stage logo-stage-arcana"><span class="arcana-sigil" aria-hidden="true">✦</span><span class="arcana-ring ring-a" aria-hidden="true"></span><span class="arcana-ring ring-b" aria-hidden="true"></span><span class="logo-stage-caption">A NEW WORLD IS FORMING</span><span class="game-category">ADVENTURE</span></div>
           <div class="game-card-body"><div class="game-card-title-row"><div><h2>PROJECT ARCANA</h2><p class="game-tagline">A story-driven adventure trilogy</p></div></div><p class="game-description">A new world is in the making. More details will be revealed soon.</p><span class="game-cta game-cta-disabled">IN DEVELOPMENT · DETAILS SOON</span></div>
         </article>
 
-        <article class="pj game-card game-card-machine" aria-label="The Machine, upcoming 3D narrative thriller">
+        <article data-project-reveal class="pj game-card game-card-machine" aria-label="The Machine, upcoming 3D narrative thriller">
           <a class="game-cover-link machine-cover" href="the-machine.html" aria-label="Discover The Machine 3D game">
             <span class="machine-cover-orbit orbit-one" aria-hidden="true"></span><span class="machine-cover-orbit orbit-two" aria-hidden="true"></span>
             <span class="machine-cover-core" aria-hidden="true"><span class="machine-core-line"></span><span class="machine-core-dot"></span></span>
@@ -305,5 +305,6 @@
 <script src="/js/app-update.js" defer></script>
   <script src="js/lsd-immersive-motion.js?v=20261024-motion1" defer></script>
   <script src="js/motion-wow.js?v=20261024-motion1" defer></script>
+  <script src="js/projects-wow.js?v=20261024-projects3" defer></script>
 </body>
 </html>

@@ -1,12 +1,10 @@
+# LSD Software public website crawling policy
 User-agent: *
 Allow: /
-
-# Active game screen — no useful content to index, meta noindex already set
 Disallow: /cardGameWeb/game.html
-
-# Auth / account pages — private, thin content, no SEO value
 Disallow: /cardGameWeb/auth.html
 Disallow: /cardGameWeb/settings.html
 Disallow: /reset-password.html
 
+# Public pages and games are discoverable through the sitemap.
 Sitemap: https://lsd-software.github.io/sitemap.xml

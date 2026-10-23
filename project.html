@@ -179,56 +179,75 @@
 
   <main>
     <div id="container">
-      <fieldset>
-        <legend>Our Games</legend>
-        <h2>Free games to play in your browser</h2>
-      </fieldset>
-
-      <div id="container-pj">
-
-        <div class="pj" itemscope itemtype="https://schema.org/SoftwareApplication">
-          <a href="cardGameWeb/main.html" aria-label="Play LSD Card Game — free casino card game in browser">
-            <img src="img/logoCG.webp" alt="LSD Card Game logo — free psychedelic casino card game" width="250" height="200" loading="eager" itemprop="image">
-            <h3 itemprop="name">Card Game</h3>
-            <p itemprop="description">Psychedelic Casino Card Game — Free</p>
-          </a>
+      <section class="games-intro" aria-labelledby="games-title">
+        <div class="games-eyebrow">CHOOSE YOUR NEXT CHALLENGE</div>
+        <div class="games-heading-row">
+          <div>
+            <h1 id="games-title">OUR <span>GAMES</span></h1>
+            <p class="games-lead">Jump into a quick match or take your time exploring. Every world has its own rhythm.</p>
+          </div>
+          <a class="games-all-link" href="#container-pj">ALL GAMES <span aria-hidden="true">↗</span></a>
         </div>
+      </section>
 
-        <div class="pj" itemscope itemtype="https://schema.org/SoftwareApplication">
-          <a href="pescaWeb/pesca.html" aria-label="Play LSD P-E-S-C-A — free retro fishing simulator">
-            <img src="img/logoPesca.webp" alt="LSD P-E-S-C-A fishing simulator logo — free retro browser game" width="250" height="200" loading="eager" itemprop="image">
-            <h3 itemprop="name">P-E-S-C-A</h3>
-            <p itemprop="description">Retro-2D Fishing Simulator — Free</p>
+      <div id="container-pj" class="games-grid">
+        <article class="pj game-card game-card-afue" itemscope itemtype="https://schema.org/VideoGame">
+          <a class="game-cover-link" href="lsdConsole/index.html" aria-label="Play AFUE in LSD Console" onclick="openConsole(event)">
+            <picture class="game-cover"><source srcset="img/home/afue-cover.avif" type="image/avif"><img src="lsdConsole/data/copertineGiochi/LSDAFUE.png" alt="AFUE — arcade combat game cover" width="600" height="360" loading="lazy" decoding="async" itemprop="image"></picture>
+            <span class="game-category">ACTION</span>
           </a>
-        </div>
+          <div class="game-card-body">
+            <div class="game-card-title-row"><span class="game-mini-icon"><img src="img/logoConsole.webp" alt="" width="42" height="42" loading="lazy"></span><div><h2 itemprop="name">AFUE</h2><p class="game-tagline">Arcade combat and challenges</p></div><span class="game-arrow" aria-hidden="true">↗</span></div>
+            <p class="game-description" itemprop="description">Enter the arena, choose your moves and take on the challenge. Fast, skill-based and always intense.</p>
+            <a class="game-cta" href="lsdConsole/index.html" onclick="openConsole(event)">PLAY NOW <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
 
-        <div class="pj" itemscope itemtype="https://schema.org/SoftwareApplication" id="lsd-console-card">
-          <a href="lsdConsole/index.html" aria-label="Play LSD Console — 6 games in one browser app" onclick="openConsole(event)">
-            <img src="img/logoConsole.webp" alt="LSD Console cover — hand-drawn console and motion controllers" width="250" height="200" loading="eager" itemprop="image">
-            <h3 itemprop="name">LSD Console</h3>
-            <p itemprop="description">6 Games — Fight, Build, Shoot, Draw</p>
-            
+        <article class="pj game-card game-card-cards" itemscope itemtype="https://schema.org/VideoGame">
+          <a class="game-cover-link" href="cardGameWeb/main.html" aria-label="Play LSD Card Game in your browser">
+            <picture class="game-cover"><source srcset="img/home/cardgame-cover.avif" type="image/avif"><img src="img/logoCG.webp" alt="LSD Card Game — strategy card game cover" width="600" height="360" loading="lazy" decoding="async" itemprop="image"></picture>
+            <span class="game-category">STRATEGY</span>
           </a>
-        </div>
+          <div class="game-card-body">
+            <div class="game-card-title-row"><span class="game-mini-icon"><img src="img/logoCG.webp" alt="" width="42" height="42" loading="lazy"></span><div><h2 itemprop="name">LSD CARD GAME</h2><p class="game-tagline">Cards, instincts and collecting</p></div><span class="game-arrow" aria-hidden="true">↗</span></div>
+            <p class="game-description" itemprop="description">Predict the next card, earn coins and unlock new decks. Strategy, instinct and a growing collection.</p>
+            <a class="game-cta" href="cardGameWeb/main.html">PLAY NOW <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
 
-        <div class="pj coming-soon">
-          <a href="#" aria-disabled="true" tabindex="-1">
-            <div class="pj-placeholder" aria-label="Project Arcana RPG — coming soon"></div>
-            <h3>Project Arcana</h3>
-            <p>A story-driven adventure trilogy</p>
-            <span class="badge">COMING SOON</span>
+        <article class="pj game-card game-card-fishing" itemscope itemtype="https://schema.org/VideoGame">
+          <a class="game-cover-link" href="pescaWeb/pesca.html" aria-label="Play P-E-S-C-A fishing simulator">
+            <picture class="game-cover"><source srcset="img/home/pesca-cover.avif" type="image/avif"><img src="img/logoPesca.webp" alt="P-E-S-C-A — fishing and exploration game cover" width="600" height="360" loading="lazy" decoding="async" itemprop="image"></picture>
+            <span class="game-category">EXPLORATION</span>
           </a>
-        </div>
+          <div class="game-card-body">
+            <div class="game-card-title-row"><span class="game-mini-icon"><img src="img/logoPesca.webp" alt="" width="42" height="42" loading="lazy"></span><div><h2 itemprop="name">P-E-S-C-A</h2><p class="game-tagline">A fishing simulator made to explore</p></div><span class="game-arrow" aria-hidden="true">↗</span></div>
+            <p class="game-description" itemprop="description">Cast your line, discover new species and complete your collection. Relax, explore and enjoy the moment.</p>
+            <a class="game-cta" href="pescaWeb/pesca.html">PLAY NOW <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
 
-        <div class="pj coming-soon">
-          <a href="#" aria-disabled="true" tabindex="-1">
-            <div class="pj-placeholder" aria-label="The Machine puzzle thriller — coming soon"></div>
-            <h3>The Machine</h3>
-            <p>A mysterious puzzle adventure</p>
-            <span class="badge">COMING SOON</span>
+        <article class="pj game-card game-card-console" itemscope itemtype="https://schema.org/VideoGame">
+          <a class="game-cover-link" href="lsdConsole/index.html" aria-label="Explore LSD Console arcade games" onclick="openConsole(event)">
+            <picture class="game-cover"><source srcset="img/home/console-cover.avif" type="image/avif"><img src="img/logoConsole.webp" alt="LSD Console — retro arcade game cover" width="600" height="360" loading="lazy" decoding="async" itemprop="image"></picture>
+            <span class="game-category">ARCADE</span>
           </a>
-        </div>
+          <div class="game-card-body">
+            <div class="game-card-title-row"><span class="game-mini-icon"><img src="img/logoConsole.webp" alt="" width="42" height="42" loading="lazy"></span><div><h2 itemprop="name">LSD CONSOLE</h2><p class="game-tagline">A collection of retro arcade worlds</p></div><span class="game-arrow" aria-hidden="true">↗</span></div>
+            <p class="game-description" itemprop="description">Rediscover arcade classics through bite-sized challenges and mini-games. Simple to play, hard to master.</p>
+            <a class="game-cta" href="lsdConsole/index.html" onclick="openConsole(event)">PLAY NOW <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
 
+        <article class="pj game-card coming-soon" aria-label="Project Arcana coming soon">
+          <div class="game-cover-link game-cover-placeholder"><div class="pj-placeholder" aria-hidden="true">✦</div><span class="game-category">ADVENTURE</span></div>
+          <div class="game-card-body"><div class="game-card-title-row"><div><h2>PROJECT ARCANA</h2><p class="game-tagline">A story-driven adventure trilogy</p></div></div><p class="game-description">A new world is in the making. More details will be revealed soon.</p><span class="game-cta game-cta-disabled">COMING SOON</span></div>
+        </article>
+
+        <article class="pj game-card coming-soon" aria-label="The Machine coming soon">
+          <div class="game-cover-link game-cover-placeholder"><div class="pj-placeholder" aria-hidden="true">◈</div><span class="game-category">PUZZLE</span></div>
+          <div class="game-card-body"><div class="game-card-title-row"><div><h2>THE MACHINE</h2><p class="game-tagline">A mysterious puzzle adventure</p></div></div><p class="game-description">Follow the clues, solve the mystery and uncover what lies behind the machine.</p><span class="game-cta game-cta-disabled">COMING SOON</span></div>
+        </article>
       </div>
     </div>
   </main>

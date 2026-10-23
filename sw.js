@@ -1,10 +1,13 @@
 // LSD Software PWA service worker.
 // Keep this version in sync with each frontend release.
-const CACHE_NAME = "lsd-shell-v1.0.7";
-const STATIC_CACHE = "lsd-static-v1.0.7";
+const CACHE_NAME = "lsd-shell-v1.0.8";
+const STATIC_CACHE = "lsd-static-v1.0.8";
 const MAX_RUNTIME_ENTRIES = 80;
 const PRECACHE_URLS = [
-  "/hub.html",
+  "/", "/index.html", "/hub.html",
+  "/css/styleIndex.css", "/css/lsd-immersive-motion.css",
+  "/js/lsd-immersive-motion.js",
+  "/img/home/lsd-logo-transparent.avif", "/img/home/lsd-logo-transparent.webp", "/img/home/lsd-logo-transparent.png",
   "/css/style.css", "/css/hub.css", "/css/auth-modal.css",
   "/css/badges.css", "/css/cosmetics.css", "/css/footer.css",
   "/js/fetch-utils.js", "/js/icons.js", "/js/auth-modal.js",

@@ -7,7 +7,7 @@
 
   // Reveal large content sections as they enter view; never hide content if observer is unavailable.
   if(!reduced && 'IntersectionObserver' in window){
-    const candidates = document.querySelectorAll('main > section, main > article, #hubMain > section, .hub-games-grid > *, .shop-grid > *, .leaderboard-list > *');
+    const candidates = document.querySelectorAll('main > section, main > article, #hubMain > section, .hub-games-grid > *, .shop-grid > *, .leaderboard-list > *, .home-game-card, .home-community-strip, .home-coming-soon');
     const io = new IntersectionObserver(entries=>entries.forEach(entry=>{
       if(entry.isIntersecting){entry.target.classList.add('lsd-in-view');io.unobserve(entry.target);}
     }),{threshold:.08,rootMargin:'0px 0px -24px 0px'});

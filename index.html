@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- PWA meta: icona su home screen mobile e tablet -->
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#baa701">
+  <meta name="theme-color" content="#070708">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="/img/pwa/apple-touch-icon.png">
@@ -13,73 +13,82 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/img/pwa/favicon-16.png">
   <link rel="icon" type="image/png" href="img/icon.png">
 
-  <title>LSD Software | Free Indie Games — Card Game & Fishing Simulator | Milan</title>
-  <meta name="description" content="LSD Software is a free indie game studio from Milan, Italy. Play LSD Card Game (psychedelic casino strategy) and LSD P-E-S-C-A (retro fishing simulator) directly in your browser. 100% free, no download needed.">
-  <meta name="keywords" content="LSD Software, free indie games browser, LSD Card Game, LSD PESCA fishing game, indie game studio Milan Italy, free retro games online, psychedelic card game, browser games free, giochi indie gratis">
+  <title>LSD Software | Free Browser Games, Arcade Challenges & Card Games</title>
+  <meta name="description" content="Play free browser games at LSD Software. Explore arcade challenges, strategic card games, fishing adventures, player profiles and leaderboards — no download required.">
   <meta name="author" content="LSD Software">
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
   <link rel="canonical" href="https://lsd-software.github.io/">
-  <meta name="theme-color" content="#000000">
-
+  
+  <meta name="color-scheme" content="dark">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://lsd-software.github.io/">
-  <meta property="og:title" content="LSD Software | Free Indie Games — Play Now in Browser">
-  <meta property="og:description" content="Free retro indie games from Milan. LSD Card Game & LSD P-E-S-C-A — play now, no download needed.">
-  <meta property="og:image" content="https://lsd-software.github.io/img/icon.png">
-  <meta property="og:image:width" content="512">
-  <meta property="og:image:height" content="512">
+  <meta property="og:title" content="LSD Software | Play, Collect, Compete">
+  <meta property="og:description" content="Discover free browser games, arcade worlds, card strategy and fishing adventures on LSD Software. Play instantly, collect rewards and climb the leaderboard.">
+  <meta property="og:image" content="https://lsd-software.github.io/img/home/lsd-logo-transparent.png">
+  <meta property="og:image:alt" content="LSD Software graffiti logo in gold, red and white">
   <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="LSD Software">
-
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@LSDSoftware">
-  <meta name="twitter:title" content="LSD Software | Free Indie Games — Play Now">
-  <meta name="twitter:description" content="Free retro indie games from Milan. Play LSD Card Game & P-E-S-C-A in your browser.">
-  <meta name="twitter:image" content="https://lsd-software.github.io/img/icon.png">
+  <meta name="twitter:title" content="LSD Software | Play, Collect, Compete">
+  <meta name="twitter:description" content="Free browser games, arcade challenges, card strategy and fishing adventures. No download required.">
+  <meta name="twitter:image" content="https://lsd-software.github.io/img/home/lsd-logo-transparent.png">
+  <meta name="twitter:image:alt" content="LSD Software graffiti logo">
+  <link rel="alternate" hreflang="en" href="https://lsd-software.github.io/">
+  <link rel="alternate" hreflang="x-default" href="https://lsd-software.github.io/">
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "LSD Software",
-    "url": "https://lsd-software.github.io/",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://lsd-software.github.io/img/icon.png",
-      "width": 512,
-      "height": 512
-    },
-    "description": "Independent indie game development studio from Milan, Italy. Creating free browser-based retro games.",
-    "foundingLocation": {
-      "@type": "Place",
-      "name": "Milan, Italy"
-    },
-    "knowsAbout": ["Game Development", "Indie Games", "Retro Games", "Browser Games"],
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Free Indie Games",
-      "itemListElement": [
-        {
-          "@type": "SoftwareApplication",
-          "name": "LSD Card Game",
-          "applicationCategory": "GameApplication",
-          "operatingSystem": "Web Browser",
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-          "url": "https://lsd-software.github.io/cardGameWeb/main.html"
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://lsd-software.github.io/#organization",
+        "name": "LSD Software",
+        "url": "https://lsd-software.github.io/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://lsd-software.github.io/img/home/lsd-logo-transparent.png",
+          "width": 1100,
+          "height": 1080
         },
-        {
-          "@type": "SoftwareApplication",
-          "name": "LSD P-E-S-C-A",
-          "applicationCategory": "GameApplication",
-          "operatingSystem": "Web Browser",
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
-          "url": "https://lsd-software.github.io/pescaWeb/pesca.html"
-        }
-      ]
-    }
+        "description": "Independent browser game platform featuring arcade challenges, card games and fishing adventures.",
+        "sameAs": ["https://discord.gg/c4xhySpw7c"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://lsd-software.github.io/#website",
+        "url": "https://lsd-software.github.io/",
+        "name": "LSD Software",
+        "inLanguage": "en",
+        "publisher": {"@id": "https://lsd-software.github.io/#organization"}
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://lsd-software.github.io/#webpage",
+        "url": "https://lsd-software.github.io/",
+        "name": "LSD Software | Free Browser Games, Arcade Challenges & Card Games",
+        "description": "Play free browser games including arcade challenges, card strategy and fishing adventures, with player profiles and leaderboards.",
+        "isPartOf": {"@id": "https://lsd-software.github.io/#website"},
+        "about": {"@id": "https://lsd-software.github.io/#organization"},
+        "inLanguage": "en",
+        "primaryImageOfPage": {"@type":"ImageObject","url":"https://lsd-software.github.io/img/home/lsd-logo-transparent.png"}
+      },
+      {
+        "@type": "ItemList",
+        "@id": "https://lsd-software.github.io/#featured-games",
+        "name": "Featured LSD Software Browser Games",
+        "itemListOrder": "https://schema.org/ItemListOrderAscending",
+        "numberOfItems": 4,
+        "itemListElement": [
+          {"@type":"ListItem","position":1,"item":{"@type":"VideoGame","name":"AFUE","gamePlatform":"Web browser","url":"https://lsd-software.github.io/lsdConsole/index.html","genre":["Arcade","Action"]}},
+          {"@type":"ListItem","position":2,"item":{"@type":"VideoGame","name":"LSD Card Game","gamePlatform":"Web browser","url":"https://lsd-software.github.io/cardGameWeb/main.html","genre":["Card game","Strategy"]}},
+          {"@type":"ListItem","position":3,"item":{"@type":"VideoGame","name":"P-E-S-C-A","gamePlatform":"Web browser","url":"https://lsd-software.github.io/pescaWeb/pesca.html","genre":["Fishing simulator","Simulation"]}},
+          {"@type":"ListItem","position":4,"item":{"@type":"VideoGame","name":"LSD Console","gamePlatform":"Web browser","url":"https://lsd-software.github.io/lsdConsole/index.html","genre":["Arcade","Retro games"]}}
+        ]
+      }
+    ]
   }
   </script>
-
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/styleIndex.css">
   <script type="application/ld+json">
@@ -115,8 +124,8 @@
 <body>
   <header>
     <div id="navbar">
-      <a id="logo" href="index.html" aria-label="LSD Software — Back to home">
-        <img src="img/icon.png" alt="LSD Software — Free Indie Game Studio Milan" width="80" height="80">
+      <a id="logo" href="index.html" aria-label="LSD Software home">
+        <picture><source srcset="img/home/lsd-logo-transparent.avif" type="image/avif"><source srcset="img/home/lsd-logo-transparent.webp" type="image/webp"><img src="img/home/lsd-logo-transparent.png" alt="LSD Software logo" width="64" height="64" fetchpriority="high"></picture>
       </a>
       <h1>LSD Software</h1>
       <div id="hamburger" aria-label="Open navigation menu" role="button" tabindex="0" aria-expanded="false">
@@ -125,68 +134,97 @@
       <nav id="menu" aria-label="Main navigation">
         <a href="index.html"><i data-lucide="home"></i> <span class="nav-text">HOME</span></a>
         <a href="about.html"><i data-lucide="info"></i> <span class="nav-text">ABOUT</span></a>
-        <a href="project.html"><i data-lucide="gamepad-2"></i> <span class="nav-text">PROJECTS</span></a>
+        <a href="project.html"><i data-lucide="gamepad-2"></i> <span class="nav-text">GAMES</span></a>
         <a href="hub.html"><i data-lucide="layout-dashboard"></i> <span class="nav-text">HUB</span></a>
-        <a href="contact.html"><i data-lucide="mail"></i> <span class="nav-text">CONTACTS</span></a>
+        <a href="contact.html"><i data-lucide="mail"></i> <span class="nav-text">CONTACT</span></a>
       </nav>
     </div>
 
     <!-- Google tag (gtag.js) -->
   </header>
 
-  <main id="container">
-    <div class="project-header">
-      <h2 class="white-title courier-prime-bold">DISCOVER OUR GAMES</h2>
-      <span class="tagline">"Retro worlds. Unexpected adventures. Made for play."</span>
-      <p class="intro-text">
-        At <strong>LSD Software</strong>, we make free games for curious players.
-        Explore strange worlds, discover hidden surprises, and enjoy a retro-inspired style
-        built for memorable moments — right in your browser.
-      </p>
-    </div>
-
-    <h2 class="white-title courier-prime-bold" style="text-align:center;margin-bottom:24px;">CHOOSE YOUR NEXT ADVENTURE</h2>
-
-    <div class="project-grid">
-
-      <fieldset class="retro-card">
-        <legend>LSD P-E-S-C-A</legend>
-        <div class="card-content">
-          <h3 class="gold-text">Uncle Entonì's Fishing Simulator</h3>
-          <p>Cast your line, discover unusual fish, and explore new places. Catch rare species
-          and unlock fresh areas as your fishing adventure grows.</p>
-          <div class="status-bar"><span class="status-dot"></span> READY TO PLAY</div>
-          <a href="pescaWeb/pesca.html" class="retro-btn" aria-label="Play LSD P-E-S-C-A fishing simulator">PLAY NOW</a>
+  <main id="container" class="home-experience">
+    <section class="home-hero lsd-sheen" aria-labelledby="home-title">
+      <div class="home-hero-backdrop" aria-hidden="true"></div>
+      <div class="home-hero-copy">
+        <p class="eyebrow"><span class="eyebrow-dot"></span> YOUR NEXT WORLD IS WAITING</p>
+        <h2 id="home-title">PLAY.<br><span>COLLECT.</span><br>COMPETE.</h2>
+        <p class="home-hero-subtitle">One platform. Countless adventures.</p>
+        <p class="home-hero-description">Explore new worlds, take on fresh challenges and build your journey. Your next game is just one click away.</p>
+        <div class="home-hero-actions">
+          <a href="#home-games" class="home-primary-cta lsd-ripple">SCOPRI I GAMES <span aria-hidden="true">↗</span></a>
+          <a href="hub.html" class="home-secondary-cta">OPEN THE HUB <span aria-hidden="true">→</span></a>
         </div>
-      </fieldset>
-
-      <fieldset class="retro-card">
-        <legend>LSD CARDGAME</legend>
-        <div class="card-content">
-          <h3 class="gold-text">A Curious Card Adventure</h3>
-          <p>Guess the next card, collect coins, unlock new decks, and see what surprises
-          each round brings. Easy to jump into, with plenty to discover.</p>
-          <div class="status-bar"><span class="status-dot yellow"></span> READY TO PLAY</div>
-          <a href="cardGameWeb/main.html" class="retro-btn" aria-label="Play LSD Card Game">PLAY NOW</a>
+        <div class="home-trust-row" aria-label="Caratteristiche della piattaforma">
+          <span><i data-lucide="gamepad-2" aria-hidden="true"></i> Play in your browser</span>
+          <span><i data-lucide="trophy" aria-hidden="true"></i> Challenges and progress</span>
+          <span><i data-lucide="sparkles" aria-hidden="true"></i> Always more to discover</span>
         </div>
-      </fieldset>
-
-      <fieldset class="retro-card">
-        <legend>THE MACHINE</legend>
-        <div class="card-content">
-          <h3 class="gold-text">Industrial Mystery Thriller</h3>
-          <p>A mysterious puzzle adventure filled with strange machines, hidden clues,
-          and choices that may change more than you expect.</p>
-          <div class="status-bar"><span class="status-dot red"></span> COMING SOON</div>
-          <span class="retro-btn locked" aria-disabled="true">COMING SOON</span>
+      </div>
+      <div class="home-hero-art" aria-label="LSD Software logo showcase">
+        <div class="hero-orbit hero-orbit-one" aria-hidden="true"></div>
+        <div class="hero-orbit hero-orbit-two" aria-hidden="true"></div>
+        <span class="hero-particle hero-particle-one" aria-hidden="true"></span>
+        <span class="hero-particle hero-particle-two" aria-hidden="true"></span>
+        <span class="hero-particle hero-particle-three" aria-hidden="true"></span>
+        <div class="hero-logo-stage">
+          <picture class="hero-logo-picture">
+            <source srcset="img/home/lsd-logo-transparent.avif" type="image/avif">
+            <source srcset="img/home/lsd-logo-transparent.webp" type="image/webp">
+            <img src="img/home/lsd-logo-transparent.png" alt="LSD Software graffiti logo in gold, red and white" width="900" height="900" fetchpriority="high" decoding="async">
+          </picture>
+          <span class="hero-logo-aura" aria-hidden="true"></span>
+          <span class="hero-logo-platform" aria-hidden="true"></span>
         </div>
-      </fieldset>
+        <span class="hero-art-chip">INSTANT PLAY · NO DOWNLOAD</span>
+      </div>
+      <div class="hero-bottom-glow" aria-hidden="true"></div>
+    </section>
 
-    </div>
+    <section class="home-games-section" id="home-games" aria-labelledby="games-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">CHOOSE YOUR NEXT CHALLENGE</p><h2 id="games-title">OUR <span>GAMES</span></h2></div>
+        <a href="project.html" class="section-link">ALL GAMES <span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="section-intro">Jump into a quick match or take your time exploring. Every world has its own rhythm.</p>
+      <div class="home-game-grid">
+        <article class="home-game-card game-card-afue lsd-sheen">
+          <a class="home-game-art" href="lsdConsole/index.html" aria-label="Play AFUE in LSD Console">
+            <picture><source srcset="img/home/afue-cover.avif" type="image/avif"><img src="lsdConsole/data/copertineGiochi/LSDAFUE.png" alt="AFUE arcade action game artwork" loading="lazy" decoding="async" width="450" height="250"></picture>
+            <span class="game-art-tag">ACTION</span>
+          </a>
+          <div class="home-game-content"><div class="home-game-title-row"><span class="game-icon"><img src="img/logoConsole.webp" alt="" width="40" height="40" loading="lazy"></span><div><h3>AFUE</h3><p>Arcade combat and challenges</p></div><span class="game-arrow" aria-hidden="true">↗</span></div><p class="home-game-description">Enter the arena, choose your moves and take on the challenge.</p><a class="home-game-cta" href="lsdConsole/index.html">PLAY NOW <span aria-hidden="true">→</span></a></div>
+        </article>
+        <article class="home-game-card game-card-cards lsd-sheen">
+          <a class="home-game-art" href="cardGameWeb/main.html" aria-label="Play LSD Card Game">
+            <picture><source srcset="img/home/cardgame-cover.avif" type="image/avif"><img src="cardGameWeb/data_cg/SfondoTavolata.png" alt="LSD Card Game table and playing cards" loading="lazy" decoding="async" width="1200" height="675"></picture>
+            <span class="game-art-tag">STRATEGY</span>
+          </a>
+          <div class="home-game-content"><div class="home-game-title-row"><span class="game-icon game-icon-cards"><img src="img/logoCG.webp" alt="" width="40" height="40" loading="lazy"></span><div><h3>LSD CARD GAME</h3><p>Cards, instincts and collecting</p></div><span class="game-arrow" aria-hidden="true">↗</span></div><p class="home-game-description">Predict the next card, earn coins and unlock new decks.</p><a class="home-game-cta" href="cardGameWeb/main.html">PLAY NOW <span aria-hidden="true">→</span></a></div>
+        </article>
+        <article class="home-game-card game-card-fishing lsd-sheen">
+          <a class="home-game-art" href="pescaWeb/pesca.html" aria-label="Play P-E-S-C-A">
+            <picture><source srcset="img/home/pesca-cover.avif" type="image/avif"><img src="pescaWeb/assets/schermate/schermata1.png" alt="Scenic fishing simulator landscape in P-E-S-C-A" loading="lazy" decoding="async" width="1920" height="1080"></picture>
+            <span class="game-art-tag">EXPLORATION</span>
+          </a>
+          <div class="home-game-content"><div class="home-game-title-row"><span class="game-icon game-icon-fishing"><img src="img/logoPesca.webp" alt="" width="40" height="40" loading="lazy"></span><div><h3>P-E-S-C-A</h3><p>A fishing simulator made to explore</p></div><span class="game-arrow" aria-hidden="true">↗</span></div><p class="home-game-description">Cast your line, discover new species and complete your collection.</p><a class="home-game-cta" href="pescaWeb/pesca.html">PLAY NOW <span aria-hidden="true">→</span></a></div>
+        </article>
+        <article class="home-game-card game-card-console lsd-sheen">
+          <a class="home-game-art" href="lsdConsole/index.html" aria-label="Open LSD Console">
+            <picture><source srcset="img/home/console-cover.avif" type="image/avif"><img src="lsdConsole/data/copertineGiochi/zombies.png" alt="A retro arcade world available in LSD Console" loading="lazy" decoding="async" width="450" height="250"></picture>
+            <span class="game-art-tag">ARCADE</span>
+          </a>
+          <div class="home-game-content"><div class="home-game-title-row"><span class="game-icon"><img src="img/logoConsole.webp" alt="" width="40" height="40" loading="lazy"></span><div><h3>LSD CONSOLE</h3><p>A collection of retro arcade worlds</p></div><span class="game-arrow" aria-hidden="true">↗</span></div><p class="home-game-description">Rediscover arcade classics through bite-sized challenges and mini-games.</p><a class="home-game-cta" href="lsdConsole/index.html">EXPLORE <span aria-hidden="true">→</span></a></div>
+        </article>
+      </div>
+    </section>
 
-    <div class="discover-more-wrap">
-      <a href="project.html" class="retro-btn" aria-label="See all LSD Software games">DISCOVER MORE →</a>
-    </div>
+    <section class="home-community-strip" aria-label="Explore the community">
+      <div class="community-strip-copy"><span class="community-strip-icon"><i data-lucide="trophy" aria-hidden="true"></i></span><div><p class="eyebrow">THE CHALLENGE CONTINUES</p><h2>Your name could be next on the leaderboard.</h2><p>Track your progress, meet other players and come back for new challenges.</p></div></div>
+      <div class="community-strip-actions"><a href="leaderboard.html" class="home-primary-cta">VIEW LEADERBOARD <span aria-hidden="true">↗</span></a><a href="hub.html" class="home-secondary-cta">OPEN YOUR HUB <span aria-hidden="true">→</span></a></div>
+    </section>
+
+    <section class="home-coming-soon" aria-label="Upcoming projects"><div><p class="eyebrow">THE LSD WORLD KEEPS GROWING</p><h2>MORE ADVENTURES <span>COMING SOON</span></h2><p>New projects are in the works. In the meantime, choose your world and start playing.</p></div><span class="coming-soon-mark" aria-hidden="true">LSD<span>+</span></span></section>
   </main>
 
     <footer class="site-footer">
@@ -196,7 +234,7 @@
           <img src="img/icon.png" alt="LSD Software logo">
           <span>LSD SOFTWARE</span>
         </div>
-        <p>Free indie games and playful digital worlds, made by an independent team in Milan, Italy.</p>
+        <p>Indie games and digital worlds to explore, created by an independent team.</p>
         <div class="footer-social">
           <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord"><i data-lucide="message-square"></i></a>
           <a href="contact.html" aria-label="Contact LSD Software"><i data-lucide="mail"></i></a>
@@ -226,14 +264,14 @@
       <div class="footer-col">
         <h4>Legal</h4>
         <ul>
-          <li><a href="privacy.html">Privacy Policy</a></li>
-          <li><a href="cookies.html">Cookie Policy</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="cookies.html">Cookies</a></li>
         </ul>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <span>© <span id="footYear">2025</span> <strong style="color:rgba(255,255,255,0.6)">LSD Software</strong> — Milan, Italy</span>
+      <span>© <span id="footYear">2026</span> <strong style="color:rgba(255,255,255,0.6)">LSD Software</strong></span>
       <div class="footer-legal-links">
         <a href="privacy.html">Privacy</a><span>·</span>
         <a href="cookies.html">Cookies</a><span>·</span>

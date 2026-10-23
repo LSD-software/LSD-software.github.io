@@ -31,19 +31,19 @@
   }
 
   const PROFILE_AVATAR_ART = {
-    icon_default: "avatar-hood.webp",
-    icon_cards: "avatar-lsd-logo.webp",
-    icon_fish: "avatar-neon-mask.webp",
-    icon_pad: "avatar-pixel-pad.webp",
-    icon_ghost: "avatar-skull.webp",
-    icon_dragon: "avatar-dragon.webp"
-  };
+    "icon_default": "avatar-arcade-core.webp",
+    "icon_cards": "avatar-lsd-logo.webp",
+    "icon_fish": "avatar-pixel-pad.webp",
+    "icon_pad": "avatar-pixel-pad.webp",
+    "icon_ghost": "avatar-skull.webp",
+    "icon_dragon": "avatar-dragon.webp"
+};
 
   function avatarHtml(cosmetics, initials) {
     const border = cosmetics.border?.css || "border-default";
     const file = PROFILE_AVATAR_ART[cosmetics.icon?.id];
     const visual = file
-      ? `<img class="cosmetic-avatar-art" src="img/cosmetics/${file}" alt="${escHtml(cosmetics.icon?.name || "Avatar")}" loading="lazy" decoding="async">`
+      ? `<img class="cosmetic-avatar-art" src="img/cosmetics/${file}" alt="${escHtml(cosmetics.icon?.name || "Profile avatar")}" loading="lazy" decoding="async">`
       : (cosmetics.icon?.icon || "🙂");
     return `
       <div class="lsd-avatar-wrap ${border}">
@@ -70,11 +70,11 @@
       }
       const data = await res.json();
       const bg = data.cosmetics.background?.css || "bg-midnight";
+      const PROFILE_BANNER_ART = { bg_default: "banner-lsd-classic.webp", bg_neon: "banner-cyber.webp", bg_stars: "banner-moonlight.webp", bg_gold: "banner-sunset.webp" };
+      const bannerFile = PROFILE_BANNER_ART[data.cosmetics.background?.id];
+      const bannerStyle = bannerFile ? `background-image:linear-gradient(90deg,rgba(7,7,7,.72),rgba(7,7,7,.38)),url('img/cosmetics/${bannerFile}');background-size:cover;background-position:center;` : "";
       const memberSince = new Date(data.memberSince).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
-      const bannerFiles = { bg_default: "banner-lsd-classic.webp", bg_neon: "banner-cyber.webp", bg_stars: "banner-moonlight.webp", bg_gold: "banner-sunset.webp" };
-      const bannerFile = bannerFiles[data.cosmetics.background?.id];
-      const bannerStyle = bannerFile ? `background-image:linear-gradient(90deg,rgba(7,7,7,.7),rgba(7,7,7,.4)),url('img/cosmetics/${bannerFile}');background-size:cover;background-position:center;` : "";
       content.innerHTML = `
         <div class="lsd-profile-card ${bg}" style="padding:30px 24px; text-align:center; border-radius:14px; ${bannerStyle}">
           ${avatarHtml(data.cosmetics)}

@@ -167,7 +167,7 @@
 .friend-info { display: flex; align-items: center; gap: 10px; }
 .friend-name { color: #fff; font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 700; }
 .friend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-.friend-dot.online  { background: #5ee000; box-shadow: 0 0 6px rgba(94,224,0,0.7); }
+.friend-dot.online  { background: #baa701; box-shadow: 0 0 6px rgba(186,167,1,0.7); }
 .friend-dot.offline { background: rgba(255,255,255,0.2); }
 
 .friend-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -179,7 +179,7 @@
 }
 .friend-btn:hover { background: rgba(186,167,1,0.2); }
 .friend-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.friend-btn.accept  { border-color: rgba(94,224,0,0.4); color: #5ee000; background: rgba(94,224,0,0.08); }
+.friend-btn.accept  { border-color: rgba(186,167,1,0.4); color: #baa701; background: rgba(186,167,1,0.08); }
 .friend-btn.decline, .friend-btn.danger { border-color: rgba(255,80,80,0.4); color: #ff6b6b; background: rgba(255,0,0,0.06); }
 .friend-btn.ghost { background: transparent; border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); }
 .friend-btn.ghost:hover { border-color: rgba(255,255,255,0.3); color: #fff; }

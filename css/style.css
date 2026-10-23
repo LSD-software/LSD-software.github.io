@@ -1,3 +1,15 @@
+/* LSD Software brand palette — keep all public UI within these colors. */
+:root {
+  --lsd-black: #0a0a0a;
+  --lsd-black-soft: #1a1a1a;
+  --lsd-gold: #baa701;
+  --lsd-gold-bright: #ffd700;
+  --lsd-maroon: #800000;
+  --lsd-maroon-deep: #600000;
+  --lsd-white: #ffffff;
+  --lsd-muted: #d6d1bd;
+}
+
 /* --- FONT IMPORT --- */
 @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
@@ -155,7 +167,7 @@ h1 {
   transition: width 0.3s ease;
 }
 
-#menu a:hover { color: #800000; }
+#menu a:hover { color: var(--lsd-gold-bright); }
 #menu a:hover::after { width: 100%; }
 
 /* --- MAIN CONTAINER --- */
@@ -182,7 +194,7 @@ fieldset {
 legend {
   padding: 5px 10px;
   font-size: clamp(18px, 4vw, 28px);
-  color: #800000;
+  color: var(--lsd-gold-bright);
   font-family: "Courier Prime", monospace;
   font-weight: 700;
 }
@@ -344,3 +356,12 @@ footer {
 
 /* Utility: tutte le istanze lucide ereditano il colore corrente */
 [data-lucide], svg.lucide { color: inherit; stroke: currentColor; }
+
+
+/* Accessible focus states, using the established gold brand accent. */
+:where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--lsd-gold-bright);
+  outline-offset: 3px;
+}
+:where(button, input, select, textarea) { accent-color: var(--lsd-gold); }
+::selection { color: var(--lsd-white); background: var(--lsd-maroon); }

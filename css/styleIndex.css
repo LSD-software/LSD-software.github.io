@@ -71,7 +71,7 @@
   background: #1a1a1a;
   padding: 5px 10px;
   font-size: 0.75em;
-  color: #00ff00;
+  color: #baa701;
   margin: 14px 0;
   border-left: 3px solid #800000;
   font-family: "Courier Prime", monospace;
@@ -84,7 +84,7 @@
   height: 8px;
   width: 8px;
   min-width: 8px;
-  background-color: #00ff00;
+  background-color: #baa701;
   border-radius: 50%;
   display: inline-block;
 }

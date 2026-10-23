@@ -1,7 +1,7 @@
 // LSD Software PWA service worker.
 // Keep this version in sync with each frontend release.
-const CACHE_NAME = "lsd-shell-v1.0.5";
-const STATIC_CACHE = "lsd-static-v1.0.5";
+const CACHE_NAME = "lsd-shell-v1.0.6";
+const STATIC_CACHE = "lsd-static-v1.0.6";
 const MAX_RUNTIME_ENTRIES = 80;
 const PRECACHE_URLS = [
   "/hub.html",
@@ -13,7 +13,20 @@ const PRECACHE_URLS = [
   "/js/footer.js", "/js/script.js", "/js/cookie-banner.js",
   "/cardGameWeb/js_cg/api.js",
   "/lsdConsole/console-icon.png", "/img/icon.png", "/img/pwa/icon-192.png", "/img/pwa/icon-512.png",
-  "/img/pwa/apple-touch-icon.png", "/manifest.json"
+  "/img/pwa/apple-touch-icon.png",
+  "/img/cosmetics/avatar-arcade-core.webp", "/img/cosmetics/avatar-hood.webp",
+  "/img/cosmetics/avatar-lsd-logo.webp", "/img/cosmetics/avatar-pixel-pad.webp",
+  "/img/cosmetics/avatar-skull.webp", "/img/cosmetics/avatar-neon-mask.webp",
+  "/img/cosmetics/avatar-dragon.webp",
+  "/img/cosmetics/banner-lsd-classic.webp", "/img/cosmetics/banner-cyber.webp",
+  "/img/cosmetics/banner-forest.webp", "/img/cosmetics/banner-moonlight.webp",
+  "/img/cosmetics/banner-neon-city.webp", "/img/cosmetics/banner-redline.webp",
+  "/img/cosmetics/banner-sunset.webp",
+  "/img/cosmetics/frame-classic.webp", "/img/cosmetics/frame-fire.webp",
+  "/img/cosmetics/frame-gold.webp", "/img/cosmetics/frame-ice.webp",
+  "/img/cosmetics/frame-neon-blue.webp", "/img/cosmetics/frame-neon-purple.webp",
+  "/img/cosmetics/frame-rainbow.webp",
+  "/img/pwa/icon-96.png", "/manifest.json"
 ];
 
 async function trimCache(cacheName, maxEntries = MAX_RUNTIME_ENTRIES) {

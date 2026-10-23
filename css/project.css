@@ -1,5 +1,5 @@
 #container h2 {
-  color: #800000;
+  color: #ffd700;
   text-align: center;
   font-family: "Courier Prime", monospace;
   font-size: clamp(1rem, 3vw, 1.4rem);
@@ -97,7 +97,7 @@
   display: inline-block;
   margin-top: 10px;
   background: #1a1a1a;
-  color: #800000;
+  color: #ffd700;
   border: 1px solid #800000;
   border-radius: 4px;
   padding: 3px 10px;

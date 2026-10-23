@@ -14,7 +14,8 @@ pre, code { white-space: pre-wrap; overflow-wrap: anywhere; }
   #logo { min-width: 0; flex: 0 1 auto; }
   #logo img { width: auto; height: clamp(38px, 11vw, 52px); max-width: min(22vw, 76px); padding: 2px; }
   #navbar h1, #navbar > h1, header h1 { min-width: 0; overflow-wrap: anywhere; line-height: 1.15; font-size: clamp(.82rem, 4vw, 1.15rem); padding: 3px 2px; }
-  #hamburger { flex: 0 0 42px; width: 42px; height: 42px; min-width: 42px; min-height: 42px; align-items: center; justify-content: center; touch-action: manipulation; }
+  #hamburger { flex: 0 0 42px; width: 42px; height: 42px; min-width: 42px; min-height: 42px; align-items: center; justify-content: space-evenly; touch-action: manipulation; }
+  #hamburger span { width: 24px; height: 3px; flex: 0 0 3px; }
   #menu { max-width: 100%; max-height: min(70dvh, 520px); overflow-y: auto; overscroll-behavior: contain; padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
   #menu a { box-sizing: border-box; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
   #container, #lbContainer, main, .container, .project-header, #container-pj { width: calc(100% - 20px); max-width: 100%; }
@@ -62,4 +63,22 @@ pre, code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+
+/* LSD small-screen overflow guard */
+@media (max-width:760px) {
+  #hubNavbar { gap:8px; }
+  .hub-nav-links,.hub-nav-btn { min-width:0; }
+  .hub-nav-btn .nav-label { overflow-wrap:anywhere; }
+  .shop-tabs { flex-wrap:wrap; }
+  .shop-tab-btn { max-width:100%; }
+  .shop-grid,#shopGrid { grid-template-columns:repeat(auto-fit,minmax(min(135px,100%),1fr)); }
+  .shop-item { min-width:0; }
+  .shop-item .item-name,.hub-profile-name,.hub-profile-email { overflow-wrap:anywhere; }
+  .lb-player-cell { gap:6px; }
+}
+@media (max-width:420px) {
+  .shop-item { padding-left:8px; padding-right:8px; }
+  .shop-item .item-badge { max-width:calc(100% - 10px); white-space:normal; text-align:center; }
 }

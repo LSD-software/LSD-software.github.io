@@ -89,7 +89,7 @@
   text-align: center; margin-bottom: 2px;
 }
 #authModalBox .modal-logo h2 {
-  color: #a10000; font-family: 'Cinzel',serif;
+  color: #ffd700; font-family: 'Cinzel',serif;
   font-size: clamp(1.25rem,4vw,1.65rem);
   letter-spacing: 4px; margin: 0;
   text-shadow: 0 0 24px rgba(161,0,0,0.6);

@@ -29,7 +29,7 @@ body {
     margin: 0;
     padding: 0;
 
-    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%), url("../img/bg.png");
+    background: radial-gradient(circle, rgba(0,0,0,0) 20%, rgba(190,26,26,0.2) 100%), url("../../img/bg.png");
     background-size: cover;      
     background-position: center center;
     background-repeat: no-repeat;

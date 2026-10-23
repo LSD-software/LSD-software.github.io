@@ -5,6 +5,20 @@
 
 const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
 
+const CONSOLE_AVATAR_ART = {
+  icon_default: "avatar-arcade-core.webp", icon_cards: "avatar-lsd-logo.webp",
+  icon_fish: "avatar-pixel-pad.webp", icon_pad: "avatar-pixel-pad.webp",
+  icon_ghost: "avatar-skull.webp", icon_dragon: "avatar-dragon.webp"
+};
+function consoleAvatarHtml(cosmetics) {
+  const c = cosmetics || {};
+  const file = CONSOLE_AVATAR_ART[c.icon?.id];
+  if (!file) return "";
+  const border = c.border?.css || "border-default";
+  return `<span class="lb-avatar lsd-avatar-wrap sm ${escHtml(border)}" aria-hidden="true"><span class="lsd-avatar-inner"><img class="cosmetic-avatar-art" src="img/cosmetics/${file}" alt="" loading="lazy" decoding="async"></span></span>`;
+}
+
+
 (function () {
   let activeConsoleGame = "afue";
 
@@ -106,7 +120,7 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
         ? `<td class="col-wins-afue">${row.wins||0}</td><td class="col-losses-afue">${row.losses||0}</td><td class="col-ratio-afue">${pct}</td>`
         : `<td class="col-bestscore-afue">${row.bestScore||0}</td>`;
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td class="col-rank"><span class="rank-medal medal-n">${row.rank}</span></td><td><span class="player-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></td>${cells}`;
+      tr.innerHTML = `<td class="col-rank"><span class="rank-medal medal-n">${row.rank}</span></td><td><span class="lb-player-cell">${consoleAvatarHtml(row.cosmetics)}<span class="player-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></span></td>${cells}`;
       tbody.appendChild(tr);
     });
     table.classList.remove("hidden");
@@ -284,7 +298,7 @@ const BACKEND_CONSOLE = "https://lsd-backend-4phu.onrender.com";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td class="col-rank"><span class="rank-medal medal-n">${row.rank}</span></td>
-        <td><span class="player-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></td>
+        <td><span class="lb-player-cell">${consoleAvatarHtml(row.cosmetics)}<span class="player-name player-clickable" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></span></td>
         <td style="text-align:right">${(row.pescaTotali||0).toLocaleString()}</td>
         <td style="text-align:right;color:#ce93d8">${row.pescaMiticiTotali||0}</td>
         <td style="text-align:right;color:#FFD700">${row.vhsTotali||0}</td>

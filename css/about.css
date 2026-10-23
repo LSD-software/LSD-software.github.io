@@ -14,7 +14,7 @@
 }
 
 #about-lsd h3 {
-  color: #800000;
+  color: #ffd700;
   text-shadow: 1px 1px 0px rgba(255, 215, 0, 0.2);
   text-transform: uppercase;
   font-size: clamp(0.95rem, 2.5vw, 1.1rem);
@@ -65,7 +65,7 @@ strong {
   background: #1a1a1a;
   padding: 6px 12px;
   font-size: 0.78em;
-  color: #00ff00;
+  color: #baa701;
   margin: 20px 0;
   border-left: 3px solid #800000;
   font-family: "Courier Prime", monospace;

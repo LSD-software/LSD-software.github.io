@@ -88,6 +88,19 @@
   background: rgba(255,215,0,0.15);
   transform: translateY(-2px);
 }
+/* Text fallback keeps social links recognizable if the icon library is unavailable. */
+.footer-social a[href*="discord.gg"] i[data-lucide="message-square"]:empty::before {
+  content: "D";
+  color: #ffd700;
+  font-weight: 900;
+  font-style: normal;
+}
+.footer-social a[href*="contact"] i[data-lucide="mail"]:empty::before {
+  content: "@";
+  color: #ffd700;
+  font-weight: 900;
+  font-style: normal;
+}
 
 .footer-bottom {
   border-top: 1px solid rgba(255,255,255,0.08);

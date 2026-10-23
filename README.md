@@ -1,7 +1,6 @@
+## Frontend restoration pass — 2026-10-23
 
-## Cosmetic artwork rendering fix
-
-The profile shop and public profile modal now reference the local files in `img/cosmetics/` for cosmetic previews. The profile banner preview uses the corresponding local banner artwork, while CSS-rendered effects remain as fallbacks. This change is frontend-only; purchase/equip API behavior and backend prices are unchanged.
+This pass reconnects local cosmetic artwork to the shop, public profile modal, friends lists, and leaderboard rows; improves small-screen overflow handling; adds artwork to the service-worker precache; and increments the cache version. It preserves the current backend catalog and purchase/equip endpoints. It does not add unsupported catalog categories or change game logic. ZIP integrity and static syntax checks were performed; live-browser and backend integration testing are still required.
 
 # LSD Software — Frontend
 
@@ -335,3 +334,8 @@ Per ogni release:
 Consultare le informazioni di licenza e proprietà intellettuale fornite dal progetto prima di riutilizzare codice, grafica, marchi o contenuti. Non presumere che tutti gli asset siano riutilizzabili al di fuori del progetto solo perché sono distribuiti dal sito pubblico.
 
 © LSD Software.
+
+
+## Audit UX/UI e test
+
+Le interfacce rivolte ai giocatori usano messaggi semplici, comandi chiari e la palette nero/oro/rosso scuro/bianco. Il report corrente è `../LSD-Software-Audit-Generale-UX-UI.md`; per i controlli ripetibili vedere `../lsd-backend/scripts/audit-static.js` e `../lsd-backend/TESTING-AND-RELEASE-CHECKLIST.md`. Le anteprime statiche in `../audit-evidence/static-previews/` non sostituiscono i test interattivi in staging.

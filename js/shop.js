@@ -53,38 +53,34 @@
   }
   function categoryPropKey(cat) { return cat; } // equipped.icon / .background / .border
 
-  // Mappa esplicita tra gli ID del catalogo backend e gli artwork già presenti nel repository.
-  const COSMETIC_ART = {
-    icon_default: "avatar-hood.webp",
-    icon_cards: "avatar-lsd-logo.webp",
-    icon_fish: "avatar-neon-mask.webp",
-    icon_pad: "avatar-pixel-pad.webp",
-    icon_ghost: "avatar-skull.webp",
-    icon_dragon: "avatar-dragon.webp",
-    bg_default: "banner-lsd-classic.webp",
-    bg_neon: "banner-cyber.webp",
-    bg_stars: "banner-moonlight.webp",
-    bg_gold: "banner-sunset.webp",
-    border_default: "frame-classic.webp",
-    border_pulse: "frame-fire.webp",
-    border_spin: "frame-rainbow.webp",
-    border_orbit: "frame-neon-blue.webp"
-  };
 
+  // Artwork locale del progetto: nessun host esterno e nessun asset inventato.
+  const COSMETIC_ART = {
+    "icon_default": "avatar-arcade-core.webp",
+    "icon_cards": "avatar-lsd-logo.webp",
+    "icon_fish": "avatar-pixel-pad.webp",
+    "icon_pad": "avatar-pixel-pad.webp",
+    "icon_ghost": "avatar-skull.webp",
+    "icon_dragon": "avatar-dragon.webp",
+    "bg_default": "banner-lsd-classic.webp",
+    "bg_neon": "banner-cyber.webp",
+    "bg_stars": "banner-moonlight.webp",
+    "bg_gold": "banner-sunset.webp",
+    "border_default": "frame-classic.webp",
+    "border_pulse": "frame-fire.webp",
+    "border_spin": "frame-rainbow.webp",
+    "border_orbit": "frame-neon-blue.webp"
+};
   function cosmeticArt(item) {
     const file = item && COSMETIC_ART[item.id];
     return file ? `img/cosmetics/${file}` : "";
   }
-
   function safeAttr(value) {
-    return String(value || "").replace(/[&<>"']/g, ch => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[ch]));
+    return String(value || "").replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch]));
   }
-
   function artImg(item, className) {
     const src = cosmeticArt(item);
-    return src ? `<img class="${className}" src="${src}" alt="${safeAttr(item.name)}" loading="lazy" decoding="async">` : "";
+    return src ? `<img class="${className}" src="${src}" alt="${safeAttr(item?.name)}" loading="lazy" decoding="async">` : "";
   }
 
   function renderAvatarPreview() {
@@ -122,9 +118,9 @@
     const el = document.getElementById("shopTabs");
     if (!el) return;
     const tabs = [
-      { id: "icon",       label: "Avatar" },
-      { id: "background",  label: "Banner" },
-      { id: "border",      label: "Frame" },
+      { id: "icon",       label: "🙂 Icons" },
+      { id: "background",  label: "🖼️ Backgrounds" },
+      { id: "border",      label: "💍 Borders" },
     ];
     el.innerHTML = tabs.map(t => `
       <button class="shop-tab-btn ${t.id === activeCategory ? "active" : ""}" data-cat="${t.id}">${t.label}</button>
@@ -146,7 +142,7 @@
           <div class="lsd-avatar-inner">${artImg(item, "cosmetic-frame-art") || "✨"}</div>
         </div>`;
     }
-    // Banner: mostra l'immagine reale del catalogo, non solo il gradiente CSS.
+    // background
     const src = cosmeticArt(item);
     return src
       ? `<div class="cosmetic-banner-preview" style="background-image:linear-gradient(0deg,rgba(0,0,0,.12),rgba(0,0,0,.12)),url('${src}')"></div>`

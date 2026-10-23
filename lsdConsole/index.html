@@ -920,12 +920,20 @@ const Auth = {
     if (this.token) h["Authorization"] = `Bearer ${this.token}`;
     const opts = { method, headers:h };
     if (body) opts.body = JSON.stringify(body);
-    try {
-      const r = await fetch(API_URL + path, opts);
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || "Error");
-      return d;
-    } catch(e) { throw e; }
+    let r;
+    try { r = await fetch(API_URL + path, opts); }
+    catch (_) { throw new Error("Connessione non disponibile. Controlla la connessione e riprova."); }
+    let d;
+    try { d = await r.json(); }
+    catch (_) { throw new Error("Non siamo riusciti a completare l'operazione. Riprova tra poco."); }
+    if (!r.ok) {
+      const raw = typeof d?.error === "string" ? d.error : "";
+      if (r.status === 429) throw new Error("Stai procedendo troppo velocemente. Attendi un momento e riprova.");
+      if (r.status >= 500 || /server error|internal server|http \d{3}|exception/i.test(raw)) throw new Error("Si è verificato un problema. Riprova tra poco.");
+      if (/invalid (item|category|targetuserid|participant|friendid|request|trophies array|objectid)/i.test(raw)) throw new Error("Controlla i dati inseriti e riprova.");
+      throw new Error(raw || "Non siamo riusciti a completare l'operazione. Riprova.");
+    }
+    return d;
   },
   async submitScore(game, score) {
     if (!this.token) return;

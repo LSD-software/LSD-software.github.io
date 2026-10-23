@@ -32,9 +32,26 @@ async function _apiCall(path, method = "GET", body = null) {
   if (_authTok) h["Authorization"] = `Bearer ${_authTok}`;
   const opts = { method, headers: h };
   if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(_API + path, opts);
-  const d = await r.json();
-  if (!r.ok) throw new Error(d.error || "Server error");
+  let r;
+  try {
+    r = await fetch(_API + path, opts);
+  } catch (_) {
+    throw new Error("We couldn't connect. Check your internet connection and try again.");
+  }
+  let d;
+  try { d = await r.json(); }
+  catch (_) { throw new Error("Something went wrong on our side. Please try again shortly."); }
+  if (!r.ok) {
+    const raw = typeof d?.error === "string" ? d.error : "";
+    if (r.status === 429) throw new Error("You're doing that a little too quickly. Please wait and try again.");
+    if (r.status >= 500 || /server error|internal server|http \d{3}|exception/i.test(raw)) {
+      throw new Error("Something went wrong on our side. Please try again shortly.");
+    }
+    if (/invalid (item|category|targetuserid|participant|friendid|request|trophies array|objectid)/i.test(raw)) {
+      throw new Error("Some information looks incorrect. Please check it and try again.");
+    }
+    throw new Error(raw || "We couldn't complete that. Please try again.");
+  }
   return d;
 }
 

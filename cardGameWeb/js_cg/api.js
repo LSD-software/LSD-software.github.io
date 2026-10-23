@@ -44,16 +44,47 @@ const Api = {
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); }
-      catch(e) { throw new Error(`Server returned non-JSON: ${text.slice(0,100)}`); }
+      catch (_) {
+        throw new Error("We couldn't complete that right now. Please try again in a moment.");
+      }
 
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      if (!res.ok) {
+        const message = this.userFriendlyError(data?.error, res.status);
+        throw new Error(message);
+      }
       return data;
 
     } catch(e) {
       clearTimeout(timer);
-      if (e.name === "AbortError") throw new Error("Request timed out. Server may be waking up, try again.");
+      if (e.name === "AbortError") {
+        throw new Error("This is taking longer than expected. Please try again shortly.");
+      }
+      if (e instanceof TypeError || /failed to fetch|networkerror|network request failed/i.test(e?.message || "")) {
+        throw new Error("We couldn't connect. Check your internet connection and try again.");
+      }
       throw e;
     }
+  },
+
+  // Convert technical server failures into clear, helpful messages for players.
+  // Keep known account/game messages, but never show HTTP codes or raw diagnostics.
+  userFriendlyError(message, status) {
+    const raw = typeof message === "string" ? message.trim() : "";
+    if (status === 429 || /too many requests|too many messages/i.test(raw)) {
+      return "You're doing that a little too quickly. Please wait a moment and try again.";
+    }
+    if (status >= 500 || /server error|internal server|http \d{3}|non-json|exception|stack trace/i.test(raw)) {
+      return "Something went wrong on our side. Please try again in a moment.";
+    }
+    if (status === 401) return "Your session may have expired. Please sign in again.";
+    if (/user not found|player not found/i.test(raw)) return "We couldn't find that player.";
+    if (/conversation not found/i.test(raw)) return "This conversation is no longer available.";
+    if (/invalid (item|category|targetuserid|participant|friendid|request|trophies array|objectid)/i.test(raw)) {
+      return "Some information looks incorrect. Please check it and try again.";
+    }
+    if (status === 403 && !raw) return "You can't do that with this account.";
+    if (status === 404 && !raw) return "We couldn't find what you were looking for.";
+    return raw || "We couldn't complete that. Please try again.";
   },
 
   // ── AUTH ───────────────────────────────────────────────

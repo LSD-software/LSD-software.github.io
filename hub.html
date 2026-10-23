@@ -30,10 +30,10 @@
   <link rel="stylesheet" href="css/auth-modal.css">
   <link rel="stylesheet" href="css/badges.css">
   <link rel="stylesheet" href="css/hub.css">
-  <link rel="stylesheet" href="css/cosmetics.css?v=20261021-artwork">
+  <link rel="stylesheet" href="css/cosmetics.css?v=20261023-restored-details">
   <link rel="stylesheet" href="css/footer.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.383.0/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="css/mobile-optimization.css">
+  <link rel="stylesheet" href="css/mobile-optimization.css?v=20261023-restored-details">
 </head>
 <body id="hubBody">
 
@@ -277,7 +277,7 @@
           <img src="img/icon.png" alt="LSD Software logo">
           <span>LSD SOFTWARE</span>
         </div>
-        <p>Free indie games &amp; digital experiments, made by a small team of computer science students in Milan, Italy.</p>
+        <p>Free indie games and playful digital worlds, made by an independent team in Milan, Italy.</p>
         <div class="footer-social">
           <a href="https://discord.gg/c4xhySpw7c" target="_blank" rel="noopener noreferrer" aria-label="Join the LSD Software Discord"><i data-lucide="message-square"></i></a>
           <a href="contact.html" aria-label="Contact LSD Software"><i data-lucide="mail"></i></a>
@@ -354,10 +354,10 @@
   <script src="js/icons.js"></script>
   <script src="js/auth-modal.js"></script>
   <script src="js/badges.js"></script>
-  <script src="js/profile-view.js?v=20261021-artwork"></script>
+  <script src="js/profile-view.js?v=20261023-restored-details"></script>
   <script src="js/dust.js"></script>
-  <script src="js/shop.js?v=20261021-artwork"></script>
-  <script src="js/friends.js"></script>
+  <script src="js/shop.js?v=20261023-restored-details"></script>
+  <script src="js/friends.js?v=20261023-restored-details"></script>
   <script src="js/messages.js"></script>
   <script src="js/push.js"></script>
   <script src="js/footer.js"></script>
@@ -454,7 +454,7 @@
           document.getElementById("hubDustNum").textContent = d.lsdDust.toLocaleString("en-US");
           document.getElementById("hubDustPill").classList.remove("hidden");
         } else if (errEl) {
-          errTextEl.textContent = `Couldn't load LSD Dust (server said: ${dustRes.status}).`;
+          errTextEl.textContent = "Your coin balance is temporarily unavailable. Please try again shortly.";
           errEl.classList.remove("hidden");
         }
 
@@ -469,7 +469,7 @@
             </div>
           `).join("");
         } else if (errEl) {
-          errTextEl.textContent = `Couldn't load badges (server said: ${badgesRes.status}).`;
+          errTextEl.textContent = "Your badges are temporarily unavailable. Please try again shortly.";
           errEl.classList.remove("hidden");
         }
       } catch (e) {

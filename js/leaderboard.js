@@ -8,6 +8,24 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentGame = "cardgame";
   let myUser      = typeof Api !== "undefined" ? Api.getUser() : null;
 
+  // Local artwork for the equipped public avatar.
+  const LB_AVATAR_ART = {
+    icon_default: "avatar-arcade-core.webp",
+    icon_cards: "avatar-lsd-logo.webp",
+    icon_fish: "avatar-pixel-pad.webp",
+    icon_pad: "avatar-pixel-pad.webp",
+    icon_ghost: "avatar-skull.webp",
+    icon_dragon: "avatar-dragon.webp"
+  };
+  function playerAvatarHtml(cosmetics) {
+    const c = cosmetics || {};
+    const border = c.border?.css || "border-default";
+    const file = LB_AVATAR_ART[c.icon?.id];
+    const visual = file ? `<img class="cosmetic-avatar-art" src="img/cosmetics/${file}" alt="" loading="lazy" decoding="async">` : escHtml(c.icon?.icon || "🙂");
+    return `<span class="lb-avatar lsd-avatar-wrap sm ${escHtml(border)}" aria-hidden="true">${border === "border-spin" ? '<span class="lsd-avatar-ring"></span>' : ""}${border === "border-orbit" ? '<span class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></span>' : ""}<span class="lsd-avatar-inner">${visual}</span></span>`;
+  }
+
+
   // ── INIT ────────────────────────────────────────────────
   loadLeaderboard();
 
@@ -96,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tr.className = rankClass;
       tr.innerHTML = `
         <td class="col-rank">${medalHtml}</td>
-        <td><span class="player-name player-clickable ${isMe ? "is-me" : ""}" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></td>
+        <td><span class="lb-player-cell">${playerAvatarHtml(row.cosmetics)}<span class="player-name player-clickable ${isMe ? "is-me" : ""}" onclick="window.LSDProfileView && LSDProfileView.show('${row.userId}')">${escHtml(row.username)}</span></span></td>
         <td class="col-score" style="text-align:right"><span class="${scoreClass}">${fmt(row.score)}</span></td>
         <td class="col-coins" style="text-align:right"><span class="${coinsClass}">${fmt(row.coins)}</span></td>
         <td class="col-streak" style="text-align:right"><span class="${streakClass}">${fmt(row.winStreak)}</span></td>

@@ -61,10 +61,21 @@
     return `<span class="friend-dot ${online ? "online" : "offline"}" title="${online ? "Online" : "Offline"}"></span>`;
   }
 
+  const FRIEND_AVATAR_ART = {
+    "icon_default": "avatar-arcade-core.webp",
+    "icon_cards": "avatar-lsd-logo.webp",
+    "icon_fish": "avatar-pixel-pad.webp",
+    "icon_pad": "avatar-pixel-pad.webp",
+    "icon_ghost": "avatar-skull.webp",
+    "icon_dragon": "avatar-dragon.webp"
+};
   function avatarHtml(cosmetics) {
     const c = cosmetics || {};
     const border = c.border?.css || "border-default";
-    const icon = escHtml(c.icon?.icon || "🙂");
+    const file = FRIEND_AVATAR_ART[c.icon?.id];
+    const icon = file
+      ? `<img class="cosmetic-avatar-art" src="img/cosmetics/${file}" alt="" loading="lazy" decoding="async">`
+      : escHtml(c.icon?.icon || "🙂");
     return `<span class="friend-avatar lsd-avatar-wrap sm ${escHtml(border)}" aria-hidden="true">${border === "border-spin" ? '<span class="lsd-avatar-ring"></span>' : ""}${border === "border-orbit" ? '<span class="lsd-avatar-particles"><span></span><span></span><span></span><span></span><span></span><span></span></span>' : ""}<span class="lsd-avatar-inner">${icon}</span></span>`;
   }
 
